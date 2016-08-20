@@ -104,7 +104,7 @@ pygments_style = 'sphinx'
 #html_theme = 'default'
 
 html_theme = "armstrong"
-html_theme_path = ["/home/gutosurrex/gsync/Programming/grook/conf", ]
+html_theme_path = ["/home/gutosurrex/gsync/Programming/leevro/conf", ]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

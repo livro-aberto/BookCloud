@@ -1,0 +1,38 @@
+<html>
+  <head>
+    <style>
+    .flex-container {
+        display: -webkit-flex;
+        display: flex;
+        width: 1400px;
+        height: 650px;
+        background-color: lightgrey;
+    }
+
+    .flex-item {
+        background-color: cornflowerblue;
+        width: 600px;
+        height: 500px;
+        margin: 10px;
+    }
+    </style>
+
+    {{ codemirror.include_codemirror() }}
+  </head>
+  <body>
+    <div class="flex-container">
+        <div class="flex-item">
+          <form method="POST">
+            {{ form.csrf_token }}
+            {{ form.source_code }}
+            <br><br>
+            <input id="preview" name="preview" type="submit" formaction="edit" value="Preview">
+            <input id="submit" name="submit" type="submit" formaction="save" value="Submit">
+          </form>
+        </div>
+        <div class="flex-item">
+          bla
+        </div>
+    </div>
+  </body>
+</html>
