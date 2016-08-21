@@ -1,5 +1,9 @@
 <html>
   <head>
+    <link rel="stylesheet" href="/_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="/_static/basic.css" type="text/css" />
+    <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />
+
     <style>
     .flex-container {
         display: -webkit-flex;
@@ -9,30 +13,46 @@
         background-color: lightgrey;
     }
 
-    .flex-item {
+    .flex-item, .flex-item-rigid {
         background-color: cornflowerblue;
-        width: 600px;
-        height: 500px;
+        width: 670px;
+        height: 600px;
         margin: 10px;
+    }
+    .flex-item {
+        overflow: scroll;
     }
     </style>
 
-    {{ codemirror.include_codemirror() }}
+    <link rel="stylesheet" href="http://codemirror.net/lib/codemirror.css">
+    <script src="http://codemirror.net/lib/codemirror.js"></script>
+    <script src="http://codemirror.net/addon/mode/overlay.js"></script>
+    <script type="text/javascript"  src="http://codemirror.net/mode/rst/rst.js"></script>
+
   </head>
   <body>
     <div class="flex-container">
-        <div class="flex-item">
-          <form method="POST">
-            {{ form.csrf_token }}
-            {{ form.source_code }}
-            <br><br>
-            <input id="preview" name="preview" type="submit" formaction="edit" value="Preview">
-            <input id="submit" name="submit" type="submit" formaction="save" value="Submit">
-          </form>
-        </div>
-        <div class="flex-item">
-          bla
-        </div>
+      <div class="flex-item-rigid">
+        <form><textarea id="code" name="code">
+{{ rst }}
+        </textarea>
+
+        <br>
+        <input id="preview" name="preview" type="submit" value="Preview">
+        <input id="submit" name="submit" type="submit" formaction="/save" value="Submit">
+        </form>
+      </div>
+
+      <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: false,
+        });
+        editor.setSize(670, 500);
+      </script>
+
+      <div class="flex-item">
+        {{ doc | safe }}
+      </div>
     </div>
   </body>
 </html>

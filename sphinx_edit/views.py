@@ -1,10 +1,10 @@
 from sphinx_edit import app
 import flask
-from flask import render_template
+from flask import render_template, request, redirect
 import codecs # deals with encoding better
 
 from flask.ext.wtf import Form
-from flask.ext.codemirror.fields import CodeMirrorField
+#from flask.ext.codemirror.fields import CodeMirrorField
 from wtforms.fields import SubmitField
 
 # Change this password
@@ -12,19 +12,28 @@ app.config['SECRET_KEY'] = 'swell-secret-password'
 
 class MyForm(Form):
     conf = {
-        'lineNumbers': False,
-        'autofocus': True
+        'lineNumbers': True,
+        'autofocus': False
     }
-    source_code = CodeMirrorField(language='python', config=conf)
+    #source_code = CodeMirrorField(language='text/rst', config=conf)
 
 user_repo_path = '/home/gutosurrex/rsync/Projetos/grook/bla'
 
+@app.route('/save', methods = ['GET', 'POST'])
+def save():
+    return "Saved"
+
 @app.route('/edit/<filename>', methods = ['GET', 'POST'])
 def edit(filename):
-    form = MyForm()
-    if form.validate_on_submit():
-        print(form.source_code.data)
-    return render_template('edit.html', form = form)
+    #if request.method == 'POST':
+    #    return redirect('/save')
+    with codecs.open(user_repo_path + '/build/bare/'
+                     + filename + '.html', 'r', 'utf-8') as content_file:
+        doc = content_file.read()
+    with codecs.open(user_repo_path + '/source/'
+                     + filename + '.rst', 'r', 'utf-8') as content_file:
+        rst = content_file.read()
+    return render_template('edit.html', doc=doc, rst=rst)
 
 @app.route('/comment_summary/<filename>')
 def comment_summary(filename):
