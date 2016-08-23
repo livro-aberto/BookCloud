@@ -4,18 +4,18 @@ import os
 from flask import render_template, render_template_string, request, redirect
 import codecs # deals with encoding better
 
-from flask.ext.wtf import Form
+#from flask.ext.wtf import Form
 #from flask.ext.codemirror.fields import CodeMirrorField
-from wtforms.fields import SubmitField
+#from wtforms.fields import SubmitField
 
 # Change this password
 app.config['SECRET_KEY'] = 'swell-secret-password'
 
-class MyForm(Form):
-    conf = {
-        'lineNumbers': True,
-        'autofocus': False
-    }
+#class MyForm(Form):
+#    conf = {
+#        'lineNumbers': True,
+#        'autofocus': False
+#    }
     #source_code = CodeMirrorField(language='text/rst', config=conf)
 
 user_repo_path = '/home/gutosurrex/gsync/Programming/leevro/repos/bla'
