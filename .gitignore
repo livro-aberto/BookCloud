@@ -1,3 +1,6 @@
+sphinx_edit/static/sphinx_static/*
+repos/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

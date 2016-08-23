@@ -1,6 +1,7 @@
 from sphinx_edit import app
 import flask
-from flask import render_template, request, redirect
+import os
+from flask import render_template, render_template_string, request, redirect
 import codecs # deals with encoding better
 
 from flask.ext.wtf import Form
@@ -17,7 +18,7 @@ class MyForm(Form):
     }
     #source_code = CodeMirrorField(language='text/rst', config=conf)
 
-user_repo_path = '/home/gutosurrex/rsync/Projetos/grook/bla'
+user_repo_path = '/home/gutosurrex/gsync/Programming/leevro/repos/bla'
 
 @app.route('/save', methods = ['GET', 'POST'])
 def save():
@@ -27,9 +28,10 @@ def save():
 def edit(filename):
     #if request.method == 'POST':
     #    return redirect('/save')
-    with codecs.open(user_repo_path + '/build/bare/'
+    filename, file_extension = os.path.splitext(filename)
+    with codecs.open(user_repo_path + '/build/html/'
                      + filename + '.html', 'r', 'utf-8') as content_file:
-        doc = content_file.read()
+        doc = render_template_string(content_file.read(), standalone=False, render_sidebar=False)
     with codecs.open(user_repo_path + '/source/'
                      + filename + '.rst', 'r', 'utf-8') as content_file:
         rst = content_file.read()
@@ -41,38 +43,16 @@ def comment_summary(filename):
 
 @app.route('/_static/<filename>')
 def resources(filename):
-    # to return a sub html
-    # with codecs.open('/tmp/bla/build/html/index.html', 'r', 'utf-8') as content_file:
-    #     content = content_file.read()
-    #
-    # content.encode('utf-8')
-    # print(content)
-    # return render_template('view.html', content=content)
+    return flask.send_from_directory( '/home/gutosurrex/gsync/Programming/leevro/sphinx_edit/static/sphinx_static/', filename)
 
-    #return render_template('view.html', content="abc")
-    #return '<iframe srcdoc="' + content + '</iframe>'
-    #return '<frame src="/tmp/bla/build/html/index.html"></iframe>'
-
-    # Replace this by
-    return flask.send_from_directory( '/home/gutosurrex/gsync/Programming/leevro/sphinx_edit/static/sphinx_static/',#app.config['UPLOAD_FOLDER'],
-        filename
-    )
-
-@app.route('/', defaults={'filename': 'index.html'})
+#@app.route('/', defaults={'filename': 'index.html'})
 @app.route('/<path:filename>')
+#@app.route('/<path:filename>.html')
 def navigate(filename):
-    # to return a sub html
-    # with codecs.open('/tmp/bla/build/html/index.html', 'r', 'utf-8') as content_file:
-    #     content = content_file.read()
-    #
-    # content.encode('utf-8')
-    # print(content)
-    # return render_template('view.html', content=content)
+    print("bla")
+    filename, file_extension = os.path.splitext(filename)
+    with codecs.open(user_repo_path + '/build/html/' + filename + '.html', 'r', 'utf-8') as content_file:
+        content = content_file.read()
 
-    #return render_template('view.html', content="abc")
-    #return '<iframe srcdoc="' + content + '</iframe>'
-    #return '<frame src="/tmp/bla/build/html/index.html"></iframe>'
-    return flask.send_from_directory(
-        user_repo_path + '/build/html/',#app.config['UPLOAD_FOLDER'],
-        filename
-    )
+    return render_template_string(content, content=content, standalone=True,render_sidebar=True)
+
