@@ -37,8 +37,8 @@ html_theme_options = {'nosidebar': False}
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.todo',
-    'sphinx.ext.mathjax',
+    'sphinx.ext.todo'#,
+    #'sphinx.ext.mathjax',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -170,7 +170,7 @@ pygments_style = 'sphinx'
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = True
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True

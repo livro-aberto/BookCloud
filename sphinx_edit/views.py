@@ -1,7 +1,7 @@
 import os
 from os.path import join
 import flask
-from flask import render_template, render_template_string, request, redirect, url_for
+from flask import render_template, render_template_string, request, redirect, url_for, Response
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 from sphinx_edit import app
 
@@ -28,7 +28,7 @@ def build(source_path, target_path, conf_path, flags):
 def save(filename):
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
-            dest_file.write(request.form['code'])
+            dest_file.write(request.form['code'].encode('utf8'))
     build(join(user_repo_path, 'source'), join(user_repo_path, 'build/html'), config_path, '')
     return "Saved"
 
@@ -38,7 +38,7 @@ def edit(filename):
     filename, file_extension = os.path.splitext(filename)
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
-            dest_file.write(request.form['code'])
+            dest_file.write(request.form['code'].encode('utf8'))
     build(join(user_repo_path, 'source'), join(user_repo_path, 'build/html'), config_path, '')
 
     with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'r', 'utf-8') as content_file:
@@ -59,11 +59,19 @@ def get_static(filename):
 def index():
     return redirect('index')
 
+@app.route('/_sources/<filename>')
+def show_source(filename):
+    with codecs.open(join(user_repo_path, 'build/html/_sources', filename), 'r', 'utf-8') as content_file:
+        content = content_file.read()
+    return Response(content, mimetype='text/txt')
+
 @app.route('/<path:filename>')
 def navigate(filename):
     print(filename)
     filename, file_extension = os.path.splitext(filename)
-    with codecs.open(join(user_repo_path, 'build/html', filename + '.html'), 'r', 'utf-8') as content_file:
+    if file_extension == "":
+        file_extension = '.html'
+    with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
         content = content_file.read()
 
     return render_template_string(content, content=content, standalone=True, render_sidebar=True)
