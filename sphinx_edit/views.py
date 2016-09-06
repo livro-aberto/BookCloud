@@ -47,6 +47,10 @@ def edit(filename):
         doc = render_template_string(content_file.read(), standalone=False, render_sidebar=False)
     return render_template('edit.html', doc=doc, rst=rst, filename=filename)
 
+@app.route('/edit/_images/<filename>', methods = ['GET'])
+def get_tikz(filename):
+    return flask.send_from_directory(os.path.abspath(user_repo_path + '/build/html/_images/'), filename)
+
 @app.route('/comment_summary/<filename>')
 def comment_summary(filename):
     return "Comments from " + filename
@@ -71,6 +75,7 @@ def navigate(filename):
     filename, file_extension = os.path.splitext(filename)
     if file_extension == "":
         file_extension = '.html'
+    print(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8')
     with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
         content = content_file.read()
 
