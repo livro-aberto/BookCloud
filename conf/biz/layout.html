@@ -32,21 +32,35 @@
 {%- macro relbar() %}
   <div class="related" role="navigation" aria-label="related navigation">
     <h3>{{ _('Navigation') }}</h3>
+
+    <ul>
+      <li class="left">
+        <a href="{{ pagename }}" title="{{ pagename }}">{{ pagename }}</a>
+      </li>
+      <li class="right" style="margin-right: 10px">
+        <a href="edit/{{ pagename }}" title="edit">edit</a>
+      </li>
+      <li class="right" style="margin-right: 10px">
+        <a href="logout" title="logout">logout</a>
+      </li>
+    </ul>
+
     <ul>
       {%- for rellink in rellinks %}
         <li class="right" {% if loop.first %}style="margin-right: 10px"{% endif %}>
           <a href="{{ pathto(rellink[0]) }}" title="{{ rellink[1]|striptags|e }}"
              {{ accesskey(rellink[2]) }}>{{ rellink[3] }}</a>
              {%- if not loop.first %}{{ reldelim2 }}{% endif %}</li>
-           {%- endfor %}
-           {%- block rootrellink %}
-             <li><a href="{{ pathto(master_doc) }}">{{ shorttitle|e }}</a>{{ reldelim1 }}</li>
-           {%- endblock %}
-           {%- for parent in parents %}
-             <li><a href="{{ parent.link|e }}" {% if loop.last %}{{ accesskey("U") }}{% endif %}>{{ parent.title }}</a>{{ reldelim1 }}</li>
-           {%- endfor %}
-           {%- block relbaritems %} {% endblock %}
+      {%- endfor %}
+      {%- block rootrellink %}
+        <li><a href="{{ pathto(master_doc) }}">{{ shorttitle|e }}</a>{{ reldelim1 }}</li>
+      {%- endblock %}
+      {%- for parent in parents %}
+        <li><a href="{{ parent.link|e }}" {% if loop.last %}{{ accesskey("U") }}{% endif %}>{{ parent.title }}</a>{{ reldelim1 }}</li>
+      {%- endfor %}
+      {%- block relbaritems %} {% endblock %}
     </ul>
+
   </div>
 {%- endmacro %}
 
