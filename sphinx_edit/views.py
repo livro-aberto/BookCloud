@@ -60,9 +60,9 @@ def get_tikz(filename):
 def comment_summary(filename):
     return "Comments from " + filename
 
-@app.route('/_static/<filename>')
-def get_static(filename):
-    return flask.send_from_directory(os.path.abspath('sphinx_edit/static/sphinx_static/'), filename)
+#@app.route('/_static/<filename>')
+#def get_static(filename):
+#    return flask.send_from_directory(os.path.abspath('sphinx_edit/static/'), filename)
 
 @app.route('/')
 def index():
@@ -79,7 +79,10 @@ def show_source(filename):
 @app.route('/<path:filename>')
 def navigate(filename):
     # Think if this should really be from the user
-    user_repo_path = join('repos', current_user.username)
+    if (current_user.is_authenticated):
+        user_repo_path = join('repos', current_user.username)
+    else:
+        user_repo_path = join('repos', 'main')
     filename, file_extension = os.path.splitext(filename)
     if file_extension == "":
         file_extension = '.html'
