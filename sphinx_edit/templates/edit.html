@@ -1,5 +1,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <title>Edit: {{ filename }}</title>
     <link rel="stylesheet" href="/_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="/_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />
@@ -9,6 +10,25 @@
     <script src="/_static/overlay.js"></script>
     <script type="text/javascript"  src="/_static/rst.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <script>
+      // inserts text around the cursor or selection
+      function insertAround(start, end) {
+        var doc = editor;
+        var cursor = doc.getCursor();
+
+        if (doc.somethingSelected()) {
+          var selection = doc.getSelection();
+          doc.replaceSelection(start + selection + end);
+        } else {
+          // If no selection then insert start and end args and set cursor position between the two.
+          doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
+          doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
+        }
+        editor.focus();
+      }
+    </script>
+
 
     <style>
     .flex-container {
@@ -21,7 +41,7 @@
 
     .CodeMirror {
         border: 1px solid #eee;
-        height: 80vh;
+        height: 65vh;
     }
 
     .flex-item, .flex-item-rigid {
@@ -31,6 +51,11 @@
     }
     .flex-item {
         overflow: scroll;
+    }
+    button
+    {
+        margin: -1px;
+        padding: 0px;
     }
     </style>
 
@@ -56,6 +81,48 @@
           <div class="body" role="main">
             <div class="flex-container" align="left">
               <div class="flex-item-rigid">
+                <p style="line-height: 200%;">
+                  <nobr>
+                    Titles
+                    <button onclick="insertAround('\n********\nCap&#237;tulo\n********','')">Cap</button>
+                    <button onclick="insertAround('\nSe&#231;&#227;o\n=====','')">Sec</button>
+                    <button onclick="insertAround('\nSub-se&#231;&#227;o\n---------','')">Sub</button>
+                  </nobr>
+                  <nobr>
+                    Style
+                    <button onclick="insertAround('**','**')"><b>B</b></button>
+                    <button onclick="insertAround('*','*')" style="font-family:verdana;"><i>I</i></button>
+                    <button onclick="insertAround('\n* a\n* b','')">&#x2D57</button>
+                    <button onclick="insertAround('\n1. a\n2. b','')">1.</button>
+                    <button onclick="insertAround('\n.. note::\n\n   something','')">!</button>
+                  </nobr>
+                  <nobr>
+                    Image
+                    <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">: <font size="1">&#x263a</font></button>
+                    <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">&#x263a</button>
+                    <button onclick="insertAround('\n+---+---+\n| A | B |\n+===+===+\n| 0 | 1 |\n+---+---+\n| 2 | 3 |\n+---+---+','')">&#x25EB</button>
+                    <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')">&#x25B3</button>
+                  </nobr>
+                  <nobr>
+                    Eq.:
+                    <button onclick="insertAround('`a`','')">: &#x1D4CD</button>
+                    <button onclick="insertAround('\n.. math::\n\n   a^2 = b','')">&#x1D4E7</button>
+                  </nobr>
+                  <nobr>
+                    In math mode:
+                    <button onclick="insertAround('\\frac{1}{2}','')">&#xBD</button>
+                    <button onclick="insertAround('\\sin(',')')">sin</button>
+                    <button onclick="insertAround('\\cos(',')')">cos</button>
+                    <button onclick="insertAround('\\neq','')">&#x2260</button>
+                    <button onclick="insertAround('\\cap','')">&#x2229</button>
+                    <button onclick="insertAround('\\cup','')">&#x222A</button>
+                    <button onclick="insertAround('\\mathbb{R}','')">&#x211D</button>
+                    <button onclick="insertAround('\\mathbb{Q}','')">&#x211A</button>
+                    <button onclick="insertAround('\\mathbb{Z}','')">&#x2124</button>
+                    <button onclick="insertAround('\\mathbb{N}','')">&#x2115</button>
+                    <button onclick="insertAround('\\in','')">&#x2208</button>
+                    <button onclick="insertAround('\\subset','')">&#x2282</button>
+                  </nobr>
                 <form method="post">
                   <textarea id="code" name="code">{{ rst }}</textarea>
                   <br>
@@ -69,10 +136,9 @@
 
               <script>
                 var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-                lineNumbers: false,
-                lineWrapping: true,
+                  lineNumbers: false,
+                  lineWrapping: true,
                 });
-                //editor.setSize(670, 550);
               </script>
 
               <div class="flex-item">
