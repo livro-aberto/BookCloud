@@ -8,7 +8,6 @@ from sphinx_edit import app
 import codecs # deals with encoding better
 import sphinx
 
-user_repo_path = 'repos/bla'
 config_path = 'conf'
 
 def build(source_path, target_path, conf_path, flags):
@@ -26,6 +25,7 @@ def build(source_path, target_path, conf_path, flags):
 @app.route('/save/<filename>', methods = ['GET', 'POST'])
 @login_required
 def save(filename):
+    user_repo_path = join('repos', current_user.username)
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
@@ -37,6 +37,7 @@ def save(filename):
 @login_required
 def edit(filename):
     filename, file_extension = os.path.splitext(filename)
+    user_repo_path = join('repos', current_user.username)
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
@@ -51,6 +52,8 @@ def edit(filename):
 @app.route('/_images/<filename>', methods = ['GET'])
 @app.route('/edit/_images/<filename>', methods = ['GET'])
 def get_tikz(filename):
+    # Think if this should really be from the user
+    user_repo_path = join('repos', current_user.username)
     return flask.send_from_directory(os.path.abspath(user_repo_path + '/build/html/_images/'), filename)
 
 @app.route('/comment_summary/<filename>')
@@ -67,13 +70,16 @@ def index():
 
 @app.route('/_sources/<filename>')
 def show_source(filename):
+    # Think if this should really be from the user
+    user_repo_path = join('repos', current_user.username)
     with codecs.open(join(user_repo_path, 'build/html/_sources', filename), 'r', 'utf-8') as content_file:
         content = content_file.read()
     return Response(content, mimetype='text/txt')
 
 @app.route('/<path:filename>')
 def navigate(filename):
-    print(filename)
+    # Think if this should really be from the user
+    user_repo_path = join('repos', current_user.username)
     filename, file_extension = os.path.splitext(filename)
     if file_extension == "":
         file_extension = '.html'
@@ -86,6 +92,10 @@ def navigate(filename):
 @app.route('/images/<filename>')
 def get_image(filename):
     return flask.send_from_directory(os.path.abspath('images'), filename)
+
+@app.route('/genindex.html')
+def genindex():
+    return redirect(url_for('index'))
 
 @app.route('/login')
 def login():
