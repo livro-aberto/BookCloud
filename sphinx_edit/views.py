@@ -30,7 +30,8 @@ def save(filename):
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
     build(join(user_repo_path, 'source'), join(user_repo_path, 'build/html'), config_path, '')
-    return "Saved"
+    # return "Saved"
+    return redirect(filename)
 
 @app.route('/edit/<filename>', methods = ['GET', 'POST'])
 @login_required
@@ -47,6 +48,7 @@ def edit(filename):
         doc = render_template_string(content_file.read(), standalone=False, render_sidebar=False)
     return render_template('edit.html', doc=doc, rst=rst, filename=filename)
 
+@app.route('/_images/<filename>', methods = ['GET'])
 @app.route('/edit/_images/<filename>', methods = ['GET'])
 def get_tikz(filename):
     return flask.send_from_directory(os.path.abspath(user_repo_path + '/build/html/_images/'), filename)
