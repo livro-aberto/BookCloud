@@ -1,1 +1,0 @@
-remove specific configurations from conf/conf.py, they should go to toml and be imported

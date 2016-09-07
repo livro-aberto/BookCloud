@@ -1,6 +1,9 @@
   - make sure usernames are alphanumeric only
   - automate test using pytest
-  - 
+  - enable debugger only on localhost
+  - remove specific configurations from conf/conf.py, they should go to toml and be imported
+
+
 
 ```
 mkdir test

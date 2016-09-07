@@ -5,10 +5,34 @@ from flask import render_template, render_template_string, request, redirect, ur
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 from sphinx_edit import app
 
+from shutil import copyfile
+import git
+
 import codecs # deals with encoding better
 import sphinx
 
 config_path = 'conf'
+
+def check_init():
+    # Check if the main repository has already been initiated
+    repo_path = 'repos/main'
+    if (not os.path.isdir(repo_path)):
+        os.makedirs(repo_path)
+        git.Repo.init(repo_path)
+        repo = git.Repo(repo_path)
+        os.makedirs(join(repo_path, 'source'))
+        os.makedirs(join(repo_path, 'build'))
+        copyfile('sphinx_edit/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
+        copyfile('sphinx_edit/empty_repo/.gitignore', join(repo_path, '.gitignore'))
+        repo.index.add(['source/index.rst', '.gitignore'])
+        repo.index.commit('Initial commit')
+        build('repos/main/source', 'repos/main/build/html', config_path, '')
+
+    # Check if the user repo has already been initiated
+
+
+
+
 
 def build(source_path, target_path, conf_path, flags):
     # Replace this terrible implementation
@@ -21,6 +45,23 @@ def build(source_path, target_path, conf_path, flags):
     # if sphinx.build_main(args + [source_path, target_path]):
     #     return False
     # return True
+
+@app.route('/<path:filename>')
+def navigate(filename):
+    # Think if this should really be from the user
+    check_init()
+    if (current_user.is_authenticated):
+        user_repo_path = join('repos', current_user.username)
+    else:
+        user_repo_path = join('repos', 'main')
+    filename, file_extension = os.path.splitext(filename)
+    if file_extension == "":
+        file_extension = '.html'
+    print(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8')
+    with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
+        content = content_file.read()
+
+    return render_template_string(content, content=content, standalone=True, render_sidebar=True)
 
 @app.route('/save/<filename>', methods = ['GET', 'POST'])
 @login_required
@@ -75,22 +116,6 @@ def show_source(filename):
     with codecs.open(join(user_repo_path, 'build/html/_sources', filename), 'r', 'utf-8') as content_file:
         content = content_file.read()
     return Response(content, mimetype='text/txt')
-
-@app.route('/<path:filename>')
-def navigate(filename):
-    # Think if this should really be from the user
-    if (current_user.is_authenticated):
-        user_repo_path = join('repos', current_user.username)
-    else:
-        user_repo_path = join('repos', 'main')
-    filename, file_extension = os.path.splitext(filename)
-    if file_extension == "":
-        file_extension = '.html'
-    print(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8')
-    with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
-        content = content_file.read()
-
-    return render_template_string(content, content=content, standalone=True, render_sidebar=True)
 
 @app.route('/images/<filename>')
 def get_image(filename):
