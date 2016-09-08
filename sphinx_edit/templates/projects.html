@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block title %}List of projects{% endblock%}
+
+{% block contents %}
+<ul id="navigation">
+  {% for p in projects %}
+  <li><a href="/{{ p }}/view">{{ p }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}
+

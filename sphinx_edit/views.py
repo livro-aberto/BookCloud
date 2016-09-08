@@ -1,5 +1,5 @@
 import os
-from os.path import join
+from os.path import join, isdir
 import flask
 from flask import render_template, render_template_string, request, redirect, url_for, Response
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
@@ -116,6 +116,12 @@ def get_static(filename, action):
 @app.route('/aaa')
 def index():
     return redirect('aaa/index')
+
+@app.route('/')
+def view_projects():
+    path = 'repos'
+    projects = [d for d in os.listdir(path) if isdir(join(path, d))]
+    return render_template('projects.html', projects=projects)
 
 @app.route('/_sources/<path:filename>')
 def show_source(filename):

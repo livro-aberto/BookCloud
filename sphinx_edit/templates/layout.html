@@ -1,0 +1,36 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    {% block head %}<title>{% block title %}{% endblock %}</title>
+      <link rel="stylesheet" href="/_static/bizstyle.css" type="text/css" />
+      <link rel="stylesheet" href="/_static/basic.css" type="text/css" />
+      <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />
+    {% endblock %}
+
+    <link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
+    <script src="https://codemirror.net/lib/codemirror.js"></script>
+    <script src="https://codemirror.net/addon/mode/overlay.js"></script>
+    <script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    {% block scripts %}{% endblock %}
+
+  </head>
+  <body role="document">
+    {% block top %}
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      {% block top_bar %}
+      {% endblock %}
+    </div>
+    {% endblock %}
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper" style="margin: 0 0 0 0">
+          <div class="body" role="main">
+            {% block contents %}{% endblock %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

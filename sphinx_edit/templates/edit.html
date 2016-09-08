@@ -1,16 +1,8 @@
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Edit: {{ filename }}</title>
-    <link rel="stylesheet" href="/_static/bizstyle.css" type="text/css" />
-    <link rel="stylesheet" href="/_static/basic.css" type="text/css" />
-    <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />
+{% extends "layout.html" %}
 
-    <link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
-    <script src="https://codemirror.net/lib/codemirror.js"></script>
-    <script src="https://codemirror.net/addon/mode/overlay.js"></script>
-    <script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+{% block title %}Edit: {{ filename }} {% endblock%}
 
+{% block scripts %}
     <script>
       // inserts text around the cursor or selection
       function insertAround(start, end) {
@@ -28,7 +20,6 @@
         editor.focus();
       }
     </script>
-
 
     <style>
     .flex-container {
@@ -58,97 +49,76 @@
         padding: 0px;
     }
     </style>
+{% endblock %}
 
-  </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <!--
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a>
-        </li>
-        <li>
-          <a href="index.html">linux 0.1 documentation</a> &raquo;
-        </li>
-        -->
-      </ul>
-    </div>
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper" style="margin: 0 0 0 0">
-          <div class="body" role="main">
-            <div class="flex-container" align="left">
-              <div class="flex-item-rigid">
-                <p style="line-height: 200%;">
-                  <nobr>
-                    Titles
-                    <button onclick="insertAround('\n********\nCap&#237;tulo\n********','')">Cap</button>
-                    <button onclick="insertAround('\nSe&#231;&#227;o\n=====','')">Sec</button>
-                    <button onclick="insertAround('\nSub-se&#231;&#227;o\n---------','')">Sub</button>
-                  </nobr>
-                  <nobr>
-                    Style
-                    <button onclick="insertAround('**','**')"><b>B</b></button>
-                    <button onclick="insertAround('*','*')" style="font-family:verdana;"><i>I</i></button>
-                    <button onclick="insertAround('\n* a\n* b','')">&#x2D57</button>
-                    <button onclick="insertAround('\n1. a\n2. b','')">1.</button>
-                    <button onclick="insertAround('\n.. note::\n\n   something','')">!</button>
-                  </nobr>
-                  <nobr>
-                    Image
-                    <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">: <font size="1">&#x263a</font></button>
-                    <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">&#x263a</button>
-                    <button onclick="insertAround('\n+---+---+\n| A | B |\n+===+===+\n| 0 | 1 |\n+---+---+\n| 2 | 3 |\n+---+---+','')">&#x25EB</button>
-                    <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')">&#x25B3</button>
-                  </nobr>
-                  <nobr>
-                    Eq.:
-                    <button onclick="insertAround('`a`','')">: &#x1D4CD</button>
-                    <button onclick="insertAround('\n.. math::\n\n   a^2 = b','')">&#x1D4E7</button>
-                  </nobr>
-                  <nobr>
-                    In math mode:
-                    <button onclick="insertAround('\\frac{1}{2}','')">&#xBD</button>
-                    <button onclick="insertAround('\\sin(',')')">sin</button>
-                    <button onclick="insertAround('\\cos(',')')">cos</button>
-                    <button onclick="insertAround('\\neq','')">&#x2260</button>
-                    <button onclick="insertAround('\\cap','')">&#x2229</button>
-                    <button onclick="insertAround('\\cup','')">&#x222A</button>
-                    <button onclick="insertAround('\\mathbb{R}','')">&#x211D</button>
-                    <button onclick="insertAround('\\mathbb{Q}','')">&#x211A</button>
-                    <button onclick="insertAround('\\mathbb{Z}','')">&#x2124</button>
-                    <button onclick="insertAround('\\mathbb{N}','')">&#x2115</button>
-                    <button onclick="insertAround('\\in','')">&#x2208</button>
-                    <button onclick="insertAround('\\subset','')">&#x2282</button>
-                  </nobr>
-                <form method="post">
-                  <textarea id="code" name="code">{{ rst }}</textarea>
-                  <br>
-                  <a href="/{{ filename }}" style="text-decoration:none">
-                    <input type="button" value="Cancel"/>
-                  </a>
-                  <input id="preview" name="preview" type="submit" formaction="/{{ reponame }}/edit/{{ filename }}" value="Preview">
-                  <input id="submit" name="submit" type="submit" formaction="/{{ reponame }}/save/{{ filename }}" value="Submit">
-                </form>
-              </div>
-
-              <script>
-                var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-                  lineNumbers: false,
-                  lineWrapping: true,
-                });
-              </script>
-
-              <div class="flex-item">
-                {{ doc | safe }}
-              </div>
-            </div>
-          </div>
-        </div>
+{% block contents %}
+  <div class="body" role="main">
+    <div class="flex-container" align="left">
+      <div class="flex-item-rigid">
+        <p style="line-height: 200%;">
+          <nobr>
+            Titles
+            <button onclick="insertAround('\n********\nCap&#237;tulo\n********','')">Cap</button>
+            <button onclick="insertAround('\nSe&#231;&#227;o\n=====','')">Sec</button>
+            <button onclick="insertAround('\nSub-se&#231;&#227;o\n---------','')">Sub</button>
+          </nobr>
+          <nobr>
+            Style
+            <button onclick="insertAround('**','**')"><b>B</b></button>
+            <button onclick="insertAround('*','*')" style="font-family:verdana;"><i>I</i></button>
+            <button onclick="insertAround('\n* a\n* b','')">&#x2D57</button>
+            <button onclick="insertAround('\n1. a\n2. b','')">1.</button>
+            <button onclick="insertAround('\n.. note::\n\n   something','')">!</button>
+          </nobr>
+          <nobr>
+            Image
+            <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">: <font size="1">&#x263a</font></button>
+            <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">&#x263a</button>
+            <button onclick="insertAround('\n+---+---+\n| A | B |\n+===+===+\n| 0 | 1 |\n+---+---+\n| 2 | 3 |\n+---+---+','')">&#x25EB</button>
+            <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')">&#x25B3</button>
+          </nobr>
+          <nobr>
+            Eq.:
+            <button onclick="insertAround('`a`','')">: &#x1D4CD</button>
+            <button onclick="insertAround('\n.. math::\n\n   a^2 = b','')">&#x1D4E7</button>
+          </nobr>
+          <nobr>
+            In math mode:
+            <button onclick="insertAround('\\frac{1}{2}','')">&#xBD</button>
+            <button onclick="insertAround('\\sin(',')')">sin</button>
+            <button onclick="insertAround('\\cos(',')')">cos</button>
+            <button onclick="insertAround('\\neq','')">&#x2260</button>
+            <button onclick="insertAround('\\cap','')">&#x2229</button>
+            <button onclick="insertAround('\\cup','')">&#x222A</button>
+            <button onclick="insertAround('\\mathbb{R}','')">&#x211D</button>
+            <button onclick="insertAround('\\mathbb{Q}','')">&#x211A</button>
+            <button onclick="insertAround('\\mathbb{Z}','')">&#x2124</button>
+            <button onclick="insertAround('\\mathbb{N}','')">&#x2115</button>
+            <button onclick="insertAround('\\in','')">&#x2208</button>
+            <button onclick="insertAround('\\subset','')">&#x2282</button>
+          </nobr>
+        <form method="post">
+          <textarea id="code" name="code">{{ rst }}</textarea>
+          <br>
+          <a href="/{{ reponame }}/view/{{ filename }}" style="text-decoration:none">
+            <input type="button" value="Cancel"/>
+          </a>
+          <input id="preview" name="preview" type="submit" formaction="/{{ reponame }}/edit/{{ filename }}" value="Preview">
+          <input id="submit" name="submit" type="submit" formaction="/{{ reponame }}/save/{{ filename }}" value="Submit">
+        </form>
       </div>
 
+      <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+          lineNumbers: false,
+          lineWrapping: true,
+        });
+      </script>
+
+      <div class="flex-item">
+        {{ doc | safe }}
+      </div>
     </div>
-  </body>
-</html>
+  </div>
+{% endblock %}
+
