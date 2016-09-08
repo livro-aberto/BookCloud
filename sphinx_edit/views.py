@@ -13,26 +13,30 @@ import sphinx
 
 config_path = 'conf'
 
-def check_init():
-    # Check if the main repository has already been initiated
+def check_main():
+    # Check if the main repository has already been initiated. Otherwise, do it
     repo_path = 'repos/main'
     if (not os.path.isdir(repo_path)):
         os.makedirs(repo_path)
         git.Repo.init(repo_path)
         repo = git.Repo(repo_path)
         os.makedirs(join(repo_path, 'source'))
-        os.makedirs(join(repo_path, 'build'))
         copyfile('sphinx_edit/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
         copyfile('sphinx_edit/empty_repo/.gitignore', join(repo_path, '.gitignore'))
         repo.index.add(['source/index.rst', '.gitignore'])
         repo.index.commit('Initial commit')
         build('repos/main/source', 'repos/main/build/html', config_path, '')
 
-    # Check if the user repo has already been initiated
-
-
-
-
+def check_user(username):
+    # Check if the user has a repository. Otherwise, clone from main
+    repo_path = join('repos/', username)
+    if (not os.path.isdir(repo_path)):
+        check_main()
+        print('\n\n' + os.getcwd() + '\n\n')
+        print('\n\n' + os.path.dirname(os.path.realpath(__file__)) + '\n\n')
+        main_repo = git.Repo('repos/main')
+        main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
+        build(join(repo_path, 'source'), join(repo_path, 'build/html'), config_path, '')
 
 def build(source_path, target_path, conf_path, flags):
     # Replace this terrible implementation
@@ -49,15 +53,15 @@ def build(source_path, target_path, conf_path, flags):
 @app.route('/<path:filename>')
 def navigate(filename):
     # Think if this should really be from the user
-    check_init()
+    check_main()
     if (current_user.is_authenticated):
         user_repo_path = join('repos', current_user.username)
+        check_user(current_user.username)
     else:
         user_repo_path = join('repos', 'main')
     filename, file_extension = os.path.splitext(filename)
     if file_extension == "":
         file_extension = '.html'
-    print(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8')
     with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
         content = content_file.read()
 
@@ -101,9 +105,13 @@ def get_tikz(filename):
 def comment_summary(filename):
     return "Comments from " + filename
 
-#@app.route('/_static/<filename>')
-#def get_static(filename):
-#    return flask.send_from_directory(os.path.abspath('sphinx_edit/static/'), filename)
+@app.route('/_static/<filename>')
+def get_static(filename):
+    if (current_user.is_authenticated):
+        user_repo_path = join('repos', current_user.username)
+    else:
+        user_repo_path = join('repos', 'main')
+    return flask.send_from_directory(os.path.abspath(join(user_repo_path, 'build/html/_static/')), filename)
 
 @app.route('/')
 def index():
