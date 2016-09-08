@@ -15,7 +15,7 @@ config_path = 'conf'
 
 def check_main():
     # Check if the main repository has already been initiated. Otherwise, do it
-    repo_path = 'repos/main'
+    repo_path = 'repos/aaa/main'
     if (not os.path.isdir(repo_path)):
         os.makedirs(repo_path)
         git.Repo.init(repo_path)
@@ -25,16 +25,16 @@ def check_main():
         copyfile('sphinx_edit/empty_repo/.gitignore', join(repo_path, '.gitignore'))
         repo.index.add(['source/index.rst', '.gitignore'])
         repo.index.commit('Initial commit')
-        build('repos/main/source', 'repos/main/build/html', config_path, '')
+        build(join(repo_path, 'source'), join(repo_path, 'build/html'), config_path, '')
 
 def check_user(username):
     # Check if the user has a repository. Otherwise, clone from main
-    repo_path = join('repos/', username)
+    repo_path = join('repos/aaa', username)
     if (not os.path.isdir(repo_path)):
         check_main()
         print('\n\n' + os.getcwd() + '\n\n')
         print('\n\n' + os.path.dirname(os.path.realpath(__file__)) + '\n\n')
-        main_repo = git.Repo('repos/main')
+        main_repo = git.Repo('repos/aaa/main')
         main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
         build(join(repo_path, 'source'), join(repo_path, 'build/html'), config_path, '')
 
@@ -50,39 +50,39 @@ def build(source_path, target_path, conf_path, flags):
     #     return False
     # return True
 
-@app.route('/<path:filename>')
-def navigate(filename):
+@app.route('/aaa/view/<path:filename>')
+def view(filename):
     # Think if this should really be from the user
     check_main()
     if (current_user.is_authenticated):
-        user_repo_path = join('repos', current_user.username)
+        user_repo_path = join('repos/aaa', current_user.username)
         check_user(current_user.username)
     else:
-        user_repo_path = join('repos', 'main')
+        user_repo_path = join('repos/aaa', 'main')
     filename, file_extension = os.path.splitext(filename)
     if file_extension == "":
         file_extension = '.html'
     with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
         content = content_file.read()
 
-    return render_template_string(content, content=content, standalone=True, render_sidebar=True)
+    return render_template_string(content, content=content, standalone=True, render_sidebar=True, reponame='aaa')
 
-@app.route('/save/<filename>', methods = ['GET', 'POST'])
+@app.route('/aaa/save/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def save(filename):
-    user_repo_path = join('repos', current_user.username)
+    user_repo_path = join('repos/aaa', current_user.username)
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
     build(join(user_repo_path, 'source'), join(user_repo_path, 'build/html'), config_path, '')
     # return "Saved"
-    return redirect(filename)
+    return redirect('/aaa/view/' + filename)
 
-@app.route('/edit/<filename>', methods = ['GET', 'POST'])
+@app.route('/aaa/edit/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def edit(filename):
     filename, file_extension = os.path.splitext(filename)
-    user_repo_path = join('repos', current_user.username)
+    user_repo_path = join('repos/aaa', current_user.username)
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
@@ -92,32 +92,32 @@ def edit(filename):
         rst = content_file.read()
     with codecs.open(join(user_repo_path, 'build/html', filename + '.html'), 'r', 'utf-8') as content_file:
         doc = render_template_string(content_file.read(), standalone=False, render_sidebar=False)
-    return render_template('edit.html', doc=doc, rst=rst, filename=filename)
+    return render_template('edit.html', doc=doc, rst=rst, filename=filename, reponame='aaa')
 
-@app.route('/_images/<filename>', methods = ['GET'])
-@app.route('/edit/_images/<filename>', methods = ['GET'])
+@app.route('/aaa/_images/<path:filename>', methods = ['GET'])
+@app.route('/edit/aaa/_images/<path:filename>', methods = ['GET'])
 def get_tikz(filename):
     # Think if this should really be from the user
-    user_repo_path = join('repos', current_user.username)
+    user_repo_path = join('repos/aaa', current_user.username)
     return flask.send_from_directory(os.path.abspath(user_repo_path + '/build/html/_images/'), filename)
 
-@app.route('/comment_summary/<filename>')
+@app.route('/comment_summary/aaa/<path:filename>')
 def comment_summary(filename):
     return "Comments from " + filename
 
-@app.route('/_static/<filename>')
-def get_static(filename):
+@app.route('/aaa/<action>/_static/<path:filename>')
+def get_static(filename, action):
     if (current_user.is_authenticated):
-        user_repo_path = join('repos', current_user.username)
+        user_repo_path = join('repos/aaa', current_user.username)
     else:
-        user_repo_path = join('repos', 'main')
+        user_repo_path = join('repos/aaa', 'main')
     return flask.send_from_directory(os.path.abspath(join(user_repo_path, 'build/html/_static/')), filename)
 
-@app.route('/')
+@app.route('/aaa')
 def index():
-    return redirect('index')
+    return redirect('aaa/index')
 
-@app.route('/_sources/<filename>')
+@app.route('/_sources/<path:filename>')
 def show_source(filename):
     # Think if this should really be from the user
     user_repo_path = join('repos', current_user.username)
@@ -125,9 +125,9 @@ def show_source(filename):
         content = content_file.read()
     return Response(content, mimetype='text/txt')
 
-@app.route('/images/<filename>')
+@app.route('/aaa/images/<path:filename>')
 def get_image(filename):
-    return flask.send_from_directory(os.path.abspath('images'), filename)
+    return flask.send_from_directory(os.path.abspath('repos/aaa/images'), filename)
 
 @app.route('/genindex.html')
 def genindex():
