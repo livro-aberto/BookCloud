@@ -2,7 +2,7 @@
   - automate test using pytest
   - enable debugger only on localhost
   - remove specific configurations from conf/conf.py, they should go to toml and be imported
-
+  - add logging http://damyanon.net/flask-series-logging/
 
 
 ```

@@ -11,6 +11,8 @@ USER_ENABLE_CONFIRM_EMAIL =  False
 USER_SEND_REGISTERED_EMAIL = False
 USER_ENABLE_LOGIN_WITHOUT_CONFIRM_EMAIL = False
 
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 # MAIL_USERNAME =           os.getenv('MAIL_USERNAME',        'email@example.com')
 # MAIL_PASSWORD =           os.getenv('MAIL_PASSWORD',        'password')
 # MAIL_DEFAULT_SENDER =     os.getenv('MAIL_DEFAULT_SENDER',  '"MyApp" <noreply@example.com>')

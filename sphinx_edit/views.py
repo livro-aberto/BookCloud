@@ -1,4 +1,5 @@
 import os
+import json
 from os.path import join, isdir
 import flask
 from flask import render_template, render_template_string, request, redirect, url_for, Response, flash
@@ -13,19 +14,10 @@ import sphinx
 
 config_path = 'conf'
 
-# def check_main():
-#     # Check if the main repository has already been initiated. Otherwise, do it
-#     repo_path = 'repos/aaa/main'
-#     if (not os.path.isdir(repo_path)):
-#         os.makedirs(repo_path)
-#         git.Repo.init(repo_path)
-#         repo = git.Repo(repo_path)
-#         os.makedirs(join(repo_path, 'source'))
-#         copyfile('sphinx_edit/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
-#         copyfile('sphinx_edit/empty_repo/.gitignore', join(repo_path, '.gitignore'))
-#         repo.index.add(['source/index.rst', '.gitignore'])
-#         repo.index.commit('Initial commit')
-#         build(join(repo_path, 'source'), join(repo_path, 'build/html'), config_path, '')
+def config_repo(repo, user_name, email):
+    config = repo.config_writer()
+    config.set_value('user', 'email', email)
+    config.set_value('user', 'name', user_name)
 
 def create_project(project, user_name):
     # create a repository
@@ -34,21 +26,28 @@ def create_project(project, user_name):
     os.makedirs(join(repo_path, 'source'))
     git.Repo.init(join(repo_path, 'source'))
     repo = git.Repo(join(repo_path, 'source'))
+    config_repo(repo, user_name, 'bla@here.com')
     copyfile('sphinx_edit/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
     copyfile('sphinx_edit/empty_repo/.gitignore', join(repo_path, 'source/.gitignore'))
     repo.index.add(['index.rst', '.gitignore'])
     repo.index.commit('Initial commit')
+    properties = {'project': project, 'creator': user_name}
+    with codecs.open(join('repos', project, 'properties.json'), 'w') as dest_file:
+        dest_file.write(json.dumps(properties))
     build(project, user_name)
 
 def clone_project(project, user_name):
-    # Check if the user has a repository. Otherwise, clone from main
+    # Clone repository from creator
     repo_path = join('repos', project, user_name, 'source')
-    # print('\n\n' + os.getcwd() + '\n\n')
-    # print('\n\n' + os.path.dirname(os.path.realpath(__file__)) + '\n\n')
-
-    # Search for main
-    main_repo = git.Repo(join('repos', project, 'main/source'))
+    with codecs.open(join('repos', project, 'properties.json'), 'r', 'utf-8') as content_file:
+        properties = json.loads(content_file.read())
+        print(content_file.read())
+        print(properties)
+        creator = properties['creator']
+    main_repo = git.Repo(join('repos', project, creator, 'source'))
     main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
+    repo = git.Repo(os.path.abspath(join(os.getcwd(), repo_path)))
+    config_repo(repo, user_name, 'bla@here.com')
     build(project, user_name)
 
 # def build(source_path, target_path, conf_path, flags):
@@ -232,3 +231,17 @@ def login():
 @app.route('/logout')
 def logout():
     return redirect(url_for('user.logout'))
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
+
+# @app.errorhandler(403)
+# def page_forbidden(e):
+#     return render_template('403.html'), 500
+
+
