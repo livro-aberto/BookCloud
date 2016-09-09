@@ -1,4 +1,13 @@
-{% if not barebones %}
+{% if barebones %}
+
+<div class="document">
+  <div class="body" role="main">
+    {{ contents() | safe }}
+  </div>
+  <div class="clearer"></div>
+</div>
+
+{% else %}
 
 <!doctype html>
 
@@ -51,27 +60,24 @@
 
     {% block sidebar %}{% endblock %}
 
-{% endif %}
-
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
-            {% block contents %}{% endblock %}
+            {{ contents() | safe }}
           </div>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
 
-{% if not barebones %}
-
     {{ self.bar() | safe }}
 
-<div class="footer" role="contentinfo">
-  &copy; {{ copyright }}.
-  Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-</div>
-</body>
+    <div class="footer" role="contentinfo">
+      &copy; {{ copyright }}.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
 </html>
 {% endif %}
+

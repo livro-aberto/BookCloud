@@ -99,7 +99,7 @@ def edit(filename):
         rst = content_file.read()
     with codecs.open(join(user_repo_path, 'build/html', filename + '.html'), 'r', 'utf-8') as content_file:
         doc = render_template_string(content_file.read(), barebones=True)
-    return render_template('edit.html', doc=doc, rst=rst, filename=filename, reponame='aaa')
+    return render_template('edit.html', doc=doc, rst=rst, filename=filename, reponame='aaa', render_sidebar=False)
 
 @app.route('/aaa/_images/<path:filename>', methods = ['GET'])
 @app.route('/edit/aaa/_images/<path:filename>', methods = ['GET'])

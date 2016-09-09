@@ -54,6 +54,7 @@
 {%- endmacro %}
 
 {%- macro sidebar() %}
+  {%- if render_sidebar %}
     <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
       <div class="sphinxsidebarwrapper">
         {%- block sidebarlogo %}
@@ -88,6 +89,7 @@
         {%- endif %}
       </div>
     </div>
+  {%- endif %}
 {%- endmacro %}
 
 {%- macro script() %}
@@ -121,7 +123,7 @@
   {{ sidebar() }}
 {{' {% endblock %} '}}
 
-{{' {% block contents %} '}}
+{{' {% macro contents() %} '}}
     {% block body %} {% endblock %}
-{{' {% endblock %} '}}
+{{' {% endmacro %} '}}
 
