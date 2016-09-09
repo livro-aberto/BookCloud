@@ -27,28 +27,29 @@ config_path = 'conf'
 #         repo.index.commit('Initial commit')
 #         build(join(repo_path, 'source'), join(repo_path, 'build/html'), config_path, '')
 
-def create_project(repo_path, user_name):
+def create_project(project, user_name):
     # create a repository
+    repo_path = join('repos', project, user_name)
     os.makedirs(repo_path)
-    git.Repo.init(repo_path)
-    repo = git.Repo(repo_path)
     os.makedirs(join(repo_path, 'source'))
+    git.Repo.init(join(repo_path, 'source'))
+    repo = git.Repo(join(repo_path, 'source'))
     copyfile('sphinx_edit/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
-    copyfile('sphinx_edit/empty_repo/.gitignore', join(repo_path, '.gitignore'))
-    repo.index.add(['source/index.rst', '.gitignore'])
+    copyfile('sphinx_edit/empty_repo/.gitignore', join(repo_path, 'source/.gitignore'))
+    repo.index.add(['index.rst', '.gitignore'])
     repo.index.commit('Initial commit')
-    build(join(repo_path, 'source'), join(repo_path, 'build/html'), config_path, '')
+    build(project, user_name)
 
-def check_user(username):
+def clone_project(project, user_name):
     # Check if the user has a repository. Otherwise, clone from main
-    repo_path = join('repos/aaa', username)
-    if (not os.path.isdir(repo_path)):
-        #check_main()
-        print('\n\n' + os.getcwd() + '\n\n')
-        print('\n\n' + os.path.dirname(os.path.realpath(__file__)) + '\n\n')
-        main_repo = git.Repo('repos/aaa/main')
-        main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
-        build(join(repo_path, 'source'), join(repo_path, 'build/html'), config_path, '')
+    repo_path = join('repos', project, user_name, 'source')
+    # print('\n\n' + os.getcwd() + '\n\n')
+    # print('\n\n' + os.path.dirname(os.path.realpath(__file__)) + '\n\n')
+
+    # Search for main
+    main_repo = git.Repo(join('repos', project, 'main/source'))
+    main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
+    build(project, user_name)
 
 # def build(source_path, target_path, conf_path, flags):
 def build(project, user):
@@ -62,7 +63,7 @@ def build(project, user):
     #     return False
     # os.chdir(previous_wd)
     # return True
-    command = "sphinx-build -a -c " + config_path + " " + source_path + " " + build_path
+    command = 'sphinx-build -a -c ' + config_path + ' ' + source_path + ' ' + build_path
     os.system(command)
     return True
 
@@ -72,7 +73,7 @@ def build_latex(project, user):
     config_path = 'conf'
     source_path = join('repos', project, user, 'source')
     build_path = join('repos', project, user, 'build/latex')
-    command = "sphinx-build -a -b latex -c " + config_path + " " + source_path + " " + build_path
+    command = 'sphinx-build -a -b latex -c ' + config_path + ' ' + source_path + ' ' + build_path
     os.system(command)
     return True
 
@@ -85,18 +86,20 @@ def test():
 
 @app.route('/<project>/view/<path:filename>')
 def view(project, filename):
-    # Think if this should really be from the user
-    # check_main()
     if (current_user.is_authenticated):
         user_repo_path = join('repos', project, current_user.username)
-        check_user(current_user.username)
+        if not isdir(user_repo_path):
+            clone_project(project, current_user.username)
+            flash('Project cloned successfully', 'info')
         bar_menu = [{'url': '/logout', 'name': 'logout'},
-                    {'url': '/' + project + '/edit/' + filename, 'name': 'edit'}]
+                    {'url': '/' + project + '/edit/' + filename, 'name': 'edit'},
+                    {'url': '/profile', 'name': current_user.username}]
     else:
         user_repo_path = join('repos', project, 'main')
-        bar_menu = [{'url': '/login', 'name': 'login'}]
+        bar_menu = [{'url': '/login', 'name': 'login'},
+                    {'url': '/profile', 'name': current_user.username}]
     filename, file_extension = os.path.splitext(filename)
-    if file_extension == "":
+    if file_extension == '':
         file_extension = '.html'
     with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
         content = content_file.read()
@@ -106,11 +109,16 @@ def view(project, filename):
 @login_required
 def save(project, filename):
     user_repo_path = join('repos', project, current_user.username)
+    file = join('source', filename + '.rst')
     if request.method == 'POST':
-        with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
+        with codecs.open(join(user_repo_path, filename), 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
+    repo = git.Repo(join(user_repo_path, 'source'))
+    print(filename)
+    repo.index.add([filename + '.rst'])
+    repo.index.commit('Change in ' + filename + ' by ' + current_user.username)
     build(project, current_user.username)
-    # return "Saved"
+    flash('Page submitted!', 'info')
     return redirect('/' + project + '/view/' + filename)
 
 @app.route('/<project>/edit/<path:filename>', methods = ['GET', 'POST'])
@@ -132,13 +140,12 @@ def edit(project, filename):
 @app.route('/<project>/<action>/_images/<path:filename>', methods = ['GET'])
 @app.route('/edit/<project>/images/<path:filename>', methods = ['GET'])
 def get_tikz(project, action, filename):
-    # Think if this should really be from the user
     images_path = join('repos', project, 'main/build/html/_images')
     return flask.send_from_directory(os.path.abspath(images_path), filename)
 
 @app.route('/<project>/comment_summary/<path:filename>')
 def comment_summary(project, filename):
-    return "Comments from " + filename
+    return 'Comments from ' + filename
 
 @app.route('/<project>/<action>/_static/<path:filename>')
 def get_static(project, action, filename):
@@ -165,30 +172,33 @@ def projects():
                     {'url': '/profile', 'name': current_user.username}]
     else:
         bar_menu = [{'url': '/login', 'name': 'login'}]
-    return render_template('projects.html', projects=projects, bar_menu=bar_menu, copyright="CC-BY-SA-NC")
+    return render_template('projects.html', projects=projects, bar_menu=bar_menu, copyright='CC-BY-SA-NC')
 
 @app.route('/profile')
 def profile():
     if not current_user.is_authenticated:
         redirect (url_for('login'))
     bar_menu = [{'url': '/logout', 'name': 'logout'},
-                {'url': '/', 'name': 'home'}]
+                {'url': '/', 'name': 'home'},
+                {'url': '/profile', 'name': current_user.username}]
     return render_template('profile.html', username=current_user.username, bar_menu=bar_menu)
 
 @app.route('/new', methods = ['GET', 'POST'])
 def new():
     if not current_user.is_authenticated:
-        flash("You need to be logged in to create a new project")
+        flash('You need to be logged in to create a new project', 'error')
         return redirect(url_for('login'))
     bar_menu = [{'url': '/logout', 'name': 'logout'},
-                {'url': '/', 'name': 'home'}]
+                {'url': '/', 'name': 'home'},
+                {'url': '/profile', 'name': current_user.username}]
     if request.method == 'POST':
         repo_path = join('repos', request.form['project'], current_user.username)
         if os.path.isdir(repo_path):
-            flash("This project name already exists")
+            flash('This project name already exists', 'error')
             return render_template('new.html', username=current_user.username, bar_menu=bar_menu)
         else:
-            create_project(repo_path, current_user.username)
+            create_project(request.form['project'], current_user.username)
+            flash('Project created successfuly!', 'info')
             return redirect('/')
     return render_template('new.html', username=current_user.username, bar_menu=bar_menu)
 
@@ -196,13 +206,12 @@ def new():
 def pdf(project):
     build_path = os.path.abspath(join('repos', project, 'main', 'build/latex'))
     build_latex(project, current_user.username)
-    command = "(cd " + build_path + "; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)"
+    command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
 
 @app.route('/_sources/<path:filename>')
 def show_source(filename):
-    # Think if this should really be from the user
     user_repo_path = join('repos', current_user.username)
     with codecs.open(join(user_repo_path, 'build/html/_sources', filename), 'r', 'utf-8') as content_file:
         content = content_file.read()
