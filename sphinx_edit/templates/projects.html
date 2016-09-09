@@ -2,11 +2,16 @@
 
 {% block title %}List of projects{% endblock%}
 
-{% block contents %}
+{% macro contents() %}
+<h1>Projetos</h1>
 <ul id="navigation">
   {% for p in projects %}
   <li><a href="/{{ p }}/view/index">{{ p }}</a></li>
   {% endfor %}
 </ul>
-{% endblock %}
+
+<p>
+  Create a new <a href="/new">project</a>
+</p>
+{% endmacro %}
 
