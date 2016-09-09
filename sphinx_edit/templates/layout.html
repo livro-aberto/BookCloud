@@ -1,7 +1,20 @@
+{% macro flash() %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ui class="flashes">
+  {% for message in messages %}
+  <li>{{  message }}</li>
+  {% endfor %}
+</ui>
+{% endif %}
+{% endwith %}
+{% endmacro %}
+
 {% if barebones %}
 
 <div class="document">
   <div class="body" role="main">
+    {{ flash() | safe }}
     {{ contents() | safe }}
   </div>
   <div class="clearer"></div>
@@ -45,18 +58,21 @@
 
   <body role="document">
 
-    {% block bar %}
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
+      {% block bar %}
       <ul>
+        <li class="left" style="margin-right: 10px">
+          <a href="/">home</a>
+        </li>
         {% for t in bar_menu %}
         <li class="right" style="margin-right: 10px">
           <a href="{{ t.url }}">{{ t.name }}</a>
         </li>
         {% endfor %}
       </ul>
+      {% endblock %}
     </div>
-    {% endblock %}
 
     {% block sidebar %}{% endblock %}
 
@@ -64,6 +80,7 @@
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
+            {{ flash() | safe }}
             {{ contents() | safe }}
           </div>
         </div>
@@ -71,7 +88,10 @@
       <div class="clearer"></div>
     </div>
 
-    {{ self.bar() | safe }}
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      {{ self.bar() | safe }}
+    </div>
 
     <div class="footer" role="contentinfo">
       &copy; {{ copyright }}.

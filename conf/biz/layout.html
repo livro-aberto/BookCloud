@@ -19,21 +19,6 @@
 #}
 
 {%- macro relbar() %}
-  <div class="related" role="navigation" aria-label="related navigation">
-    <h3>{{ _('Navigation') }}</h3>
-
-    <ul>
-      <li class="left">
-        <a href="/{{ '{{ reponame }}' }}/view/{{ pagename }}" title="{{ pagename }}">{{ pagename }}</a>
-      </li>
-      <li class="right" style="margin-right: 10px">
-        <a href="/{{ '{{ reponame }}' }}/edit/{{ pagename }}" title="edit">edit</a>
-      </li>
-      <li class="right" style="margin-right: 10px">
-        <a href="/logout" title="logout">logout</a>
-      </li>
-    </ul>
-
     <ul>
       {%- for rellink in rellinks %}
         <li class="right" {% if loop.first %}style="margin-right: 10px"{% endif %}>
@@ -49,12 +34,10 @@
       {%- endfor %}
       {%- block relbaritems %} {% endblock %}
     </ul>
-
-  </div>
 {%- endmacro %}
 
 {%- macro sidebar() %}
-  {%- if render_sidebar %}
+  {# commented: if render_sidebar #}
     <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
       <div class="sphinxsidebarwrapper">
         {%- block sidebarlogo %}
@@ -89,7 +72,7 @@
         {%- endif %}
       </div>
     </div>
-  {%- endif %}
+  {# commented: endif #}
 {%- endmacro %}
 
 {%- macro script() %}
@@ -116,6 +99,7 @@
 {%- endmacro %}
 
 {{' {% block bar %} '}}
+  {{' {{ super() }} '}}
   {{ relbar() }}
 {{' {% endblock %} '}}
 

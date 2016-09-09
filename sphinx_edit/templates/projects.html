@@ -6,7 +6,10 @@
 <h1>Projetos</h1>
 <ul id="navigation">
   {% for p in projects %}
-  <li><a href="/{{ p }}/view/index">{{ p }}</a></li>
+  <li>
+    <a href="/{{ p }}/view/index">{{ p }}</a>
+    - Download <a href="/{{ p }}/pdf">pdf</a>
+  </li>
   {% endfor %}
 </ul>
 
