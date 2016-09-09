@@ -3,52 +3,57 @@
 {% block title %}Edit: {{ filename }} {% endblock%}
 
 {% block scripts %}
-    <script>
-      // inserts text around the cursor or selection
-      function insertAround(start, end) {
-        var doc = editor;
-        var cursor = doc.getCursor();
+<link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
+<script src="https://codemirror.net/lib/codemirror.js"></script>
+<script src="https://codemirror.net/addon/mode/overlay.js"></script>
+<script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
 
-        if (doc.somethingSelected()) {
-          var selection = doc.getSelection();
-          doc.replaceSelection(start + selection + end);
-        } else {
-          // If no selection then insert start and end args and set cursor position between the two.
-          doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
-          doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
-        }
-        editor.focus();
-      }
-    </script>
+<script>
+  // inserts text around the cursor or selection
+  function insertAround(start, end) {
+    var doc = editor;
+    var cursor = doc.getCursor();
 
-    <style>
-    .flex-container {
-        display: -webkit-flex;
-        display: flex;
-        width: auto;
-        height: 90vh;
-        background-color: #7799CC;
+    if (doc.somethingSelected()) {
+      var selection = doc.getSelection();
+      doc.replaceSelection(start + selection + end);
+    } else {
+      // If no selection then insert start and end args and set cursor position between the two.
+      doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
+      doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
     }
+    editor.focus();
+  }
+</script>
 
-    .CodeMirror {
-        border: 1px solid #eee;
-        height: 65vh;
-    }
+<style>
+.flex-container {
+    display: -webkit-flex;
+    display: flex;
+    width: auto;
+    height: 90vh;
+    background-color: #7799CC;
+}
 
-    .flex-item, .flex-item-rigid {
-        width: 50%;
-        height: auto;
-        margin: 10px;
-    }
-    .flex-item {
-        overflow: scroll;
-    }
-    button
-    {
-        margin: -1px;
-        padding: 0px;
-    }
-    </style>
+.CodeMirror {
+    border: 1px solid #eee;
+    height: 65vh;
+}
+
+.flex-item, .flex-item-rigid {
+    width: 50%;
+    height: auto;
+    margin: 10px;
+}
+.flex-item {
+    overflow: scroll;
+}
+button
+{
+    margin: -1px;
+    padding: 0px;
+}
+</style>
 {% endblock %}
 
 {% block contents %}

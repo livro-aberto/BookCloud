@@ -50,6 +50,13 @@ def build(source_path, target_path, conf_path, flags):
     #     return False
     # return True
 
+@app.route('/test')
+def test():
+    with codecs.open('/home/gutosurrex/gsync/Programming/BookCloud/sphinx_edit/templates/testpage.html', 'r', 'utf-8') as content_file:
+        content = content_file.read()
+
+    return render_template_string(content, standalone=True, render_sidebar=True)
+
 @app.route('/aaa/view/<path:filename>')
 def view(filename):
     # Think if this should really be from the user
@@ -65,7 +72,7 @@ def view(filename):
     with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
         content = content_file.read()
 
-    return render_template_string(content, content=content, standalone=True, render_sidebar=True, reponame='aaa')
+    return render_template_string(content, content=content, reponame='aaa')
 
 @app.route('/aaa/save/<path:filename>', methods = ['GET', 'POST'])
 @login_required
@@ -91,7 +98,7 @@ def edit(filename):
     with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'r', 'utf-8') as content_file:
         rst = content_file.read()
     with codecs.open(join(user_repo_path, 'build/html', filename + '.html'), 'r', 'utf-8') as content_file:
-        doc = render_template_string(content_file.read(), standalone=False, render_sidebar=False)
+        doc = render_template_string(content_file.read(), barebones=True)
     return render_template('edit.html', doc=doc, rst=rst, filename=filename, reponame='aaa')
 
 @app.route('/aaa/_images/<path:filename>', methods = ['GET'])
@@ -113,6 +120,10 @@ def get_static(filename, action):
         user_repo_path = join('repos/aaa', 'main')
     return flask.send_from_directory(os.path.abspath(join(user_repo_path, 'build/html/_static/')), filename)
 
+@app.route('/_static/<path:filename>')
+def get_global_static(filename):
+    return flask.send_from_directory(os.path.abspath('conf/biz/static/'), filename)
+
 @app.route('/aaa')
 def index():
     return redirect('aaa/index')
@@ -121,7 +132,8 @@ def index():
 def view_projects():
     path = 'repos'
     projects = [d for d in os.listdir(path) if isdir(join(path, d))]
-    return render_template('projects.html', projects=projects)
+    bar_menu = [{'url': '/logout', 'name': 'logout'}]
+    return render_template('projects.html', projects=projects, bar_menu=bar_menu, copyright="CC-BY-SA-NC")
 
 @app.route('/_sources/<path:filename>')
 def show_source(filename):
@@ -135,9 +147,9 @@ def show_source(filename):
 def get_image(filename):
     return flask.send_from_directory(os.path.abspath('repos/aaa/images'), filename)
 
-@app.route('/genindex.html')
+@app.route('/aaa/view/genindex.html')
 def genindex():
-    return redirect(url_for('index'))
+    return redirect('/aaa/view/index')
 
 @app.route('/login')
 def login():

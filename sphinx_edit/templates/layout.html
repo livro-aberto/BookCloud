@@ -1,36 +1,77 @@
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    {% block head %}<title>{% block title %}{% endblock %}</title>
-      <link rel="stylesheet" href="/_static/bizstyle.css" type="text/css" />
-      <link rel="stylesheet" href="/_static/basic.css" type="text/css" />
-      <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />
-    {% endblock %}
+{% if not barebones %}
 
-    <link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
-    <script src="https://codemirror.net/lib/codemirror.js"></script>
-    <script src="https://codemirror.net/addon/mode/overlay.js"></script>
-    <script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>{% block title %}{% endblock %}</title>
+
+    <link rel="stylesheet" href="/_static/bizstyle.css" type="text/css" />
+    <!--<link rel="stylesheet" href="/_static/basic.css" type="text/css" />-->
+    <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />
+
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+      URL_ROOT:    './',
+      VERSION:     '',
+      COLLAPSE_INDEX: false,
+      FILE_SUFFIX: '.html',
+      HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Livro Aberto de Matematica" href="#" />
 
     {% block scripts %}{% endblock %}
 
   </head>
+
   <body role="document">
-    {% block top %}
+
+    {% block bar %}
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
-      {% block top_bar %}
-      {% endblock %}
+      <ul>
+        {% for t in bar_menu %}
+        <li class="right" style="margin-right: 10px">
+          <a href="{{ t.url }}">{{ t.name }}</a>
+        </li>
+        {% endfor %}
+      </ul>
     </div>
     {% endblock %}
+
+    {% block sidebar %}{% endblock %}
+
+{% endif %}
+
     <div class="document">
       <div class="documentwrapper">
-        <div class="bodywrapper" style="margin: 0 0 0 0">
+        <div class="bodywrapper">
           <div class="body" role="main">
             {% block contents %}{% endblock %}
           </div>
         </div>
       </div>
+      <div class="clearer"></div>
     </div>
-  </body>
+
+{% if not barebones %}
+
+    {{ self.bar() | safe }}
+
+<div class="footer" role="contentinfo">
+  &copy; {{ copyright }}.
+  Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+</div>
+</body>
 </html>
+{% endif %}

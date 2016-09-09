@@ -1,0 +1,68 @@
+{% extends "layout.html" %}
+
+{% block bar %}
+  <div class="related" role="navigation" aria-label="related navigation">
+    <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="#">Livro Aberto de Matematica</a> &raquo;</li> 
+    </ul>
+  </div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+  <div class="sphinxsidebarwrapper">
+    <h3><a href="#">Table Of Contents</a></h3>
+    <ul>
+      <li><a class="reference internal" href="#">Welcome</a></li>
+      <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+    </ul>
+
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+             rel="nofollow">Show Source</a></li>
+    </ul>
+    <div id="searchbox" style="display: none">
+      <h3>Quick search</h3>
+      <form class="search" action="search.html" method="get">
+        <input type="text" name="q" />
+        <input type="submit" value="Go" />
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+      <p class="searchtip" style="font-size: 90%">
+        Enter search terms or a module, class or function name.
+      </p>
+    </div>
+    <script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block contents %}
+<div class="section" id="welcome">
+  <h1>Welcome<a class="headerlink" href="#welcome" title="Permalink to this headline">¶</a></h1>
+  <p>Contents:</p>
+  <div class="toctree-wrapper compound">
+    <ul class="simple">
+    </ul>
+  </div>
+</div>
+<div class="section" id="indices-and-tables">
+  <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+  <ul class="simple">
+    <li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+    <li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+    <li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+  </ul>
+</div>
+
+
+
+<div class="clearer"></div>
+{% endblock %}
+
