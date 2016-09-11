@@ -5,7 +5,7 @@ import flask
 from flask import render_template, render_template_string, request, redirect, url_for, Response, flash
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 from sphinx_edit import app
-
+import string
 from shutil import copyfile
 import git
 
@@ -13,6 +13,33 @@ import codecs # deals with encoding better
 import sphinx
 
 config_path = 'conf'
+
+def get_git(project, user_name):
+    repo_path = join('repos', project, user_name, 'source')
+    repo = git.Repo(repo_path)
+    return repo.git
+
+def update_repo(project, user_name):
+    user_repo_path = join('repos', project, user_name)
+    if isdir(user_repo_path):
+        git_api = get_git(project, user_name)
+        if user_name == get_creator(project):
+            branches = string.split(git_api.branch())
+            print()
+            print(branches)
+            print()
+            for b in branches:
+                print(b)
+                if b != 'master' and b != '*':
+                    print('good b: ' + b)
+                    git_api.merge('-s', 'recursive', '-X ours', b)
+        else:
+            git_api.fetch()
+            git_api.merge('-s', 'recursive', '-X ours', 'origin/master')
+            git_api.push('origin', user_name)
+    else:
+        clone_project(project, user_name)
+        flash('Project cloned successfully', 'info')
 
 def config_repo(repo, user_name, email):
     config = repo.config_writer()
@@ -36,18 +63,23 @@ def create_project(project, user_name):
         dest_file.write(json.dumps(properties))
     build(project, user_name)
 
-def clone_project(project, user_name):
-    # Clone repository from creator
-    repo_path = join('repos', project, user_name, 'source')
+def get_creator(project):
     with codecs.open(join('repos', project, 'properties.json'), 'r', 'utf-8') as content_file:
         properties = json.loads(content_file.read())
         print(content_file.read())
         print(properties)
-        creator = properties['creator']
+        return properties['creator']
+
+def clone_project(project, user_name):
+    # Clone repository from creator
+    repo_path = join('repos', project, user_name, 'source')
+    creator = get_creator(project)
     main_repo = git.Repo(join('repos', project, creator, 'source'))
     main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
     repo = git.Repo(os.path.abspath(join(os.getcwd(), repo_path)))
     config_repo(repo, user_name, 'bla@here.com')
+    git_api = repo.git
+    git_api.checkout('HEAD', b=user_name)
     build(project, user_name)
 
 # def build(source_path, target_path, conf_path, flags):
@@ -78,25 +110,23 @@ def build_latex(project, user):
 
 @app.route('/test')
 def test():
-    with codecs.open('/home/gutosurrex/gsync/Programming/BookCloud/sphinx_edit/templates/testpage.html', 'r', 'utf-8') as content_file:
+    with codecs.open(os.path.abspath('sphinx_edit/templates/testpage.html'), 'r', 'utf-8') as content_file:
         content = content_file.read()
-
     return render_template_string(content, standalone=True, render_sidebar=True)
 
 @app.route('/<project>/view/<path:filename>')
 def view(project, filename):
+    filename, file_extension = os.path.splitext(filename)
     if (current_user.is_authenticated):
         user_repo_path = join('repos', project, current_user.username)
-        if not isdir(user_repo_path):
-            clone_project(project, current_user.username)
-            flash('Project cloned successfully', 'info')
+        update_repo(project, current_user.username)
         bar_menu = [{'url': '/logout', 'name': 'logout'},
                     {'url': '/' + project + '/edit/' + filename, 'name': 'edit'},
                     {'url': '/profile', 'name': current_user.username}]
     else:
-        user_repo_path = join('repos', project, 'main')
-        bar_menu = [{'url': '/login', 'name': 'login'},
-                    {'url': '/profile', 'name': current_user.username}]
+        creator = get_creator(project)
+        user_repo_path = join('repos', project, creator)
+        bar_menu = [{'url': '/login', 'name': 'login'}]
     filename, file_extension = os.path.splitext(filename)
     if file_extension == '':
         file_extension = '.html'
@@ -107,23 +137,24 @@ def view(project, filename):
 @app.route('/<project>/save/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def save(project, filename):
+    filename, file_extension = os.path.splitext(filename)
     user_repo_path = join('repos', project, current_user.username)
-    file = join('source', filename + '.rst')
     if request.method == 'POST':
-        with codecs.open(join(user_repo_path, filename), 'w') as dest_file:
+        with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
+    build(project, current_user.username)
     repo = git.Repo(join(user_repo_path, 'source'))
-    print(filename)
     repo.index.add([filename + '.rst'])
     repo.index.commit('Change in ' + filename + ' by ' + current_user.username)
-    build(project, current_user.username)
+    git_api = repo.git
+    if not get_creator(project) == current_user.username:
+        git_api.push('origin', current_user.username)
     flash('Page submitted!', 'info')
     return redirect('/' + project + '/view/' + filename)
 
 @app.route('/<project>/edit/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def edit(project, filename):
-    filename, file_extension = os.path.splitext(filename)
     user_repo_path = join('repos', project, current_user.username)
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
