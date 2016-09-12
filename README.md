@@ -15,6 +15,14 @@ These are some installation instructions (for Debian):
 
     pip install -r requirements.txt
 
+Create config file
+
+    cp conf_default.py conf.py
+
+edit the `conf.py` file. Specially:
+
+  1. Change your secret key
+  2. Setup your email
 
 
 
