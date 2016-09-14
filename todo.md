@@ -1,3 +1,4 @@
+  - use gettext to translate BookCloud
   - make sure usernames are alphanumeric only
   - automate test using pytest
   - enable debugger only on localhost
