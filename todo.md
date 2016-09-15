@@ -1,9 +1,10 @@
+  - make a timeout for sphinx-build: http://stackoverflow.com/a/4825933
   - use gettext to translate BookCloud
   - make sure usernames are alphanumeric only
   - automate test using pytest
   - enable debugger only on localhost
   - remove specific configurations from conf/conf.py, they should go to toml and be imported
-  - add logging http://damyanon.net/flask-series-logging/
+  - add logging: http://damyanon.net/flask-series-logging/
 
 
 ```
