@@ -19,20 +19,33 @@ def get_git(project, user_name):
     repo = git.Repo(repo_path)
     return repo.git
 
+def is_merging(git_api):
+    try:
+        git_api.merge('HEAD')
+    except git.GitCommandError as inst:
+        return True
+    return False
+
+def has_requests(git_api):
+    branches = string.split(git_api.branch())
+    if branches:
+        return True
+    else:
+        return False
+
 def update_repo(project, user_name):
     user_repo_path = join('repos', project, user_name)
     if isdir(user_repo_path):
         git_api = get_git(project, user_name)
         if user_name == get_creator(project):
-            branches = string.split(git_api.branch())
-            print()
-            print(branches)
-            print()
-            for b in branches:
-                print(b)
-                if b != 'master' and b != '*':
-                    print('good b: ' + b)
-                    git_api.merge('-s', 'recursive', '-X ours', b)
+            #branches = string.split(git_api.branch())
+            #print()
+            #print(branches)
+            #print()
+            #for b in branches:
+            #    if b != 'master' and b != '*':
+            #        git_api.merge('--no-commit', '-s', 'recursive', '-Xtheirs', b)
+            print("A")
         else:
             git_api.fetch()
             git_api.merge('-s', 'recursive', '-X ours', 'origin/master')
@@ -108,17 +121,16 @@ def build_latex(project, user):
     os.system(command)
     return True
 
-@app.route('/test')
-def test():
-    with codecs.open(os.path.abspath('sphinx_edit/templates/testpage.html'), 'r', 'utf-8') as content_file:
-        content = content_file.read()
-    return render_template_string(content, standalone=True, render_sidebar=True)
-
 @app.route('/<project>/view/<path:filename>')
 def view(project, filename):
     filename, file_extension = os.path.splitext(filename)
     if (current_user.is_authenticated):
         user_repo_path = join('repos', project, current_user.username)
+        if current_user.username == get_creator(project):
+            if has_requests(get_git(project, current_user.username)):
+                return redirect(project + '/requests')
+            if is_merging(get_git(project, current_user.username)):
+                return redirect(project + '/merge')
         update_repo(project, current_user.username)
         bar_menu = [{'url': '/logout', 'name': 'logout'},
                     {'url': '/' + project + '/edit/' + filename, 'name': 'edit'},
@@ -137,6 +149,8 @@ def view(project, filename):
 @app.route('/<project>/save/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def save(project, filename):
+    if is_merging(get_git(project, current_user.username)):
+        return redirect(project + 'merge')
     filename, file_extension = os.path.splitext(filename)
     user_repo_path = join('repos', project, current_user.username)
     if request.method == 'POST':
@@ -155,6 +169,8 @@ def save(project, filename):
 @app.route('/<project>/edit/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def edit(project, filename):
+    if is_merging(get_git(project, current_user.username)):
+        return redirect(project + 'merge')
     user_repo_path = join('repos', project, current_user.username)
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
@@ -167,10 +183,34 @@ def edit(project, filename):
         doc = render_template_string(content_file.read(), barebones=True)
     return render_template('edit.html', doc=doc, rst=rst, filename=filename, reponame=project, render_sidebar=False)
 
-@app.route('/<project>/<action>/_images/<path:filename>', methods = ['GET'])
+@login_required
+@app.route('/<project>/merge/<branch>')
+def merge(project, branch):
+    git_api = get_git(project, current_user.username)
+    if not is_merging(git_api):
+        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', branch)
+    return 'Merging ' + project + ' from ' + branch
+
+
+
+@login_required
+@app.route('/<project>/requests')
+def requests(project):
+    if not current_user.username == get_creator(project):
+        return 'Not reviewer'
+    git_api = get_git(project, current_user.username)
+    if is_merging(git_api):
+        return redirect('/' + project + '/merge/someone')
+    branches = string.split(git_api.branch())
+    branches.remove('master')
+    branches.remove('*')
+    return render_template('requests.html', branches=branches, reponame=project)
+
+
+@app.route('/<project>/<action>/_images/<path:filename>')
 @app.route('/edit/<project>/images/<path:filename>', methods = ['GET'])
 def get_tikz(project, action, filename):
-    images_path = join('repos', project, 'main/build/html/_images')
+    images_path = join('repos', project, current_user.username, 'build/html/_images')
     return flask.send_from_directory(os.path.abspath(images_path), filename)
 
 @app.route('/<project>/comment_summary/<path:filename>')
@@ -182,7 +222,7 @@ def get_static(project, action, filename):
     if (current_user.is_authenticated):
         user_repo_path = join('repos', project, current_user.username)
     else:
-        user_repo_path = join('repos', project, 'main')
+        user_repo_path = join('repos', project, get_creator(project))
     return flask.send_from_directory(os.path.abspath(join(user_repo_path, 'build/html/_static/')), filename)
 
 @app.route('/_static/<path:filename>')
@@ -191,6 +231,8 @@ def get_global_static(filename):
 
 @app.route('/<project>')
 def index(project):
+    if is_merging(get_git(project, current_user.username)):
+        return redirect(project + 'merge')
     return redirect(project + '/view/index')
 
 @app.route('/')
@@ -234,7 +276,7 @@ def new():
 
 @app.route('/<project>/pdf')
 def pdf(project):
-    build_path = os.path.abspath(join('repos', project, 'main', 'build/latex'))
+    build_path = os.path.abspath(join('repos', project, get_creator(project), 'build/latex'))
     build_latex(project, current_user.username)
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)

@@ -4,6 +4,20 @@
   - remove specific configurations from conf/conf.py, they should go to toml and be imported
   - add logging http://damyanon.net/flask-series-logging/
 
+```
+def is_merging(git_api):
+    try:
+        git_api.merge('HEAD')
+    except git.GitCommandError as inst:
+        return True
+    return False
+```
+
+get parents of ongoing merge
+```
+git show --pretty=format:"%P" --no-patch MERGE_HEAD
+```
+
 
 ```
 mkdir test
