@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}Merge requests{% endblock%}
+
+{% macro contents() %}
+<h1>Merge requests</h1>
+
+    <ul id="navigation">
+    {% for b in branches %}
+        <li>Request from <a href="/{{ project }}/merge/{{ b }}">{{ b }}</a></li>
+    {% endfor %}
+    </ul>
+
+{% endmacro %}
+

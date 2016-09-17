@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block title %}Merging: {{ project }} from {{ branch }} {% endblock%}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
+<script src="https://codemirror.net/lib/codemirror.js"></script>
+<script src="https://codemirror.net/addon/mode/overlay.js"></script>
+<script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
+
+<style>
+.flex-container {
+    display: -webkit-flex;
+    display: flex;
+    width: auto;
+    height: 90vh;
+    background-color: #7799CC;
+}
+
+.CodeMirror {
+    border: 1px solid #eee;
+    height: 65vh;
+}
+
+.flex-item, .flex-item-rigid {
+    width: 50%;
+    height: auto;
+    margin: 10px;
+}
+.flex-item {
+    overflow: scroll;
+}
+button
+{
+    margin: -1px;
+    padding: 0px;
+}
+div.bodywrapper {
+    margin: 0 0 0 0px;
+}
+</style>
+{% endblock %}
+
+{% macro contents() %}
+  <div class="body" role="main">
+    <div class="flex-container" align="left">
+      <div class="flex-item-rigid">
+        <p style="line-height: 200%;">
+        <form method="post">
+          <textarea id="code" name="code">{{ rst }}</textarea>
+          <br>
+          <input id="preview" name="preview" type="submit" formaction="/{{ reponame }}/edit/{{ filename }}" value="Preview">
+          <input id="submit" name="submit" type="submit" formaction="/{{ reponame }}/save/{{ filename }}" value="Submit">
+        </form>
+      </div>
+
+      <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+          lineNumbers: false,
+          lineWrapping: true,
+        });
+      </script>
+
+      <div class="flex-item">
+
+      </div>
+    </div>
+  </div>
+{% endmacro %}
+

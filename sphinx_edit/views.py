@@ -26,16 +26,26 @@ def is_merging(git_api):
         return True
     return False
 
-def has_requests(git_api):
+def get_requests(project, user_name):
+    git_api = get_git(project, user_name)
+    if is_merging(git_api):
+        return redirect('/' + project + '/merge/someone')
     branches = string.split(git_api.branch())
-    if branches:
-        return True
-    else:
-        return False
+    merged = string.split(git_api.branch('--merged'))
+    unmerged = [item for item in branches if item not in merged]
+    # ranches.remove('master')
+    # ranches.remove('*')
+    if len(unmerged):
+        return render_template('requests.html', branches=unmerged, project=project)
 
-def update_repo(project, user_name):
+def check_repo(project, user_name):
     user_repo_path = join('repos', project, user_name)
-    if isdir(user_repo_path):
+    if not isdir(user_repo_path):
+        return redirect('/' + project + '/reviewer')
+    else:
+        requests = get_requests(project, user_name)
+        if requests:
+            return requests
         git_api = get_git(project, user_name)
         if user_name == get_creator(project):
             #branches = string.split(git_api.branch())
@@ -48,11 +58,11 @@ def update_repo(project, user_name):
             print("A")
         else:
             git_api.fetch()
-            git_api.merge('-s', 'recursive', '-X ours', 'origin/master')
+            git_api.merge('-s', 'recursive', '-Xours', 'origin/master')
             git_api.push('origin', user_name)
-    else:
-        clone_project(project, user_name)
-        flash('Project cloned successfully', 'info')
+
+
+
 
 def config_repo(repo, user_name, email):
     config = repo.config_writer()
@@ -79,20 +89,25 @@ def create_project(project, user_name):
 def get_creator(project):
     with codecs.open(join('repos', project, 'properties.json'), 'r', 'utf-8') as content_file:
         properties = json.loads(content_file.read())
-        print(content_file.read())
-        print(properties)
         return properties['creator']
 
-def clone_project(project, user_name):
+def get_reviewer(project, user_name):
+    with codecs.open(join('repos', project, user_name, 'properties.json'), 'r', 'utf-8') as content_file:
+        properties = json.loads(content_file.read())
+        return properties['reviewer']
+
+def clone_project(project, user_name, reviewer):
     # Clone repository from creator
     repo_path = join('repos', project, user_name, 'source')
-    creator = get_creator(project)
-    main_repo = git.Repo(join('repos', project, creator, 'source'))
+    main_repo = git.Repo(join('repos', project, reviewer, 'source'))
     main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
     repo = git.Repo(os.path.abspath(join(os.getcwd(), repo_path)))
     config_repo(repo, user_name, 'bla@here.com')
     git_api = repo.git
     git_api.checkout('HEAD', b=user_name)
+    properties = {'reviewer': reviewer}
+    with codecs.open(join('repos', project, user_name, 'properties.json'), 'w') as dest_file:
+        dest_file.write(json.dumps(properties))
     build(project, user_name)
 
 # def build(source_path, target_path, conf_path, flags):
@@ -121,17 +136,35 @@ def build_latex(project, user):
     os.system(command)
     return True
 
+@login_required
+@app.route('/<project>/reviewer')
+def reviewer(project):
+    path = 'repos/' + project
+    reviewers = [d for d in os.listdir(path) if isdir(join(path, d))]
+    bar_menu = [{'url': '/logout', 'name': 'logout'},
+                {'url': '/profile', 'name': current_user.username}]
+    return render_template('reviewer.html', reviewers=reviewers, project=project, bar_menu=bar_menu)
+
+@login_required
+@app.route('/<project>/clone/<reviewer>')
+def clone(project, reviewer):
+    clone_project(project, current_user.username, reviewer)
+    flash('Project cloned successfully!', 'info')
+    return redirect('/' + project)
+
 @app.route('/<project>/view/<path:filename>')
 def view(project, filename):
     filename, file_extension = os.path.splitext(filename)
     if (current_user.is_authenticated):
         user_repo_path = join('repos', project, current_user.username)
-        if current_user.username == get_creator(project):
-            if has_requests(get_git(project, current_user.username)):
-                return redirect(project + '/requests')
-            if is_merging(get_git(project, current_user.username)):
-                return redirect(project + '/merge')
-        update_repo(project, current_user.username)
+        # if current_user.username == get_creator(project):
+        #     if has_requests(get_git(project, current_user.username)):
+        #         return redirect(project + '/requests')
+        #     if is_merging(get_git(project, current_user.username)):
+        #         return redirect(project + '/merge')
+        pendencies = check_repo(project, current_user.username)
+        if pendencies:
+            return pendencies
         bar_menu = [{'url': '/logout', 'name': 'logout'},
                     {'url': '/' + project + '/edit/' + filename, 'name': 'edit'},
                     {'url': '/profile', 'name': current_user.username}]
@@ -189,23 +222,16 @@ def merge(project, branch):
     git_api = get_git(project, current_user.username)
     if not is_merging(git_api):
         git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', branch)
-    return 'Merging ' + project + ' from ' + branch
-
-
-
-@login_required
-@app.route('/<project>/requests')
-def requests(project):
-    if not current_user.username == get_creator(project):
-        return 'Not reviewer'
-    git_api = get_git(project, current_user.username)
-    if is_merging(git_api):
-        return redirect('/' + project + '/merge/someone')
-    branches = string.split(git_api.branch())
-    branches.remove('master')
-    branches.remove('*')
-    return render_template('requests.html', branches=branches, reponame=project)
-
+        modified = string.split(git_api.diff('HEAD', '--name-only'))
+        merging = {'branch': branch, 'modified': modified}
+        with codecs.open(join('repos', project, current_user.username, 'merging.json'), 'w') as dest_file:
+            dest_file.write(json.dumps(merging))
+    bar_menu = [{'url': '/logout', 'name': 'logout'},
+                {'url': '/profile', 'name': current_user.username}]
+    with codecs.open(join('repos', project, current_user.username, 'merging.json'), 'r', 'utf-8') as content_file:
+        merging = json.loads(content_file.read())
+    print(merging)
+    return render_template('merge.html', project=project, modified=merging['modified'], branch=branch, bar_menu=bar_menu)
 
 @app.route('/<project>/<action>/_images/<path:filename>')
 @app.route('/edit/<project>/images/<path:filename>', methods = ['GET'])

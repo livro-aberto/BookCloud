@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Clone project{% endblock%}
+
+{% macro contents() %}
+<h1>Choose your reviewer</h1>
+<ul id="navigation">
+  {% for r in reviewers %}
+  <li>
+    <a href="/{{ project }}/clone/{{ r }}">{{ r }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endmacro %}
+

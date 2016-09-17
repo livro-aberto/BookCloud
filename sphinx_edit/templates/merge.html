@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Merging {{ project }} from {{ branch }}{% endblock%}
+
+{% macro contents() %}
+<h1>Choose file to review</h1>
+<ul id="navigation">
+  {% for f in modified %}
+  <li>
+    <a href="/{{ project }}/review/{{ f }}">{{ f }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endmacro %}
+
