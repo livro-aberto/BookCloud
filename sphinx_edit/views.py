@@ -1,6 +1,6 @@
 import os
 import json
-from os.path import join, isdir
+from os.path import join, isdir, isfile
 import flask
 from flask import render_template, render_template_string, request, redirect, url_for, Response, flash
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
@@ -19,24 +19,30 @@ def get_git(project, user_name):
     repo = git.Repo(repo_path)
     return repo.git
 
-def is_merging(git_api):
-    try:
-        git_api.merge('HEAD')
-    except git.GitCommandError as inst:
-        return True
-    return False
+def is_merging(project, user_name):
+    file_path = join('repos', project, user_name, 'merging.json')
+    return isfile(file_path)
+
+def get_merging(project, user_name):
+    merge_file_path = join('repos', project, user_name, 'merging.json')
+    if isfile(merge_file_path):
+        with codecs.open(merge_file_path, 'r', 'utf-8') as content_file:
+            merging = json.loads(content_file.read())
 
 def get_requests(project, user_name):
+    merge_file_path = join('repos', project, user_name, 'merging.json')
+    if isfile(merge_file_path):
+        with codecs.open(merge_file_path, 'r', 'utf-8') as content_file:
+            merging = json.loads(content_file.read())
+        return redirect('/' + project + '/merge/' + merging['branch'])
     git_api = get_git(project, user_name)
-    if is_merging(git_api):
-        return redirect('/' + project + '/merge/someone')
     branches = string.split(git_api.branch())
     merged = string.split(git_api.branch('--merged'))
     unmerged = [item for item in branches if item not in merged]
-    # ranches.remove('master')
-    # ranches.remove('*')
+    bar_menu = [{'url': '/logout', 'name': 'logout'},
+                {'url': '/profile', 'name': current_user.username}]
     if len(unmerged):
-        return render_template('requests.html', branches=unmerged, project=project)
+        return render_template('requests.html', branches=unmerged, project=project, bar_menu=bar_menu)
 
 def check_repo(project, user_name):
     user_repo_path = join('repos', project, user_name)
@@ -47,22 +53,11 @@ def check_repo(project, user_name):
         if requests:
             return requests
         git_api = get_git(project, user_name)
-        if user_name == get_creator(project):
-            #branches = string.split(git_api.branch())
-            #print()
-            #print(branches)
-            #print()
-            #for b in branches:
-            #    if b != 'master' and b != '*':
-            #        git_api.merge('--no-commit', '-s', 'recursive', '-Xtheirs', b)
-            print("A")
-        else:
+        if not user_name == get_reviewer(project, user_name):
             git_api.fetch()
             git_api.merge('-s', 'recursive', '-Xours', 'origin/master')
             git_api.push('origin', user_name)
-
-
-
+            build(project, user_name)
 
 def config_repo(repo, user_name, email):
     config = repo.config_writer()
@@ -83,6 +78,9 @@ def create_project(project, user_name):
     repo.index.commit('Initial commit')
     properties = {'project': project, 'creator': user_name}
     with codecs.open(join('repos', project, 'properties.json'), 'w') as dest_file:
+        dest_file.write(json.dumps(properties))
+    properties = {'reviewer': user_name}
+    with codecs.open(join('repos', project, user_name, 'properties.json'), 'w') as dest_file:
         dest_file.write(json.dumps(properties))
     build(project, user_name)
 
@@ -146,6 +144,45 @@ def reviewer(project):
     return render_template('reviewer.html', reviewers=reviewers, project=project, bar_menu=bar_menu)
 
 @login_required
+@app.route('/<project>/accept/<path:filename>')
+def accpet(project, filename):
+    merge_file_path = join('repos', project, current_user.username, 'merging.json')
+    if not isfile(merge_file_path):
+        flash('You are not merging a submission', 'error')
+        return redirect(url_for('/' + project))
+    with codecs.open(merge_file_path, 'r', 'utf-8') as content_file:
+        merging = json.loads(content_file.read())
+    if not filename in merging['modified']:
+        flash('File ' + filename + ' was not being reviewed', 'error')
+        return redirect('/' + project)
+    merging['modified'].remove(filename)
+    merging['reviewed'].append(filename)
+    with codecs.open(merge_file_path, 'w') as dest_file:
+        dest_file.write(json.dumps(merging))
+    return redirect('/' + project + '/merge/' + merging['branch'])
+
+@login_required
+@app.route('/<project>/finish')
+def finish(project):
+    merge_file_path = join('repos', project, current_user.username, 'merging.json')
+    if not isfile(merge_file_path):
+        flash('You are not merging a submission', 'error')
+        return redirect(url_for('/' + project))
+    with codecs.open(merge_file_path, 'r', 'utf-8') as content_file:
+        merging = json.loads(content_file.read())
+    if len(merging['modified']):
+        flash('You still have unreviewed files', 'error')
+        return redirect('/' + project)
+    repo_path = join('repos', project, current_user.username, 'source')
+    repo = git.Repo(repo_path)
+    git_api = repo.git
+    # repo.index.add(merging['reviewed'])
+    git_api.commit('-m', 'Merge ' + merging['branch'])
+    os.remove(merge_file_path)
+    build(project, current_user.username)
+    return redirect('/' + project)
+
+@login_required
 @app.route('/<project>/clone/<reviewer>')
 def clone(project, reviewer):
     clone_project(project, current_user.username, reviewer)
@@ -182,7 +219,7 @@ def view(project, filename):
 @app.route('/<project>/save/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def save(project, filename):
-    if is_merging(get_git(project, current_user.username)):
+    if is_merging(project, current_user.username):
         return redirect(project + 'merge')
     filename, file_extension = os.path.splitext(filename)
     user_repo_path = join('repos', project, current_user.username)
@@ -194,7 +231,7 @@ def save(project, filename):
     repo.index.add([filename + '.rst'])
     repo.index.commit('Change in ' + filename + ' by ' + current_user.username)
     git_api = repo.git
-    if not get_creator(project) == current_user.username:
+    if get_reviewer(project, current_user.username) != current_user.username:
         git_api.push('origin', current_user.username)
     flash('Page submitted!', 'info')
     return redirect('/' + project + '/view/' + filename)
@@ -202,7 +239,7 @@ def save(project, filename):
 @app.route('/<project>/edit/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def edit(project, filename):
-    if is_merging(get_git(project, current_user.username)):
+    if is_merging(project, current_user.username):
         return redirect(project + 'merge')
     user_repo_path = join('repos', project, current_user.username)
     if request.method == 'POST':
@@ -220,18 +257,18 @@ def edit(project, filename):
 @app.route('/<project>/merge/<branch>')
 def merge(project, branch):
     git_api = get_git(project, current_user.username)
-    if not is_merging(git_api):
+    if not is_merging(project, current_user.username):
         git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', branch)
         modified = string.split(git_api.diff('HEAD', '--name-only'))
-        merging = {'branch': branch, 'modified': modified}
+        merging = {'branch': branch, 'modified': modified, 'reviewed': []}
         with codecs.open(join('repos', project, current_user.username, 'merging.json'), 'w') as dest_file:
             dest_file.write(json.dumps(merging))
     bar_menu = [{'url': '/logout', 'name': 'logout'},
                 {'url': '/profile', 'name': current_user.username}]
     with codecs.open(join('repos', project, current_user.username, 'merging.json'), 'r', 'utf-8') as content_file:
         merging = json.loads(content_file.read())
-    print(merging)
-    return render_template('merge.html', project=project, modified=merging['modified'], branch=branch, bar_menu=bar_menu)
+    return render_template('merge.html', project=project, modified=merging['modified'],
+                           reviewed=merging['reviewed'], branch=branch, bar_menu=bar_menu)
 
 @app.route('/<project>/<action>/_images/<path:filename>')
 @app.route('/edit/<project>/images/<path:filename>', methods = ['GET'])
@@ -251,14 +288,11 @@ def get_static(project, action, filename):
         user_repo_path = join('repos', project, get_creator(project))
     return flask.send_from_directory(os.path.abspath(join(user_repo_path, 'build/html/_static/')), filename)
 
-@app.route('/_static/<path:filename>')
-def get_global_static(filename):
-    return flask.send_from_directory(os.path.abspath('conf/biz/static/'), filename)
-
 @app.route('/<project>')
 def index(project):
-    if is_merging(get_git(project, current_user.username)):
-        return redirect(project + 'merge')
+    merging = get_merging(project, current_user.username)
+    if merging:
+        return redirect('/' + project + '/merge')
     return redirect(project + '/view/index')
 
 @app.route('/')
@@ -307,6 +341,10 @@ def pdf(project):
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
+
+@app.route('/_static/<path:filename>')
+def get_global_static(filename):
+    return flask.send_from_directory(os.path.abspath('conf/biz/static/'), filename)
 
 @app.route('/_sources/<path:filename>')
 def show_source(filename):

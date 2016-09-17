@@ -3,14 +3,38 @@
 {% block title %}Merging {{ project }} from {{ branch }}{% endblock%}
 
 {% macro contents() %}
-<h1>Choose file to review</h1>
+<h1>Modifications:</h1>
+
+{% if modified %}
+<h2>Not reviewed yet</h2>
 <ul id="navigation">
   {% for f in modified %}
+  <li>
+    {{ f }}
+    <ul>
+      <li><a href="/{{ project }}/review/{{ f }}">Review file</a></li>
+      <li><a href="/{{ project }}/accept/{{ f }}">Accept without reviewing</a></li>
+    </ul>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if reviewed %}
+<h2>Reviewed</h2>
+<ul id="navigation">
+  {% for f in reviewed %}
   <li>
     <a href="/{{ project }}/review/{{ f }}">{{ f }}</a>
   </li>
   {% endfor %}
 </ul>
+{% endif %}
+
+{% if not modified %}
+<h2>You have finished all the reviews</h2>
+<a href="/{{ project }}/finish">Finish merge</a>
+{% endif %}
 
 {% endmacro %}
 
