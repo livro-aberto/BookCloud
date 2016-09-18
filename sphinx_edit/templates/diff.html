@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}Viewing diff of {{ filename }} from {{ branch }}{% endblock%}
+
+{% block scripts %}
+<style>
+span.diff_sub {
+  background-color: #1abc9c;
+  color: white;
+}
+
+td {
+word-break: break-all;
+max-width: 500px;
+}
+
+span.diff_add {
+  background-color: #ea9b92;
+  color: white;
+}
+
+div.bodywrapper {
+margin: 0 0 0 20px;
+}
+</style>
+{% endblock %}
+
+{% macro contents() %}
+<h1>These are the proposed changes</h1>
+
+{{ diff | safe }}
+
+<a href="/{{ project }}/merge/{{ branch }}">Cancel</a>
+<a href="/{{ project }}/accept/{{ filename }}">Accept</a>
+
+{% endmacro %}
+

@@ -258,6 +258,7 @@ def diff(project, filename):
     git_api = get_git(project, current_user.username)
     old = string.split(git_api.show('master:' + filename + file_extension), '\n')
     diff = differ.make_table(rst, old)
+    diff = string.replace(diff, 'nowrap="nowrap"', '')
     return render_template('diff.html', branch=merging['branch'], project=project,
                            diff=diff, filename=filename + file_extension, bar_menu=bar_menu)
 
