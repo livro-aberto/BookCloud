@@ -8,6 +8,7 @@ from sphinx_edit import app
 import string
 from shutil import copyfile
 import git
+from difflib import HtmlDiff
 
 import codecs # deals with encoding better
 import sphinx
@@ -239,6 +240,26 @@ def edit(project, filename):
         doc = render_template_string(content_file.read(), barebones=True)
     return render_template('edit.html', doc=doc, rst=rst, filename=filename,
                            reponame=project, render_sidebar=False)
+
+@login_required
+@app.route('/<project>/diff/<path:filename>')
+def diff(project, filename):
+    merging = get_merging(project, current_user.username)
+    if not merging:
+        flash('You are not merging!', 'error')
+        return redirect(url_for('/' + project))
+    bar_menu = [{'url': '/logout', 'name': 'logout'},
+                {'url': '/profile', 'name': current_user.username}]
+    differ = HtmlDiff()
+    user_repo_path = join('repos', project, current_user.username)
+    filename, file_extension = os.path.splitext(filename)
+    with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'r', 'utf-8') as content_file:
+        rst = string.split(content_file.read(), '\n')
+    git_api = get_git(project, current_user.username)
+    old = string.split(git_api.show('master:' + filename + file_extension), '\n')
+    diff = differ.make_table(rst, old)
+    return render_template('diff.html', branch=merging['branch'], project=project,
+                           diff=diff, filename=filename + file_extension, bar_menu=bar_menu)
 
 @login_required
 @app.route('/<project>/merge/<branch>')

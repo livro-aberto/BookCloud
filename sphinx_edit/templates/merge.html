@@ -13,7 +13,9 @@
     {{ f }}
     <ul>
       <li><a href="/{{ project }}/review/{{ f }}">Review file</a></li>
-      <li><a href="/{{ project }}/accept/{{ f }}">Accept without reviewing</a></li>
+      <li><a href="/{{ project }}/accept/{{ f }}">Accept</a>
+        without reviewing (<a href="/{{ project }}/diff/{{ f }}">view diff</a>)
+      </li>
     </ul>
   </li>
   {% endfor %}
