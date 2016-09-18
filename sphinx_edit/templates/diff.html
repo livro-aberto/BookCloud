@@ -12,6 +12,7 @@ span.diff_sub {
 td {
 word-break: break-all;
 max-width: 500px;
+font-family: "Courier";
 }
 
 span.diff_add {
@@ -26,12 +27,24 @@ margin: 0 0 0 20px;
 {% endblock %}
 
 {% macro contents() %}
-<h1>These are the proposed changes</h1>
+<h1>Visualization of the proposed changes</h1>
+
+<p>
+  The proposed version is on the left, while the old version is on the right.
+
+  Inserted text is colored green, while removed ones are in red.
+</p>
+
+<br>
 
 {{ diff | safe }}
 
+<br>
+
+<div style="text-align: right;">
 <a href="/{{ project }}/merge/{{ branch }}">Cancel</a>
 <a href="/{{ project }}/accept/{{ filename }}">Accept</a>
+</div>
 
 {% endmacro %}
 

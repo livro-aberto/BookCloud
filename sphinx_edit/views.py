@@ -26,15 +26,18 @@ def get_merging(project, user_name):
         with codecs.open(merge_file_path, 'r', 'utf-8') as content_file:
             return json.loads(content_file.read())
 
+def std_menu(username):
+    return [{'url': '/logout', 'name': 'logout'},
+            {'url': '/profile', 'name': username}]
+
 def get_requests(project, user_name):
     git_api = get_git(project, user_name)
     branches = string.split(git_api.branch())
     merged = string.split(git_api.branch('--merged'))
     unmerged = [item for item in branches if item not in merged]
-    bar_menu = [{'url': '/logout', 'name': 'logout'},
-                {'url': '/profile', 'name': current_user.username}]
+    bar_menu = std_menu(current_user.username)
     if len(unmerged):
-        return render_template('requests.html', branches=unmerged, project=project, bar_menu=bar_menu)
+        return render_template('requests.html', project=project, unmerged=unmerged, bar_menu=bar_menu)
 
 def get_pendencies(project, user_name):
     # user already has the repository?
@@ -81,6 +84,10 @@ def create_project(project, user_name):
     with codecs.open(join('repos', project, user_name, 'properties.json'), 'w') as dest_file:
         dest_file.write(json.dumps(properties))
     build(project, user_name)
+
+def load_json(path):
+    with codecs.open(path, 'r', 'utf-8') as content_file:
+        return json.loads(content_file.read())
 
 def get_creator(project):
     with codecs.open(join('repos', project, 'properties.json'), 'r', 'utf-8') as content_file:
@@ -135,8 +142,7 @@ def build_latex(project, user):
 def reviewer(project):
     path = 'repos/' + project
     reviewers = [d for d in os.listdir(path) if isdir(join(path, d))]
-    bar_menu = [{'url': '/logout', 'name': 'logout'},
-                {'url': '/profile', 'name': current_user.username}]
+    bar_menu = std_menu(current_user.username)
     return render_template('reviewer.html', reviewers=reviewers, project=project, bar_menu=bar_menu)
 
 @login_required
@@ -196,6 +202,7 @@ def view(project, filename):
         user_repo_path = join('repos', project, creator)
         bar_menu = [{'url': '/login', 'name': 'login'}]
     filename, file_extension = os.path.splitext(filename)
+    build(project, current_user.username)
     if file_extension == '':
         file_extension = '.html'
     with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
@@ -248,16 +255,15 @@ def diff(project, filename):
     if not merging:
         flash('You are not merging!', 'error')
         return redirect(url_for('/' + project))
-    bar_menu = [{'url': '/logout', 'name': 'logout'},
-                {'url': '/profile', 'name': current_user.username}]
+    bar_menu = std_menu(current_user.username)
     differ = HtmlDiff()
     user_repo_path = join('repos', project, current_user.username)
     filename, file_extension = os.path.splitext(filename)
     with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'r', 'utf-8') as content_file:
-        rst = string.split(content_file.read(), '\n')
+        new = string.split(content_file.read(), '\n')
     git_api = get_git(project, current_user.username)
     old = string.split(git_api.show('master:' + filename + file_extension), '\n')
-    diff = differ.make_table(rst, old)
+    diff = differ.make_table(new, old)
     diff = string.replace(diff, 'nowrap="nowrap"', '')
     return render_template('diff.html', branch=merging['branch'], project=project,
                            diff=diff, filename=filename + file_extension, bar_menu=bar_menu)
@@ -273,8 +279,7 @@ def merge(project, branch):
         merging = {'branch': branch, 'modified': modified, 'reviewed': []}
         with codecs.open(join('repos', project, current_user.username, 'merging.json'), 'w') as dest_file:
             dest_file.write(json.dumps(merging))
-    bar_menu = [{'url': '/logout', 'name': 'logout'},
-                {'url': '/profile', 'name': current_user.username}]
+    bar_menu = std_menu(current_user.username)
     return render_template('merge.html', project=project, modified=merging['modified'],
                            reviewed=merging['reviewed'], branch=branch, bar_menu=bar_menu)
 
@@ -287,8 +292,7 @@ def projects():
     path = 'repos'
     projects = [d for d in os.listdir(path) if isdir(join(path, d))]
     if current_user.is_authenticated:
-        bar_menu = [{'url': '/logout', 'name': 'logout'},
-                    {'url': '/profile', 'name': current_user.username}]
+        bar_menu = std_menu(current_user.username)
     else:
         bar_menu = [{'url': '/login', 'name': 'login'}]
     return render_template('projects.html', projects=projects, bar_menu=bar_menu, copyright='CC-BY-SA-NC')
@@ -297,9 +301,7 @@ def projects():
 def profile():
     if not current_user.is_authenticated:
         redirect (url_for('login'))
-    bar_menu = [{'url': '/logout', 'name': 'logout'},
-                {'url': '/', 'name': 'home'},
-                {'url': '/profile', 'name': current_user.username}]
+    bar_menu = std_menu(current_user.username)
     return render_template('profile.html', username=current_user.username, bar_menu=bar_menu)
 
 @app.route('/new', methods = ['GET', 'POST'])
@@ -307,9 +309,7 @@ def new():
     if not current_user.is_authenticated:
         flash('You need to be logged in to create a new project', 'error')
         return redirect(url_for('login'))
-    bar_menu = [{'url': '/logout', 'name': 'logout'},
-                {'url': '/', 'name': 'home'},
-                {'url': '/profile', 'name': current_user.username}]
+    bar_menu = std_menu(current_user.username)
     if request.method == 'POST':
         repo_path = join('repos', request.form['project'], current_user.username)
         if os.path.isdir(repo_path):

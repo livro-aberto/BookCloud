@@ -6,7 +6,7 @@
 <h1>Merge requests</h1>
 
     <ul id="navigation">
-    {% for b in branches %}
+    {% for b in unmerged %}
         <li>Request from <a href="/{{ project }}/merge/{{ b }}">{{ b }}</a></li>
     {% endfor %}
     </ul>
