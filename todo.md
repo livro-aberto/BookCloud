@@ -6,6 +6,7 @@
   - remove specific configurations from conf/conf.py, they should go to toml and be imported
   - add logging: http://damyanon.net/flask-series-logging/
   - ability change reviewer
+  - add project_properties to be passed to jinja files, including for instance copyright
 
 ```
 def is_merging(git_api):

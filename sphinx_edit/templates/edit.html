@@ -108,11 +108,11 @@ div.bodywrapper {
         <form method="post">
           <textarea id="code" name="code">{{ rst }}</textarea>
           <br>
-          <a href="/{{ reponame }}/view/{{ filename }}" style="text-decoration:none">
+          <a href="/{{ project }}/view/{{ filename }}" style="text-decoration:none">
             <input type="button" value="Cancel"/>
           </a>
-          <input id="preview" name="preview" type="submit" formaction="/{{ reponame }}/edit/{{ filename }}" value="Preview">
-          <input id="submit" name="submit" type="submit" formaction="/{{ reponame }}/save/{{ filename }}" value="Submit">
+          <input id="preview" name="preview" type="submit" formaction="/{{ project }}/edit/{{ filename }}" value="Preview">
+          <input id="submit" name="submit" type="submit" formaction="/{{ project }}/save/{{ filename }}" value="Submit">
         </form>
       </div>
 

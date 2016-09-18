@@ -141,7 +141,7 @@ def reviewer(project):
     path = 'repos/' + project
     reviewers = [d for d in os.listdir(path) if isdir(join(path, d))]
     bar_menu = std_menu(current_user.username)
-    return render_template('reviewer.html', reviewers=reviewers, project=project, bar_menu=bar_menu)
+    return render_template('reviewer.html', project=project, reviewers=reviewers, bar_menu=bar_menu)
 
 @login_required
 @app.route('/<project>/accept/<path:filename>')
@@ -186,8 +186,11 @@ def clone(project, reviewer):
 @app.route('/<project>/view/<path:filename>')
 def view(project, filename):
     filename, file_extension = os.path.splitext(filename)
+    if file_extension == '':
+        file_extension = '.html'
     if (current_user.is_authenticated):
-        user_repo_path = join('repos', project, current_user.username)
+        user_repo_path = join('repos', project, current_user.username,
+                              'build/html', filename + file_extension)
         pendencies = get_pendencies(project, current_user.username)
         if pendencies:
             return pendencies
@@ -196,15 +199,13 @@ def view(project, filename):
                     {'url': '/profile', 'name': current_user.username}]
     else:
         creator = get_creator(project)
-        user_repo_path = join('repos', project, creator)
+        user_repo_path = join('repos', project, creator,
+                              'build/html', filename + file_extension)
         bar_menu = [{'url': '/login', 'name': 'login'}]
-    filename, file_extension = os.path.splitext(filename)
     build(project, current_user.username)
-    if file_extension == '':
-        file_extension = '.html'
-    with codecs.open(join(user_repo_path, 'build/html', filename + file_extension), 'r', 'utf-8') as content_file:
+    with codecs.open(user_repo_path, 'r', 'utf-8') as content_file:
         content = content_file.read()
-    return render_template_string(content, reponame=project, bar_menu=bar_menu, render_sidebar=True)
+    return render_template_string(content, bar_menu=bar_menu, render_sidebar=True)
 
 @app.route('/<project>/save/<path:filename>', methods = ['GET', 'POST'])
 @login_required
@@ -233,17 +234,18 @@ def edit(project, filename):
     pendencies = get_pendencies(project, current_user.username)
     if pendencies:
         return pendencies
-    user_repo_path = join('repos', project, current_user.username)
+    user_source_path = join('repos', project, current_user.username, 'source', filename + '.rst')
+    user_html_path = join('repos', project, current_user.username, 'build/html', filename + '.html')
     if request.method == 'POST':
-        with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
+        with codecs.open(user_source_path, 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
     build(project, current_user.username)
-    with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'r', 'utf-8') as content_file:
+    with codecs.open(user_source_path, 'r', 'utf-8') as content_file:
         rst = content_file.read()
-    with codecs.open(join(user_repo_path, 'build/html', filename + '.html'), 'r', 'utf-8') as content_file:
+    with codecs.open(user_html_path, 'r', 'utf-8') as content_file:
         doc = render_template_string(content_file.read(), barebones=True)
     return render_template('edit.html', doc=doc, rst=rst, filename=filename,
-                           reponame=project, render_sidebar=False)
+                           project=project, render_sidebar=False)
 
 @login_required
 @app.route('/<project>/diff/<path:filename>')
@@ -254,15 +256,15 @@ def diff(project, filename):
         return redirect(url_for('/' + project))
     bar_menu = std_menu(current_user.username)
     differ = HtmlDiff()
-    user_repo_path = join('repos', project, current_user.username)
+    user_source_path = join('repos', project, current_user.username, 'source', filename + '.rst')
     filename, file_extension = os.path.splitext(filename)
-    with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'r', 'utf-8') as content_file:
+    with codecs.open(user_source_path, 'r', 'utf-8') as content_file:
         new = string.split(content_file.read(), '\n')
     git_api = get_git(project, current_user.username)
     old = string.split(git_api.show('master:' + filename + file_extension), '\n')
     diff = differ.make_table(new, old)
     diff = string.replace(diff, 'nowrap="nowrap"', '')
-    return render_template('diff.html', branch=merging['branch'], project=project,
+    return render_template('diff.html',  project=project, branch=merging['branch'],
                            diff=diff, filename=filename + file_extension, bar_menu=bar_menu)
 
 @login_required
@@ -307,8 +309,8 @@ def new():
         return redirect(url_for('login'))
     bar_menu = std_menu(current_user.username)
     if request.method == 'POST':
-        repo_path = join('repos', request.form['project'], current_user.username)
-        if os.path.isdir(repo_path):
+        user_repo_path = join('repos', request.form['project'], current_user.username)
+        if os.path.isdir(user_repo_path):
             flash('This project name already exists', 'error')
             return render_template('new.html', username=current_user.username, bar_menu=bar_menu)
         else:
@@ -352,8 +354,8 @@ def get_global_static(filename):
 
 @app.route('/_sources/<path:filename>')
 def show_source(filename):
-    user_repo_path = join('repos', current_user.username)
-    with codecs.open(join(user_repo_path, 'build/html/_sources', filename), 'r', 'utf-8') as content_file:
+    sources_path = join('repos', current_user.username, 'build/html/_sources', filename)
+    with codecs.open(sources_path, 'r', 'utf-8') as content_file:
         content = content_file.read()
     return Response(content, mimetype='text/txt')
 
