@@ -20,11 +20,18 @@ def get_git(project, user_name):
     repo = git.Repo(repo_path)
     return repo.git
 
+def load_json(path):
+    with codecs.open(path, 'r', 'utf-8') as content_file:
+        return json.loads(content_file.read())
+
+def write_json(path, structure):
+    with codecs.open(path, 'w', 'utf-8') as dest_file:
+        dest_file.write(json.dumps(structure))
+
 def get_merging(project, user_name):
     merge_file_path = join('repos', project, user_name, 'merging.json')
     if isfile(merge_file_path):
-        with codecs.open(merge_file_path, 'r', 'utf-8') as content_file:
-            return json.loads(content_file.read())
+        return load_json(merge_file_path)
 
 def std_menu(username):
     return [{'url': '/logout', 'name': 'logout'},
@@ -78,26 +85,18 @@ def create_project(project, user_name):
     repo.index.add(['index.rst', '.gitignore'])
     repo.index.commit('Initial commit')
     properties = {'project': project, 'creator': user_name}
-    with codecs.open(join('repos', project, 'properties.json'), 'w') as dest_file:
-        dest_file.write(json.dumps(properties))
+    write_json(join('repos', project, 'properties.json'), properties)
     properties = {'reviewer': user_name}
-    with codecs.open(join('repos', project, user_name, 'properties.json'), 'w') as dest_file:
-        dest_file.write(json.dumps(properties))
+    write_json(join('repos', project, user_name, 'properties.json'), properties)
     build(project, user_name)
 
-def load_json(path):
-    with codecs.open(path, 'r', 'utf-8') as content_file:
-        return json.loads(content_file.read())
-
 def get_creator(project):
-    with codecs.open(join('repos', project, 'properties.json'), 'r', 'utf-8') as content_file:
-        properties = json.loads(content_file.read())
-        return properties['creator']
+    properties = load_json(join('repos', project, 'properties.json'))
+    return properties['creator']
 
 def get_reviewer(project, user_name):
-    with codecs.open(join('repos', project, user_name, 'properties.json'), 'r', 'utf-8') as content_file:
-        properties = json.loads(content_file.read())
-        return properties['reviewer']
+    properties = load_json(join('repos', project, user_name, 'properties.json'))
+    return properties['reviewer']
 
 def clone_project(project, user_name, reviewer):
     # Clone repository from a reviewer
@@ -109,8 +108,7 @@ def clone_project(project, user_name, reviewer):
     git_api = repo.git
     git_api.checkout('HEAD', b=user_name)
     properties = {'reviewer': reviewer}
-    with codecs.open(join('repos', project, user_name, 'properties.json'), 'w') as dest_file:
-        dest_file.write(json.dumps(properties))
+    write_json(join('repos', project, user_name, 'properties.json'), properties)
     build(project, user_name)
 
 def build(project, user):
@@ -158,8 +156,7 @@ def accpet(project, filename):
     merging['modified'].remove(filename)
     merging['reviewed'].append(filename)
     merge_file_path = join('repos', project, current_user.username, 'merging.json')
-    with codecs.open(merge_file_path, 'w') as dest_file:
-        dest_file.write(json.dumps(merging))
+    write_json(merge_file_math, properties)
     return redirect('/' + project + '/merge/' + merging['branch'])
 
 @login_required
@@ -277,8 +274,7 @@ def merge(project, branch):
         git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', branch)
         modified = string.split(git_api.diff('HEAD', '--name-only'))
         merging = {'branch': branch, 'modified': modified, 'reviewed': []}
-        with codecs.open(join('repos', project, current_user.username, 'merging.json'), 'w') as dest_file:
-            dest_file.write(json.dumps(merging))
+        write_json(join('repos', project, current_user.username, 'merging.json'), merging)
     bar_menu = std_menu(current_user.username)
     return render_template('merge.html', project=project, modified=merging['modified'],
                            reviewed=merging['reviewed'], branch=branch, bar_menu=bar_menu)
