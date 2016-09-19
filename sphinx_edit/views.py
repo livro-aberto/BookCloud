@@ -138,10 +138,12 @@ def build_latex(project, user):
 @login_required
 @app.route('/<project>/reviewer')
 def reviewer(project):
-    path = 'repos/' + project
+    path = join('repos', project)
     reviewers = [d for d in os.listdir(path) if isdir(join(path, d))]
     bar_menu = std_menu(current_user.username)
-    return render_template('reviewer.html', project=project, reviewers=reviewers, bar_menu=bar_menu)
+    text = {'title': 'Clone project', 'headline': 'Choose your reviewer'}
+    return render_template('reviewer.html', project=project, reviewers=reviewers,
+                           text=text, bar_menu=bar_menu)
 
 @login_required
 @app.route('/<project>/accept/<path:filename>')
@@ -156,7 +158,7 @@ def accpet(project, filename):
     merging['modified'].remove(filename)
     merging['reviewed'].append(filename)
     merge_file_path = join('repos', project, current_user.username, 'merging.json')
-    write_json(merge_file_math, properties)
+    write_json(merge_file_path, merging)
     return redirect('/' + project + '/merge/' + merging['branch'])
 
 @login_required
@@ -222,9 +224,10 @@ def save(project, filename):
     repo.index.add([filename + '.rst'])
     repo.index.commit('Change in ' + filename + ' by ' + current_user.username)
     git_api = repo.git
-    if current_user.username != get_reviewer(project, current_user.username):
+    reviewer = get_reviewer(project, current_user.username)
+    if current_user.username != reviewer:
         git_api.push('origin', current_user.username)
-    flash('Page submitted!', 'info')
+    flash('Page submitted to @' + reviewer, 'info')
     build(project, current_user.username)
     return redirect('/' + project + '/view/' + filename)
 
@@ -244,8 +247,11 @@ def edit(project, filename):
         rst = content_file.read()
     with codecs.open(user_html_path, 'r', 'utf-8') as content_file:
         doc = render_template_string(content_file.read(), barebones=True)
+    text = {'title': 'Edit:', 'image': 'Image', 'math': 'Math mode',
+            'sections': 'Sections', 'style': 'Style',
+            'cancel': 'Cancel', 'preview': 'Preview', 'submit': 'Submit'}
     return render_template('edit.html', doc=doc, rst=rst, filename=filename,
-                           project=project, render_sidebar=False)
+                           project=project, text=text, render_sidebar=False)
 
 @login_required
 @app.route('/<project>/diff/<path:filename>')
@@ -256,16 +262,19 @@ def diff(project, filename):
         return redirect(url_for('/' + project))
     bar_menu = std_menu(current_user.username)
     differ = HtmlDiff()
-    user_source_path = join('repos', project, current_user.username, 'source', filename + '.rst')
     filename, file_extension = os.path.splitext(filename)
+    user_source_path = join('repos', project, current_user.username, 'source', filename + '.rst')
     with codecs.open(user_source_path, 'r', 'utf-8') as content_file:
         new = string.split(content_file.read(), '\n')
     git_api = get_git(project, current_user.username)
     old = string.split(git_api.show('master:' + filename + file_extension), '\n')
     diff = differ.make_table(new, old)
     diff = string.replace(diff, 'nowrap="nowrap"', '')
+    text = {'title': ' has suggested a change to the file: ',
+            'instructions': 'The proposed version is on the left, while the old version is on the right.'}
     return render_template('diff.html',  project=project, branch=merging['branch'],
-                           diff=diff, filename=filename + file_extension, bar_menu=bar_menu)
+                           diff=diff, filename=filename + file_extension,
+                           text=text, bar_menu=bar_menu)
 
 @login_required
 @app.route('/<project>/merge/<branch>')
@@ -278,8 +287,13 @@ def merge(project, branch):
         merging = {'branch': branch, 'modified': modified, 'reviewed': []}
         write_json(join('repos', project, current_user.username, 'merging.json'), merging)
     bar_menu = std_menu(current_user.username)
+    text = {'title': 'Merging from @', 'unseen': 'Modifications not yet reviewed',
+            'review': 'Review file', 'accept': 'Accept suggestions', 'view': 'View differences',
+            'reviewed': 'Changes reviewed', 'finally': 'You have finished all the reviews',
+            'finish': 'Finish merge'}
     return render_template('merge.html', project=project, modified=merging['modified'],
-                           reviewed=merging['reviewed'], branch=branch, bar_menu=bar_menu)
+                           reviewed=merging['reviewed'], branch=branch,
+                           text=text, bar_menu=bar_menu)
 
 @app.route('/<project>')
 def index(project):
@@ -293,7 +307,9 @@ def projects():
         bar_menu = std_menu(current_user.username)
     else:
         bar_menu = [{'url': '/login', 'name': 'login'}]
-    return render_template('projects.html', projects=projects, bar_menu=bar_menu, copyright='CC-BY-SA-NC')
+    text = {'title': 'Projects list', 'download': 'Download', 'new': 'Create new project'}
+    return render_template('projects.html', projects=projects, bar_menu=bar_menu,
+                           text=text, copyright='CC-BY-SA-NC')
 
 @app.route('/profile')
 def profile():
@@ -317,7 +333,9 @@ def new():
             create_project(request.form['project'], current_user.username)
             flash('Project created successfuly!', 'info')
             return redirect('/')
-    return render_template('new.html', username=current_user.username, bar_menu=bar_menu)
+    text = {'title': 'Create new project', 'submit': 'Submit'}
+    return render_template('new.html', username=current_user.username,
+                           text=text, bar_menu=bar_menu)
 
 @app.route('/<project>/pdf')
 def pdf(project):

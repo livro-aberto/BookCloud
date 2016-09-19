@@ -1,20 +1,20 @@
 {% extends "layout.html" %}
 
-{% block title %}List of projects{% endblock%}
+{% block title %}{{ text['title'] }}{% endblock%}
 
 {% macro contents() %}
-<h1>Projetos</h1>
+<h1>{{ text['title'] }}</h1>
 <ul id="navigation">
   {% for p in projects %}
   <li>
     <a href="/{{ p }}/view/index">{{ p }}</a>
-    - Download <a href="/{{ p }}/pdf">pdf</a>
+    - {{ text['download'] }} <a href="/{{ p }}/pdf">pdf</a>
   </li>
   {% endfor %}
 </ul>
 
 <p>
-  Create a new <a href="/new">project</a>
+  <a href="/new">{{ text['new'] }}</a>
 </p>
 {% endmacro %}
 

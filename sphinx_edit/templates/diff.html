@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Viewing diff of {{ filename }} from {{ branch }}{% endblock%}
+{% block title %}{{ branch }} {{ text['title'] }} {{ filename }}{% endblock%}
 
 {% block scripts %}
 <style>
@@ -27,12 +27,10 @@ margin: 0 0 0 20px;
 {% endblock %}
 
 {% macro contents() %}
-<h1>Visualization of the proposed changes</h1>
+<h1>@{{ branch }} {{ text['title'] }} {{ filename }}</h1>
 
 <p>
-  The proposed version is on the left, while the old version is on the right.
-
-  Inserted text is colored green, while removed ones are in red.
+  {{ text['instructions'] }}
 </p>
 
 <br>

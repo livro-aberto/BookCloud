@@ -1,16 +1,16 @@
 {% extends "layout.html" %}
 
-{% block title %}Create new project{% endblock%}
+{% block title %}{{ text['title'] }}{% endblock%}
 
 {% macro contents() %}
-<h1>Create new project</h1>
+<h1>{{ text['title'] }}</h1>
 
 <p>
   <form method="post">
     <input type="text" id="project" name="project">{{ rst }}</textarea>
 <br>
 <br>
-    <input id="submit" name="submit" type="submit" formaction="/new" value="Submit">
+    <input id="submit" name="submit" type="submit" formaction="/new" value="{{ text['submit'] }}">
   </form>
 </p>
 {% endmacro %}

@@ -1,9 +1,9 @@
 {% extends "layout.html" %}
 
-{% block title %}Clone project{% endblock%}
+{% block title %}{{ text['title'] }}{% endblock%}
 
 {% macro contents() %}
-<h1>Choose your reviewer</h1>
+<h1>{{ text['headline'] }}</h1>
 <ul id="navigation">
   {% for r in reviewers %}
   <li>

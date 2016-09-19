@@ -1,20 +1,20 @@
 {% extends "layout.html" %}
 
-{% block title %}Merging {{ project }} from {{ branch }}{% endblock%}
+{% block title %}{{ text['title'] }}{{ branch }}{% endblock%}
 
 {% macro contents() %}
-<h1>Modifications:</h1>
+<h1>{{ text['title'] }}{{ branch }}</h1>
 
 {% if modified %}
-<h2>Not reviewed yet</h2>
+<h2>{{ text['unseen'] }}</h2>
 <ul id="navigation">
   {% for f in modified %}
   <li>
     {{ f }}
     <ul>
-      <li><a href="/{{ project }}/review/{{ f }}">Review file</a></li>
-      <li><a href="/{{ project }}/accept/{{ f }}">Accept</a>
-        without reviewing (<a href="/{{ project }}/diff/{{ f }}">view diff</a>)
+      <li><a href="/{{ project }}/review/{{ f }}">{{ text['review'] }}</a></li>
+      <li><a href="/{{ project }}/diff/{{ f }}">{{ text['view'] }}</a></li>
+      <li><a href="/{{ project }}/accept/{{ f }}">{{ text['accept'] }}</a></li>
       </li>
     </ul>
   </li>
@@ -23,7 +23,7 @@
 {% endif %}
 
 {% if reviewed %}
-<h2>Reviewed</h2>
+<h2>{{ text['reviewed'] }}</h2>
 <ul id="navigation">
   {% for f in reviewed %}
   <li>
@@ -34,8 +34,8 @@
 {% endif %}
 
 {% if not modified %}
-<h2>You have finished all the reviews</h2>
-<a href="/{{ project }}/finish">Finish merge</a>
+<h2>{{ text['finally'] }}</h2>
+<a href="/{{ project }}/finish">{{ text['finish'] }}</a>
 {% endif %}
 
 {% endmacro %}
