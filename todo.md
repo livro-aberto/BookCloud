@@ -13,9 +13,15 @@
   - ability to rename file (possibly with template for name)
   - ability to remove file
   - add common prefix to all routes (for serving on folder of domain). Or can this be done in Apache?
-
-
-
+  - view other person's repo
+  - implement comments and issues
+  - bug in diff? see also https://github.com/lqc/google-diff-match-patch
+  - allow reviewer to continue editing without addressing merge requests
+  - implement two-way merge, see https://github.com/lqc/google-diff-match-patch
+  - implement submodules for javascript code,
+    - https://github.com/lqc/google-diff-match-patch
+    - https://github.com/sphinx-doc/sphinx/tree/master/sphinx/themes/bizstyle/static
+    - https://github.com/mathjax/MathJax
 
 
 
