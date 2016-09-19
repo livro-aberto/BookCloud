@@ -7,46 +7,14 @@
   - add logging: http://damyanon.net/flask-series-logging/
   - ability change reviewer
   - add project_properties to be passed to jinja files, including for instance copyright
-
-```
-def is_merging(git_api):
-    try:
-        git_api.merge('HEAD')
-    except git.GitCommandError as inst:
-        return True
-    return False
-```
-
-get parents of ongoing merge
-```
-git show --pretty=format:"%P" --no-patch MERGE_HEAD
-```
+  - add more options to project, such as: language, title...
+  (see sphinx's conf.py)
+  - add user options, such as: language
+  - add user/project options, such as: default reviewer
+  - ability to add new file (possibly with template for name)
+  - ability to rename file (possibly with template for name)
+  - ability to remove file
 
 
-```
-mkdir test
-cd test/
-git init
-echo "master" > a
-git add .
-git commit -m "master init"
-git checkout -b feature
-echo "feature" > a
-git commit -am "feature"
-git checkout master
-echo "master is better" > a
-git commit -am "master commit"
-git merge --no-commit -s recursive -X theirs feature
-git reset HEAD *
-cat a
-git show master:a
-echo "master also has feature now" > a
-git add .
-git commit -m "Merge"
-cat a
-git tree
-git checkout feature
-git merge master
-git checkout master
-git branch -d feature
-```
+
+
