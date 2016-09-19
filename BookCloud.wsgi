@@ -1,1 +1,1 @@
-from sphinx_edit import app as application
+from application import app as application

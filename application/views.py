@@ -4,7 +4,7 @@ from os.path import join, isdir, isfile
 import flask
 from flask import render_template, render_template_string, request, redirect, url_for, Response, flash
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
-from sphinx_edit import app
+from application import app
 import string
 from shutil import copyfile
 import git
@@ -80,8 +80,8 @@ def create_project(project, user_name):
     git.Repo.init(join(repo_path, 'source'))
     repo = git.Repo(join(repo_path, 'source'))
     config_repo(repo, user_name, user_name + '@example.com')
-    copyfile('sphinx_edit/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
-    copyfile('sphinx_edit/empty_repo/.gitignore', join(repo_path, 'source/.gitignore'))
+    copyfile('application/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
+    copyfile('application/empty_repo/.gitignore', join(repo_path, 'source/.gitignore'))
     repo.index.add(['index.rst', '.gitignore'])
     repo.index.commit('Initial commit')
     properties = {'project': project, 'creator': user_name}

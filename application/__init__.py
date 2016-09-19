@@ -37,4 +37,4 @@ db.create_all()
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
 user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
 
-import sphinx_edit.views
+import application.views
