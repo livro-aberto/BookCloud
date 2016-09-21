@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ text['title'] }}{% endblock%}
+
+{% macro contents() %}
+<h1>{{ text['title'] }}</h1>
+<ul id="navigation">
+
+<form action="/{{ project }}/clone" method="POST">
+
+  {{ text['name'] }}
+
+  <br>
+
+  <input type="text" name="name"><br>
+
+  <br>
+
+  {{ text['origin'] }}
+
+  <br>
+  <br>
+
+  {% for b in branches %}
+
+    <input type="radio" name="origin" value="{{ b }}">{{ b }}<br>
+
+  {% endfor %}
+  <br>
+  <input id="submit" type="submit" name="submit" value="Submit" formaction="/{{ project }}/{{ branch }}/clone">
+
+</form>
+
+</ul>
+
+{% endmacro %}
+

@@ -3,13 +3,15 @@
 {% block title %}{{ text['title'] }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ text['headline'] }}</h1>
+<h1>{{ text['title'] }}</h1>
 <ul id="navigation">
-  {% for r in reviewers %}
-  <li>
-    <a href="/{{ project }}/clone/{{ r }}">{{ r }}</a>
-  </li>
-  {% endfor %}
+
+{% for b in branches %}
+<li>
+  <a href="/{{ project }}/{{ b }}/view/index.html">{{ b }}</a>
+</li>
+{% endfor %}
+
 </ul>
 
 {% endmacro %}

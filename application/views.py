@@ -15,8 +15,8 @@ import sphinx
 
 config_path = 'conf'
 
-def get_git(project, user_name):
-    repo_path = join('repos', project, user_name, 'source')
+def get_git(project, branch):
+    repo_path = join('repos', project, branch, 'source')
     repo = git.Repo(repo_path)
     return repo.git
 
@@ -37,8 +37,8 @@ def std_menu(username):
     return [{'url': '/logout', 'name': 'logout'},
             {'url': '/profile', 'name': username}]
 
-def get_requests(project, user_name):
-    git_api = get_git(project, user_name)
+def get_requests(project, branch):
+    git_api = get_git(project, branch)
     branches = string.split(git_api.branch())
     merged = string.split(git_api.branch('--merged'))
     unmerged = [item for item in branches if item not in merged]
@@ -46,26 +46,26 @@ def get_requests(project, user_name):
     if len(unmerged):
         return render_template('requests.html', project=project, unmerged=unmerged, bar_menu=bar_menu)
 
-def get_pendencies(project, user_name):
+def get_pendencies(project, branch):
     # user already has the repository?
-    user_repo_path = join('repos', project, user_name)
-    if not isdir(user_repo_path):
-        return redirect('/' + project + '/reviewer')
+    branch_repo_path = join('repos', project, branch)
+    if not isdir(branch_repo_path):
+        return redirect('/' + project + '/branches')
     # user is merging?
-    merging = get_merging(project, user_name)
+    merging = get_merging(project, branch)
     if merging:
-        return redirect('/' + project + '/merge/' + merging['branch'])
+        return redirect('/' + project + '/' + branch + '/merge/' + merging['branch'])
     # user has a pending request?
-    requests = get_requests(project, user_name)
+    requests = get_requests(project, branch)
     if requests:
         return requests
     # update from reviewer (if the user is not his own reviewer)
-    if not user_name == get_reviewer(project, user_name):
-        git_api = get_git(project, user_name)
+    if branch != 'master':
+        git_api = get_git(project, branch)
         git_api.fetch()
         git_api.merge('-s', 'recursive', '-Xours', 'origin/master')
-        git_api.push('origin', user_name)
-        build(project, user_name)
+        git_api.push('origin', branch)
+        build(project, branch)
 
 def config_repo(repo, user_name, email):
     config = repo.config_writer()
@@ -74,48 +74,50 @@ def config_repo(repo, user_name, email):
 
 def create_project(project, user_name):
     # create a repository
-    repo_path = join('repos', project, user_name)
+    repo_path = join('repos', project, 'master')
     os.makedirs(repo_path)
     os.makedirs(join(repo_path, 'source'))
     git.Repo.init(join(repo_path, 'source'))
     repo = git.Repo(join(repo_path, 'source'))
-    config_repo(repo, user_name, user_name + '@example.com')
+    config_repo(repo, 'master', user_name + '@example.com')
     copyfile('application/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
     copyfile('application/empty_repo/.gitignore', join(repo_path, 'source/.gitignore'))
     repo.index.add(['index.rst', '.gitignore'])
     repo.index.commit('Initial commit')
-    properties = {'project': project, 'creator': user_name}
-    write_json(join('repos', project, 'properties.json'), properties)
-    properties = {'reviewer': user_name}
-    write_json(join('repos', project, user_name, 'properties.json'), properties)
-    build(project, user_name)
+    properties = {'project': project, 'owner': user_name, 'reviewer': user_name, 'origin': 'master'}
+    write_json(join('repos', project, 'master', 'properties.json'), properties)
+    # properties = {'reviewer': user_name}
+    # write_json(join('repos', project, 'master', 'properties.json'), properties)
+    build(project, 'master')
 
-def get_creator(project):
-    properties = load_json(join('repos', project, 'properties.json'))
-    return properties['creator']
+def get_owner(project, branch):
+    properties = load_json(join('repos', project, branch, 'properties.json'))
+    return properties['owner']
 
-def get_reviewer(project, user_name):
-    properties = load_json(join('repos', project, user_name, 'properties.json'))
+def get_reviewer(project, branch):
+    properties = load_json(join('repos', project, branch, 'properties.json'))
+    origin = properties['origin']
+    properties = load_json(join('repos', project, origin, 'properties.json'))
     return properties['reviewer']
 
-def clone_project(project, user_name, reviewer):
-    # Clone repository from a reviewer
-    repo_path = join('repos', project, user_name, 'source')
-    main_repo = git.Repo(join('repos', project, reviewer, 'source'))
+def clone_project(project, origin, branch, user_name):
+    # Clone repository from a certain origin branch
+    repo_path = join('repos', project, branch, 'source')
+    main_repo = git.Repo(join('repos', project, origin, 'source'))
     main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
     repo = git.Repo(os.path.abspath(join(os.getcwd(), repo_path)))
     config_repo(repo, user_name, user_name + '@here.com')
     git_api = repo.git
-    git_api.checkout('HEAD', b=user_name)
-    properties = {'reviewer': reviewer}
-    write_json(join('repos', project, user_name, 'properties.json'), properties)
-    build(project, user_name)
+    git_api.checkout('HEAD', b=branch)
+    properties = {'origin': origin}
+    write_json(join('repos', project, branch, 'properties.json'), properties)
+    build(project, branch)
 
-def build(project, user):
+def build(project, branch):
     # Replace this terrible implementation
     config_path = 'conf'
-    source_path = join('repos', project, user, 'source')
-    build_path = join('repos', project, user, 'build/html')
+    source_path = join('repos', project, branch, 'source')
+    build_path = join('repos', project, branch, 'build/html')
     # args = ['-a', '-c conf']
     # if sphinx.build_main(args + ['source/', 'build/html/']):
     #     os.chdir(previous_wd)
@@ -126,97 +128,96 @@ def build(project, user):
     os.system(command)
     return True
 
-def build_latex(project, user):
+def build_latex(project, branch):
     # Replace this terrible implementation
     config_path = 'conf'
-    source_path = join('repos', project, user, 'source')
-    build_path = join('repos', project, user, 'build/latex')
+    source_path = join('repos', project, branch, 'source')
+    build_path = join('repos', project, branch, 'build/latex')
     command = 'sphinx-build -a -b latex -c ' + config_path + ' ' + source_path + ' ' + build_path
     os.system(command)
     return True
 
 @login_required
-@app.route('/<project>/reviewer')
-def reviewer(project):
+@app.route('/<project>/branches', methods = ['GET', 'POST'])
+def branches(project):
     path = join('repos', project)
-    reviewers = [d for d in os.listdir(path) if isdir(join(path, d))]
+    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     bar_menu = std_menu(current_user.username)
-    text = {'title': 'Clone project', 'headline': 'Choose your reviewer'}
-    return render_template('reviewer.html', project=project, reviewers=reviewers,
+    text = {'title': 'Project branches'}
+    return render_template('branches.html', project=project, branches=branches,
                            text=text, bar_menu=bar_menu)
 
 @login_required
-@app.route('/<project>/accept/<path:filename>')
-def accpet(project, filename):
-    merging = get_merging(project, current_user.username)
+@app.route('/<project>/<branch>/accept/<path:filename>')
+def accpet(project, branch, filename):
+    if current_user.username != get_owner(project, branch):
+        flash('You are not the owner of this branch', 'error')
+        return redirect('/' + project + '/' + branch)
+    merging = get_merging(project, branch)
     if not merging:
         flash('You are not merging a submission', 'error')
-        return redirect('/' + project)
+        return redirect('/' + project + '/' + branch)
     if not filename in merging['modified']:
-        flash('File ' + filename + ' was not being reviewed', 'error')
-        return redirect('/' + project)
+        flash('File ' + filename + ' is not being reviewed', 'error')
+        return redirect('/' + project + '/' + branch)
     merging['modified'].remove(filename)
     merging['reviewed'].append(filename)
-    merge_file_path = join('repos', project, current_user.username, 'merging.json')
+    merge_file_path = join('repos', project, branch, 'merging.json')
     write_json(merge_file_path, merging)
-    return redirect('/' + project + '/merge/' + merging['branch'])
+    return redirect('/' + project + '/' + branch + '/merge/' + merging['branch'])
 
 @login_required
-@app.route('/<project>/finish')
-def finish(project):
-    merging = get_merging(project, current_user.username)
+@app.route('/<project>/<branch>/finish')
+def finish(project, branch):
+    if current_user.username != get_owner(project, branch):
+        flash('You are not the owner of this branch', 'error')
+        return redirect('/' + project + '/' + branch)
+    merging = get_merging(project, branch)
     if not merging:
         flash('You are not merging!', 'error')
-        return redirect(url_for('/' + project))
+        return redirect('/' + project + '/' + branch)
     if len(merging['modified']):
         flash('You still have unreviewed files', 'error')
-        return redirect('/' + project)
-    git_api = get_git(project, current_user.username)
+        return redirect('/' + project + '/' + branch)
+    git_api = get_git(project, branch)
     git_api.commit('-m', 'Merge ' + merging['branch'])
-    merge_file_path = join('repos', project, current_user.username, 'merging.json')
+    merge_file_path = join('repos', project, branch, 'merging.json')
     os.remove(merge_file_path)
-    build(project, current_user.username)
-    return redirect('/' + project)
+    build(project, branch)
+    return redirect('/' + project + '/' + branch)
 
-@login_required
-@app.route('/<project>/clone/<reviewer>')
-def clone(project, reviewer):
-    clone_project(project, current_user.username, reviewer)
-    flash('Project cloned successfully!', 'info')
-    return redirect('/' + project)
-
-@app.route('/<project>/view/<path:filename>')
-def view(project, filename):
+@app.route('/<project>/<branch>/view/<path:filename>')
+def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
     if file_extension == '':
         file_extension = '.html'
+    user_repo_path = join('repos', project, branch,
+                          'build/html', filename + file_extension)
     if (current_user.is_authenticated):
-        user_repo_path = join('repos', project, current_user.username,
-                              'build/html', filename + file_extension)
-        pendencies = get_pendencies(project, current_user.username)
+        pendencies = get_pendencies(project, branch)
         if pendencies:
             return pendencies
         bar_menu = [{'url': '/logout', 'name': 'logout'},
-                    {'url': '/' + project + '/edit/' + filename, 'name': 'edit'},
+                    {'url': '/' + project + '/' + branch + '/edit/' + filename, 'name': 'edit'},
                     {'url': '/profile', 'name': current_user.username}]
     else:
-        creator = get_creator(project)
-        user_repo_path = join('repos', project, creator,
-                              'build/html', filename + file_extension)
         bar_menu = [{'url': '/login', 'name': 'login'}]
-    build(project, current_user.username)
+    build(project, branch)
     with codecs.open(user_repo_path, 'r', 'utf-8') as content_file:
         content = content_file.read()
     return render_template_string(content, bar_menu=bar_menu, render_sidebar=True)
 
-@app.route('/<project>/save/<path:filename>', methods = ['GET', 'POST'])
 @login_required
-def save(project, filename):
-    pendencies = get_pendencies(project, current_user.username)
+@app.route('/<project>/<branch>/save/<path:filename>', methods = ['GET', 'POST'])
+def save(project, branch, filename):
+    if current_user.username != get_owner(project, branch):
+        flash('You are not the owner of this branch', 'error')
+        return redirect('/' + project + '/' + branch)
+    pendencies = get_pendencies(project, branch)
     if pendencies:
         return pendencies
     filename, file_extension = os.path.splitext(filename)
-    user_repo_path = join('repos', project, current_user.username)
+    user_repo_path = join('repos', project, branch)
     if request.method == 'POST':
         with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
@@ -224,49 +225,55 @@ def save(project, filename):
     repo.index.add([filename + '.rst'])
     repo.index.commit('Change in ' + filename + ' by ' + current_user.username)
     git_api = repo.git
-    reviewer = get_reviewer(project, current_user.username)
+    reviewer = get_reviewer(project, branch)
     if current_user.username != reviewer:
-        git_api.push('origin', current_user.username)
+        git_api.push('origin', branch)
     flash('Page submitted to @' + reviewer, 'info')
-    build(project, current_user.username)
-    return redirect('/' + project + '/view/' + filename)
+    build(project, branch)
+    return redirect('/' + project + '/' + branch + '/view/' + filename)
 
-@app.route('/<project>/edit/<path:filename>', methods = ['GET', 'POST'])
 @login_required
-def edit(project, filename):
-    pendencies = get_pendencies(project, current_user.username)
+@app.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
+def edit(project, branch, filename):
+    if current_user.username != get_owner(project, branch):
+        flash('You are not the owner of this branch', 'error')
+        return redirect('/' + project + '/' + branch + '/clone')
+    pendencies = get_pendencies(project, branch)
     if pendencies:
         return pendencies
-    user_source_path = join('repos', project, current_user.username, 'source', filename + '.rst')
-    user_html_path = join('repos', project, current_user.username, 'build/html', filename + '.html')
+    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
+    branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
     if request.method == 'POST':
-        with codecs.open(user_source_path, 'w') as dest_file:
+        with codecs.open(branch_source_path, 'w') as dest_file:
             dest_file.write(request.form['code'].encode('utf8'))
-    build(project, current_user.username)
-    with codecs.open(user_source_path, 'r', 'utf-8') as content_file:
+    build(project, branch)
+    with codecs.open(branch_source_path, 'r', 'utf-8') as content_file:
         rst = content_file.read()
-    with codecs.open(user_html_path, 'r', 'utf-8') as content_file:
+    with codecs.open(branch_html_path, 'r', 'utf-8') as content_file:
         doc = render_template_string(content_file.read(), barebones=True)
     text = {'title': 'Edit:', 'image': 'Image', 'math': 'Math mode',
             'sections': 'Sections', 'style': 'Style',
             'cancel': 'Cancel', 'preview': 'Preview', 'submit': 'Submit'}
-    return render_template('edit.html', doc=doc, rst=rst, filename=filename,
+    return render_template('edit.html', doc=doc, rst=rst, filename=filename, branch=branch,
                            project=project, text=text, render_sidebar=False)
 
 @login_required
-@app.route('/<project>/diff/<path:filename>')
+@app.route('/<project>/<branch>/diff/<path:filename>')
 def diff(project, filename):
+    if current_user.username != get_owner(project, branch):
+        flash('You are not the owner of this branch', 'error')
+        return redirect('/' + project + '/' + branch)
     merging = get_merging(project, current_user.username)
     if not merging:
-        flash('You are not merging!', 'error')
+        flash('You are not merging', 'error')
         return redirect(url_for('/' + project))
     bar_menu = std_menu(current_user.username)
     differ = HtmlDiff()
     filename, file_extension = os.path.splitext(filename)
-    user_source_path = join('repos', project, current_user.username, 'source', filename + '.rst')
-    with codecs.open(user_source_path, 'r', 'utf-8') as content_file:
+    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
+    with codecs.open(branch_source_path, 'r', 'utf-8') as content_file:
         new = string.split(content_file.read(), '\n')
-    git_api = get_git(project, current_user.username)
+    git_api = get_git(project, branch)
     old = string.split(git_api.show('master:' + filename + file_extension), '\n')
     diff = differ.make_table(new, old)
     diff = string.replace(diff, 'nowrap="nowrap"', '')
@@ -277,15 +284,15 @@ def diff(project, filename):
                            text=text, bar_menu=bar_menu)
 
 @login_required
-@app.route('/<project>/merge/<branch>')
-def merge(project, branch):
-    merging = get_merging(project, current_user.username)
+@app.route('/<project>/<branch>/merge/<other>')
+def merge(project, branch, other):
+    merging = get_merging(project, branch)
     if not merging:
-        git_api = get_git(project, current_user.username)
-        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', branch)
+        git_api = get_git(project, branch)
+        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', other)
         modified = string.split(git_api.diff('HEAD', '--name-only'))
-        merging = {'branch': branch, 'modified': modified, 'reviewed': []}
-        write_json(join('repos', project, current_user.username, 'merging.json'), merging)
+        merging = {'branch': other, 'modified': modified, 'reviewed': []}
+        write_json(join('repos', project, branch, 'merging.json'), merging)
     bar_menu = std_menu(current_user.username)
     text = {'title': 'Merging from @', 'unseen': 'Modifications not yet reviewed',
             'review': 'Review file', 'accept': 'Accept suggestions', 'view': 'View differences',
@@ -297,7 +304,12 @@ def merge(project, branch):
 
 @app.route('/<project>')
 def index(project):
-    return redirect(project + '/view/index')
+    text = {'title': 'List of branches'}
+    if (current_user.is_authenticated):
+        bar_menu = std_menu(current_user.username)
+    else:
+        bar_menu = [{'url': '/login', 'name': 'login'}]
+    return render_template('branches.html', text=text, project=project, bar_menu=bar_menu)
 
 @app.route('/')
 def projects():
@@ -336,6 +348,30 @@ def new():
     text = {'title': 'Create new project', 'submit': 'Submit'}
     return render_template('new.html', username=current_user.username,
                            text=text, bar_menu=bar_menu)
+
+@app.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
+def clone(project, branch):
+    if not current_user.is_authenticated:
+        flash('You need to be logged in to clone a project', 'error')
+        return redirect(url_for('login'))
+    bar_menu = std_menu(current_user.username)
+    if request.method == 'POST':
+        new_repo_path = join('repos', project, request.form['name'])
+        if os.path.isdir(new_repo_path):
+            flash('This branch name already exists', 'error')
+            return redirect('/' + project + '/' + branch + '/clone')
+        else:
+            new_branch = request.form['name']
+            origin_branch = request.form['origin']
+            clone_project(project, origin_branch, new_branch, current_user.username)
+            flash('Project cloned successfuly!', 'info')
+            return redirect('/' + project + '/' + new_branch)
+    path = join('repos', project)
+    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
+    text = {'title': 'Clone project', 'submit': 'Submit',
+            'name': 'Choose branch name', 'origin': 'Choose origin'}
+    return render_template('clone.html', username=current_user.username, project=project,
+                           branch=branch, branches=branches, text=text, bar_menu=bar_menu)
 
 @app.route('/<project>/pdf')
 def pdf(project):

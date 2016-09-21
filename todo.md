@@ -22,6 +22,6 @@
     - https://github.com/lqc/google-diff-match-patch
     - https://github.com/sphinx-doc/sphinx/tree/master/sphinx/themes/bizstyle/static
     - https://github.com/mathjax/MathJax
-
-
+  - user url_for for every url construction
+  - use context processors to automatically add variables to templates
 

@@ -111,8 +111,8 @@ div.bodywrapper {
           <a href="/{{ project }}/view/{{ filename }}" style="text-decoration:none">
             <input type="button" value="{{ text['cancel'] }}"/>
           </a>
-          <input id="preview" name="preview" type="submit" formaction="/{{ project }}/edit/{{ filename }}" value="{{ text['preview'] }}">
-          <input id="submit" name="submit" type="submit" formaction="/{{ project }}/save/{{ filename }}" value="{{ text['submit'] }}">
+          <input id="preview" name="preview" type="submit" formaction="/{{ project }}/{{ branch }}/edit/{{ filename }}" value="{{ text['preview'] }}">
+          <input id="submit" name="submit" type="submit" formaction="/{{ project }}/{{ branch }}/save/{{ filename }}" value="{{ text['submit'] }}">
         </form>
       </div>
 
