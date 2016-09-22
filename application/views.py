@@ -28,8 +28,8 @@ def write_json(path, structure):
     with codecs.open(path, 'w', 'utf-8') as dest_file:
         dest_file.write(json.dumps(structure))
 
-def get_merging(project, user_name):
-    merge_file_path = join('repos', project, user_name, 'merging.json')
+def get_merging(project, branch):
+    merge_file_path = join('repos', project, branch, 'merging.json')
     if isfile(merge_file_path):
         return load_json(merge_file_path)
 
@@ -44,12 +44,14 @@ def get_requests(project, branch):
     unmerged = [item for item in branches if item not in merged]
     bar_menu = std_menu(current_user.username)
     if len(unmerged):
-        return render_template('requests.html', project=project, unmerged=unmerged, bar_menu=bar_menu)
+        return render_template('requests.html', project=project, branch=branch,
+                               unmerged=unmerged, bar_menu=bar_menu)
 
 def get_pendencies(project, branch):
     # user already has the repository?
     branch_repo_path = join('repos', project, branch)
     if not isdir(branch_repo_path):
+        flash('You need to clone this repository first', 'error')
         return redirect('/' + project + '/branches')
     # user is merging?
     merging = get_merging(project, branch)
@@ -89,6 +91,7 @@ def create_project(project, user_name):
     new_project = Project(project, user_id)
     db.session.add(new_project)
     # add branch to database
+    db.session.commit()
     project_id = Project.query.filter_by(name=project).first().id
     origin_id = 1
     new_branch = Branch('master', project_id, origin_id, user_id)
@@ -107,15 +110,23 @@ def create_project(project, user_name):
     # write_json(join('repos', project, 'master', 'properties.json'), properties)
     build(project, 'master')
 
-def get_owner(project, branch):
-    properties = load_json(join('repos', project, branch, 'properties.json'))
-    return properties['owner']
+def get_branch_owner(project, branch):
+    project_id = Project.query.filter_by(name=project).first().id
+    print project_id
+    print Branch.query.filter_by(project_id=project_id, name=branch).first().owner
+    print Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
+    return Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
+    # properties = load_json(join('repos', project, branch, 'properties.json'))
+    # return properties['owner']
 
-def get_reviewer(project, branch):
-    properties = load_json(join('repos', project, branch, 'properties.json'))
-    origin = properties['origin']
-    properties = load_json(join('repos', project, origin, 'properties.json'))
-    return properties['reviewer']
+def get_branch_origin(project, branch):
+    project_id = Project.query.filter_by(name=project).first().id
+    origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
+    return Branch.query.filter_by(origin_id=origin_id).first().name
+    # properties = load_json(join('repos', project, branch, 'properties.json'))
+    # origin = properties['origin']
+    # properties = load_json(join('repos', project, origin, 'properties.json'))
+    # return properties['reviewer']
 
 def create_branch(project, origin, branch, user_name):
     # Clone repository from a certain origin branch
@@ -126,13 +137,12 @@ def create_branch(project, origin, branch, user_name):
     config_repo(repo, user_name, user_name + '@here.com')
     git_api = repo.git
     git_api.checkout('HEAD', b=branch)
-    new_branch = Branch(project, user_name)
-    db.session.add(new_project)
-    db.session.commit()
-    project_id = Project.query.filter(Project.name == project).first().id
-    origin_id = Branch.query.filter(Branch.username == origin).first().id
-    user_id = User.query.filter(User.username == user_name).first().id
-    new_branch = Branch(branch, project_id, origin_id, user_id)
+
+    project_id = Project.query.filter_by(name=project).first().id
+    origin_id = Branch.query.filter_by(project_id=project_id, name=origin).first().origin_id
+    owner_id = User.query.filter_by(username=user_name).first().id
+    new_branch = Branch(branch, project_id, origin_id, owner_id)
+
     db.session.add(new_branch)
     db.session.commit()
     properties = {'origin': origin}
@@ -176,7 +186,7 @@ def branches(project):
 @login_required
 @app.route('/<project>/<branch>/accept/<path:filename>')
 def accpet(project, branch, filename):
-    if current_user.username != get_owner(project, branch):
+    if current_user.username != get_branch_owner(project, branch):
         flash('You are not the owner of this branch', 'error')
         return redirect('/' + project + '/' + branch)
     merging = get_merging(project, branch)
@@ -195,7 +205,7 @@ def accpet(project, branch, filename):
 @login_required
 @app.route('/<project>/<branch>/finish')
 def finish(project, branch):
-    if current_user.username != get_owner(project, branch):
+    if current_user.username != get_branch_owner(project, branch):
         flash('You are not the owner of this branch', 'error')
         return redirect('/' + project + '/' + branch)
     merging = get_merging(project, branch)
@@ -210,11 +220,12 @@ def finish(project, branch):
     merge_file_path = join('repos', project, branch, 'merging.json')
     os.remove(merge_file_path)
     build(project, branch)
-    return redirect('/' + project + '/' + branch)
+    return redirect('/' + project + '/' + branch + '/view/index.html')
 
 @app.route('/<project>/<branch>/view/<path:filename>')
 def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
+    print filename, file_extension
     if file_extension == '':
         file_extension = '.html'
     user_repo_path = join('repos', project, branch,
@@ -236,7 +247,7 @@ def view(project, branch, filename):
 @login_required
 @app.route('/<project>/<branch>/save/<path:filename>', methods = ['GET', 'POST'])
 def save(project, branch, filename):
-    if current_user.username != get_owner(project, branch):
+    if current_user.username != get_branch_owner(project, branch):
         flash('You are not the owner of this branch', 'error')
         return redirect('/' + project + '/' + branch)
     pendencies = get_pendencies(project, branch)
@@ -251,17 +262,18 @@ def save(project, branch, filename):
     repo.index.add([filename + '.rst'])
     repo.index.commit('Change in ' + filename + ' by ' + current_user.username)
     git_api = repo.git
-    reviewer = get_reviewer(project, branch)
-    if current_user.username != reviewer:
+    origin = get_branch_origin(project, branch)
+    if branch != origin:
+        print 'push'
         git_api.push('origin', branch)
-    flash('Page submitted to @' + reviewer, 'info')
+        flash('Page submitted to _' + origin, 'info')
     build(project, branch)
     return redirect('/' + project + '/' + branch + '/view/' + filename)
 
 @login_required
 @app.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
 def edit(project, branch, filename):
-    if current_user.username != get_owner(project, branch):
+    if current_user.username != get_branch_owner(project, branch):
         flash('You are not the owner of this branch', 'error')
         return redirect('/' + project + '/' + branch + '/clone')
     pendencies = get_pendencies(project, branch)
@@ -285,14 +297,14 @@ def edit(project, branch, filename):
 
 @login_required
 @app.route('/<project>/<branch>/diff/<path:filename>')
-def diff(project, filename):
-    if current_user.username != get_owner(project, branch):
+def diff(project, branch, filename):
+    if current_user.username != get_branch_owner(project, branch):
         flash('You are not the owner of this branch', 'error')
         return redirect('/' + project + '/' + branch)
-    merging = get_merging(project, current_user.username)
+    merging = get_merging(project, branch)
     if not merging:
         flash('You are not merging', 'error')
-        return redirect(url_for('/' + project))
+        return redirect('/' + project)
     bar_menu = std_menu(current_user.username)
     differ = HtmlDiff()
     filename, file_extension = os.path.splitext(filename)
@@ -305,8 +317,8 @@ def diff(project, filename):
     diff = string.replace(diff, 'nowrap="nowrap"', '')
     text = {'title': ' has suggested a change to the file: ',
             'instructions': 'The proposed version is on the left, while the old version is on the right.'}
-    return render_template('diff.html',  project=project, branch=merging['branch'],
-                           diff=diff, filename=filename + file_extension,
+    return render_template('diff.html',  project=project, other=merging['branch'],
+                           diff=diff, filename=filename + file_extension, branch=branch,
                            text=text, bar_menu=bar_menu)
 
 @login_required
@@ -320,12 +332,12 @@ def merge(project, branch, other):
         merging = {'branch': other, 'modified': modified, 'reviewed': []}
         write_json(join('repos', project, branch, 'merging.json'), merging)
     bar_menu = std_menu(current_user.username)
-    text = {'title': 'Merging from @', 'unseen': 'Modifications not yet reviewed',
+    text = {'title': 'Merging from _', 'unseen': 'Modifications not yet reviewed',
             'review': 'Review file', 'accept': 'Accept suggestions', 'view': 'View differences',
             'reviewed': 'Changes reviewed', 'finally': 'You have finished all the reviews',
             'finish': 'Finish merge'}
     return render_template('merge.html', project=project, modified=merging['modified'],
-                           reviewed=merging['reviewed'], branch=branch,
+                           reviewed=merging['reviewed'], branch=branch, other=other,
                            text=text, bar_menu=bar_menu)
 
 @app.route('/<project>')
@@ -388,14 +400,13 @@ def clone(project, branch):
             return redirect('/' + project + '/' + branch + '/clone')
         else:
             new_branch = request.form['name']
-            origin_branch = request.form['origin']
-            create_branch(project, origin_branch, new_branch, current_user.username)
+            create_branch(project, branch, new_branch, current_user.username)
             flash('Project cloned successfuly!', 'info')
-            return redirect('/' + project + '/' + new_branch)
+            return redirect('/' + project + '/' + new_branch + '/view/index.html')
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
-    text = {'title': 'Clone project', 'submit': 'Submit',
-            'name': 'Choose branch name', 'origin': 'Choose origin'}
+    text = {'title': 'Create your own branch of this project', 'submit': 'Submit',
+            'name': 'Choose branch name'}
     return render_template('clone.html', username=current_user.username, project=project,
                            branch=branch, branches=branches, text=text, bar_menu=bar_menu)
 

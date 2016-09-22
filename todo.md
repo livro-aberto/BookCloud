@@ -24,4 +24,9 @@
     - https://github.com/mathjax/MathJax
   - user url_for for every url construction
   - use context processors to automatically add variables to templates
+  - create functions read_file and write_file to reduce use of `with codecs...`
+
+
+
+
 

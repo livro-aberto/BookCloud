@@ -2,6 +2,7 @@ from flask import Flask
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
+from flask_migrate import Migrate
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 
 # Setup Flask app and app.config
@@ -10,6 +11,7 @@ app.config.from_object('config')
 
 # Initialize Flask extensions
 db = SQLAlchemy(app)                            # Initialize Flask-SQLAlchemy
+migrate = Migrate(app, db)                      # Initialize Flask-Migrate
 mail = Mail(app)                                # Initialize Flask-Mail
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
@@ -32,12 +34,12 @@ class Project(db.Model):
     __tablename__ = 'project'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    creator = db.relationship('User')
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = db.relationship('User')
 
-    def __init__(self, name, creator_id):
+    def __init__(self, name, owner_id):
         self.name = name
-        self.creator_id = creator_id
+        self.owner_id = owner_id
 
 class Branch(db.Model):
     __tablename__ = 'branch'
@@ -55,6 +57,8 @@ class Branch(db.Model):
         self.owner_id = owner_id
         self.origin_id = origin_id
         self.project_id = project_id
+
+
 
 # Create all database tables
 db.create_all()

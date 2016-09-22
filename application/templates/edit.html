@@ -108,7 +108,7 @@ div.bodywrapper {
         <form method="post">
           <textarea id="code" name="code">{{ rst }}</textarea>
           <br>
-          <a href="/{{ project }}/view/{{ filename }}" style="text-decoration:none">
+          <a href="/{{ project }}/{{ branch }}/view/{{ filename }}" style="text-decoration:none">
             <input type="button" value="{{ text['cancel'] }}"/>
           </a>
           <input id="preview" name="preview" type="submit" formaction="/{{ project }}/{{ branch }}/edit/{{ filename }}" value="{{ text['preview'] }}">

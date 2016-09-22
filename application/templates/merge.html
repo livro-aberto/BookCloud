@@ -3,7 +3,7 @@
 {% block title %}{{ text['title'] }}{{ branch }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ text['title'] }}{{ branch }}</h1>
+<h1>{{ text['title'] }}{{ other }}</h1>
 
 {% if modified %}
 <h2>{{ text['unseen'] }}</h2>
@@ -12,9 +12,9 @@
   <li>
     {{ f }}
     <ul>
-      <li><a href="/{{ project }}/review/{{ f }}">{{ text['review'] }}</a></li>
-      <li><a href="/{{ project }}/diff/{{ f }}">{{ text['view'] }}</a></li>
-      <li><a href="/{{ project }}/accept/{{ f }}">{{ text['accept'] }}</a></li>
+      <li><a href="/{{ project }}/{{ branch }}/review/{{ f }}">{{ text['review'] }}</a></li>
+      <li><a href="/{{ project }}/{{ branch }}/diff/{{ f }}">{{ text['view'] }}</a></li>
+      <li><a href="/{{ project }}/{{ branch }}/accept/{{ f }}">{{ text['accept'] }}</a></li>
       </li>
     </ul>
   </li>
@@ -27,7 +27,7 @@
 <ul id="navigation">
   {% for f in reviewed %}
   <li>
-    <a href="/{{ project }}/review/{{ f }}">{{ f }}</a>
+    <a href="/{{ project }}/{{ branch }}/review/{{ f }}">{{ f }}</a>
   </li>
   {% endfor %}
 </ul>
@@ -35,7 +35,7 @@
 
 {% if not modified %}
 <h2>{{ text['finally'] }}</h2>
-<a href="/{{ project }}/finish">{{ text['finish'] }}</a>
+<a href="/{{ project }}/{{ branch }}/finish">{{ text['finish'] }}</a>
 {% endif %}
 
 {% endmacro %}

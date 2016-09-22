@@ -6,5 +6,6 @@ flask_sqlalchemy>=2.1
 flask_user>=0.6.8
 flask-login>=0.3.2
 flask-wtf>=0.12
+Flask-Migrate>=2.0.0
 gitpython>=2.0.8
 sphinxcontrib-tikz>=0.4.2
