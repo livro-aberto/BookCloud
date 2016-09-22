@@ -4,7 +4,7 @@ from os.path import join, isdir, isfile
 import flask
 from flask import render_template, render_template_string, request, redirect, url_for, Response, flash
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
-from application import app
+from application import app, db, User, Project, Branch
 import string
 from shutil import copyfile
 import git
@@ -84,8 +84,25 @@ def create_project(project, user_name):
     copyfile('application/empty_repo/.gitignore', join(repo_path, 'source/.gitignore'))
     repo.index.add(['index.rst', '.gitignore'])
     repo.index.commit('Initial commit')
-    properties = {'project': project, 'owner': user_name, 'reviewer': user_name, 'origin': 'master'}
-    write_json(join('repos', project, 'master', 'properties.json'), properties)
+    # add project to database
+    user_id = User.query.filter(User.username == user_name).first().id
+    new_project = Project(project, user_id)
+    db.session.add(new_project)
+    # add branch to database
+    project_id = Project.query.filter_by(name=project).first().id
+    origin_id = 1
+    new_branch = Branch('master', project_id, origin_id, user_id)
+    db.session.add(new_branch)
+    db.session.commit()
+    # updating branch self reference
+    print('project_id = ' + str(project_id))
+    new_branch = Branch.query.filter_by(project_id=project_id).first()
+    print('n_b.id = ' + str(new_branch.id))
+    new_branch.origin_id = new_branch.id
+    print new_branch.id
+    db.session.commit()
+    # properties = {'project': project, 'owner': user_name, 'reviewer': user_name, 'origin': 'master'}
+    # write_json(join('repos', project, 'master', 'properties.json'), properties)
     # properties = {'reviewer': user_name}
     # write_json(join('repos', project, 'master', 'properties.json'), properties)
     build(project, 'master')
@@ -100,7 +117,7 @@ def get_reviewer(project, branch):
     properties = load_json(join('repos', project, origin, 'properties.json'))
     return properties['reviewer']
 
-def clone_project(project, origin, branch, user_name):
+def create_branch(project, origin, branch, user_name):
     # Clone repository from a certain origin branch
     repo_path = join('repos', project, branch, 'source')
     main_repo = git.Repo(join('repos', project, origin, 'source'))
@@ -109,6 +126,15 @@ def clone_project(project, origin, branch, user_name):
     config_repo(repo, user_name, user_name + '@here.com')
     git_api = repo.git
     git_api.checkout('HEAD', b=branch)
+    new_branch = Branch(project, user_name)
+    db.session.add(new_project)
+    db.session.commit()
+    project_id = Project.query.filter(Project.name == project).first().id
+    origin_id = Branch.query.filter(Branch.username == origin).first().id
+    user_id = User.query.filter(User.username == user_name).first().id
+    new_branch = Branch(branch, project_id, origin_id, user_id)
+    db.session.add(new_branch)
+    db.session.commit()
     properties = {'origin': origin}
     write_json(join('repos', project, branch, 'properties.json'), properties)
     build(project, branch)
@@ -363,7 +389,7 @@ def clone(project, branch):
         else:
             new_branch = request.form['name']
             origin_branch = request.form['origin']
-            clone_project(project, origin_branch, new_branch, current_user.username)
+            create_branch(project, origin_branch, new_branch, current_user.username)
             flash('Project cloned successfuly!', 'info')
             return redirect('/' + project + '/' + new_branch)
     path = join('repos', project)

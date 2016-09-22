@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 
-
 # Setup Flask app and app.config
 app = Flask(__name__)
 app.config.from_object('config')
@@ -15,6 +14,7 @@ mail = Mail(app)                                # Initialize Flask-Mail
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
 class User(db.Model, UserMixin):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     # User authentication information
     username = db.Column(db.String(50), nullable=False, unique=True)
@@ -29,24 +29,32 @@ class User(db.Model, UserMixin):
     last_name = db.Column(db.String(100), nullable=False, server_default='')
 
 class Project(db.Model):
+    __tablename__ = 'project'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    creator = relationship(User)
+    creator_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    creator = db.relationship('User')
 
-    def __init__(self, name, creator):
+    def __init__(self, name, creator_id):
         self.name = name
-        self.creator = creator
+        self.creator_id = creator_id
 
 class Branch(db.Model):
+    __tablename__ = 'branch'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False, unique=True)
-    owner = relationship(User)
-    project = relationship(Project)
+    name = db.Column(db.String(50), nullable=False, unique=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    origin_id = db.Column(db.Integer, db.ForeignKey('branch.id'))
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    owner = db.relationship('User')
+    origin = db.relationship('Branch')
+    project = db.relationship('Project')
 
-    def __init__(self, name, owner, project):
+    def __init__(self, name, project_id, origin_id, owner_id):
         self.name = name
-        self.owner = owner
-        self.project = project
+        self.owner_id = owner_id
+        self.origin_id = origin_id
+        self.project_id = project_id
 
 # Create all database tables
 db.create_all()
