@@ -3,7 +3,7 @@ sphinx_edit/static/sphinx_static/*
 images/*
 repos/*
 *.sqlite
-conf.py
+config.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

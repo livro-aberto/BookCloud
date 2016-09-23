@@ -5,9 +5,29 @@ from sqlalchemy.orm import relationship
 from flask_migrate import Migrate
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 
+import os
+
 # Setup Flask app and app.config
 app = Flask(__name__)
-app.config.from_object('config')
+
+def create_app(extra_config_settings={}):
+    """
+    Initialize Flask applicaton
+    """
+
+    app.config.from_object('config')
+
+    # Read extra config settings from function parameter 'extra_config_settings'
+    app.config.update(extra_config_settings)  # Overwrite with 'extra_config_settings' parameter
+    if app.testing:
+        app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF checks while testing
+
+    # Setup Flask-Mail
+    mail = Mail(app)
+
+    return app
+
+create_app()
 
 # Initialize Flask extensions
 db = SQLAlchemy(app)                            # Initialize Flask-SQLAlchemy
@@ -57,7 +77,6 @@ class Branch(db.Model):
         self.owner_id = owner_id
         self.origin_id = origin_id
         self.project_id = project_id
-
 
 
 # Create all database tables

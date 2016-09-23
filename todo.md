@@ -22,10 +22,10 @@
     - https://github.com/lqc/google-diff-match-patch
     - https://github.com/sphinx-doc/sphinx/tree/master/sphinx/themes/bizstyle/static
     - https://github.com/mathjax/MathJax
-  - user url_for for every url construction
+  - user url_for for every url construction, including jinja
   - use context processors to automatically add variables to templates
   - create functions read_file and write_file to reduce use of `with codecs...`
-
+  - start using user data that is automatically passed to jinja instead of explicitly from render
 
 
 

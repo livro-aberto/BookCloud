@@ -98,11 +98,8 @@ def create_project(project, user_name):
     db.session.add(new_branch)
     db.session.commit()
     # updating branch self reference
-    print('project_id = ' + str(project_id))
     new_branch = Branch.query.filter_by(project_id=project_id).first()
-    print('n_b.id = ' + str(new_branch.id))
     new_branch.origin_id = new_branch.id
-    print new_branch.id
     db.session.commit()
     # properties = {'project': project, 'owner': user_name, 'reviewer': user_name, 'origin': 'master'}
     # write_json(join('repos', project, 'master', 'properties.json'), properties)
@@ -112,9 +109,6 @@ def create_project(project, user_name):
 
 def get_branch_owner(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
-    print project_id
-    print Branch.query.filter_by(project_id=project_id, name=branch).first().owner
-    print Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
     return Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
     # properties = load_json(join('repos', project, branch, 'properties.json'))
     # return properties['owner']
@@ -160,7 +154,7 @@ def build(project, branch):
     #     return False
     # os.chdir(previous_wd)
     # return True
-    command = 'sphinx-build -a -c ' + config_path + ' ' + source_path + ' ' + build_path
+    command = 'sphinx-build -c ' + config_path + ' ' + source_path + ' ' + build_path
     os.system(command)
     return True
 
@@ -185,7 +179,7 @@ def branches(project):
 
 @login_required
 @app.route('/<project>/<branch>/accept/<path:filename>')
-def accpet(project, branch, filename):
+def accept(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash('You are not the owner of this branch', 'error')
         return redirect('/' + project + '/' + branch)
@@ -220,12 +214,12 @@ def finish(project, branch):
     merge_file_path = join('repos', project, branch, 'merging.json')
     os.remove(merge_file_path)
     build(project, branch)
+    flash('You have finished merging _' + merging['branch'], 'info')
     return redirect('/' + project + '/' + branch + '/view/index.html')
 
 @app.route('/<project>/<branch>/view/<path:filename>')
 def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
-    print filename, file_extension
     if file_extension == '':
         file_extension = '.html'
     user_repo_path = join('repos', project, branch,
@@ -264,7 +258,6 @@ def save(project, branch, filename):
     git_api = repo.git
     origin = get_branch_origin(project, branch)
     if branch != origin:
-        print 'push'
         git_api.push('origin', branch)
         flash('Page submitted to _' + origin, 'info')
     build(project, branch)
