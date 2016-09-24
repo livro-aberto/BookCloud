@@ -1,23 +1,22 @@
-  - make sure usernames are alphanumeric only
-  - add logging: http://damyanon.net/flask-series-logging/
-  - add project_properties to be passed to jinja files, including for instance copyright
-  - add more options to project, such as: language, title... (see sphinx's conf.py)
-  - add user options, such as: language
-  - add project options
-  - add branch options
-  - use one origin for the project and everyone clones from there (even master)
+  - make sure usernames, project names and branch names are alphanumeric only
   - ability to add new file (possibly with template for name)
-  - ability to rename file (possibly with template for name)
-  - ability to remove file
-  - user url_for for every url construction, including jinja
   - add common prefix to all routes (for serving on folder of domain). Or can this be done in Apache?
-  - allow reviewer to continue editing without addressing merge requests
+
   - implement two-way merge, see https://github.com/lqc/google-diff-match-patch
+  - allow reviewer to continue editing without addressing merge requests
+  - use one origin for the project and everyone clones from there (even master)
+  - add project_properties to be passed to jinja files, including for instance copyright
   - use context processors to automatically add variables to templates
   - start using user data that is automatically passed to jinja instead of explicitly from render
   - create functions `read_file` and `write_file` to reduce use of `with codecs...`
 
-
+  - ability to rename file (possibly with template for name)
+  - ability to remove file
+  - add more options to project, such as: language, title... (see sphinx's conf.py)
+  - add logging: http://damyanon.net/flask-series-logging/
+  - add user options, such as: language
+  - add project options
+  - add branch options
 
   - implement comments and issues
   - bug in diff? see also https://github.com/lqc/google-diff-match-patch

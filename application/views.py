@@ -309,6 +309,11 @@ def edit(project, branch, filename):
                            project=project, text=text, render_sidebar=False)
 
 @login_required
+@app.route('/<project>/<branch>/review/<path:filename>')
+def review(project, branch, filename):
+    return "Not implemented yet..."
+
+@login_required
 @app.route('/<project>/<branch>/diff/<path:filename>')
 def diff(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
