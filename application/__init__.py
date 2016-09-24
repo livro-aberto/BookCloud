@@ -18,9 +18,14 @@ def create_app(extra_config_settings={}):
     app.config.from_object('config')
 
     # Read extra config settings from function parameter 'extra_config_settings'
+    print(extra_config_settings)
     app.config.update(extra_config_settings)  # Overwrite with 'extra_config_settings' parameter
-    if app.testing:
+    print(app.config['TESTING'])
+
+
+    if app.testing or app.config['TESTING']:
         app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF checks while testing
+        app.config['LANGUAGE'] = 'en_US'
 
     # Setup Flask-Mail
     mail = Mail(app)

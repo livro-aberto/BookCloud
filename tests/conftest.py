@@ -7,21 +7,8 @@
 # Authors: Ling Thio <ling.thio@gmail.com>
 
 import pytest
-#import application
 
-from application import create_app, app, db as the_db
-
-#the_db = application.db
-
-extra_config_settings = dict(
-    TESTING=True,  # Propagate exceptions
-    LOGIN_DISABLED=False,  # Enable @register_required
-    MAIL_SUPPRESS_SEND=True,  # Disable Flask-Mail send
-    SERVER_NAME='localhost',  # Enable url_for() without request context
-    SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',  # In-memory SQLite DB
-    WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
-)
-
+from application import create_app, db as the_db
 
 the_app = create_app(dict(
     TESTING=True,  # Propagate exceptions
@@ -31,7 +18,9 @@ the_app = create_app(dict(
     SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',  # In-memory SQLite DB
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
 ))
-#application.app.config.update(extra_config_settings)
+
+import application.views as views
+views.set_lang('en_US')
 
 def find_or_create_user(name, password):
     """ Find existing user or create new user """
@@ -58,8 +47,6 @@ def create_users():
     the_db.session.commit()
 
 create_users()
-
-
 
 # Setup an application context (since the tests run outside of the webserver context)
 the_app.app_context().push()

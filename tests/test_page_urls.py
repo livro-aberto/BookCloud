@@ -7,6 +7,9 @@ from flask import url_for
 
 import random
 import string
+import pytest
+import shutil
+import os
 
 char_set = string.ascii_uppercase + string.digits
 
@@ -74,6 +77,14 @@ def test_page_urls(client):
     response = client.get(url_for('user.logout'), follow_redirects=True)
     assert b'You have signed out successfully.' in response.data
 
+    # Visit index page in master branch as anonymous user
+    response = client.get(url_for('view',
+                                  project=new_project_name,
+                                  branch='master',
+                                  filename='index'))
+    assert 'Title of test page' in response.data
+    assert 'login' in response.data
+
     # Login as collaborator
     response = client.post(url_for('user.login'), follow_redirects=True,
                            data=dict(username='bar', password='Bar123'))
@@ -138,4 +149,4 @@ def test_page_urls(client):
     assert 'You have finished merging _feature' in response.data
     assert 'Some contents' in response.data
 
-
+    shutil.rmtree(os.path.abspath(os.path.join('repos', new_project_name)))

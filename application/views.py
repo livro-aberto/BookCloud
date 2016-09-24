@@ -13,6 +13,19 @@ from difflib import HtmlDiff
 import codecs # deals with encoding better
 import sphinx
 
+
+import gettext
+
+lang = gettext.translation('messages', localedir='locale', languages=['pt_BR'])
+lang.install()
+_ = lang.ugettext
+
+
+def set_lang(language):
+    lang = gettext.translation('messages', localedir='locale', languages=[language])
+    lang.install()
+    _ = lang.ugettext
+
 config_path = 'conf'
 
 def get_git(project, branch):
@@ -51,7 +64,7 @@ def get_pendencies(project, branch):
     # user already has the repository?
     branch_repo_path = join('repos', project, branch)
     if not isdir(branch_repo_path):
-        flash('You need to clone this repository first', 'error')
+        flash(_('You need to clone this repository first'), 'error')
         return redirect('/' + project + '/branches')
     # user is merging?
     merging = get_merging(project, branch)
@@ -85,7 +98,7 @@ def create_project(project, user_name):
     copyfile('application/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
     copyfile('application/empty_repo/.gitignore', join(repo_path, 'source/.gitignore'))
     repo.index.add(['index.rst', '.gitignore'])
-    repo.index.commit('Initial commit')
+    repo.index.commit(_('Initial commit'))
     # add project to database
     user_id = User.query.filter(User.username == user_name).first().id
     new_project = Project(project, user_id)
@@ -172,8 +185,11 @@ def build_latex(project, branch):
 def branches(project):
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
-    bar_menu = std_menu(current_user.username)
-    text = {'title': 'Project branches'}
+    if (current_user.is_authenticated):
+        bar_menu = std_menu(current_user.username)
+    else:
+        bar_menu = [{'url': '/login', 'name': 'login'}]
+    text = {'title': _('Project branches')}
     return render_template('branches.html', project=project, branches=branches,
                            text=text, bar_menu=bar_menu)
 
@@ -181,11 +197,11 @@ def branches(project):
 @app.route('/<project>/<branch>/accept/<path:filename>')
 def accept(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
-        flash('You are not the owner of this branch', 'error')
+        flash(_('You are not the owner of this branch'), 'error')
         return redirect('/' + project + '/' + branch)
     merging = get_merging(project, branch)
     if not merging:
-        flash('You are not merging a submission', 'error')
+        flash(_('You are not merging a submission'), 'error')
         return redirect('/' + project + '/' + branch)
     if not filename in merging['modified']:
         flash('File ' + filename + ' is not being reviewed', 'error')
@@ -200,21 +216,21 @@ def accept(project, branch, filename):
 @app.route('/<project>/<branch>/finish')
 def finish(project, branch):
     if current_user.username != get_branch_owner(project, branch):
-        flash('You are not the owner of this branch', 'error')
+        flash(_('You are not the owner of this branch'), 'error')
         return redirect('/' + project + '/' + branch)
     merging = get_merging(project, branch)
     if not merging:
-        flash('You are not merging!', 'error')
+        flash(_('You are not merging!'), 'error')
         return redirect('/' + project + '/' + branch)
     if len(merging['modified']):
-        flash('You still have unreviewed files', 'error')
+        flash(_('You still have unreviewed files'), 'error')
         return redirect('/' + project + '/' + branch)
     git_api = get_git(project, branch)
     git_api.commit('-m', 'Merge ' + merging['branch'])
     merge_file_path = join('repos', project, branch, 'merging.json')
     os.remove(merge_file_path)
     build(project, branch)
-    flash('You have finished merging _' + merging['branch'], 'info')
+    flash(_('You have finished merging _%s') % merging['branch'], 'info')
     return redirect('/' + project + '/' + branch + '/view/index.html')
 
 @app.route('/<project>/<branch>/view/<path:filename>')
@@ -242,7 +258,7 @@ def view(project, branch, filename):
 @app.route('/<project>/<branch>/save/<path:filename>', methods = ['GET', 'POST'])
 def save(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
-        flash('You are not the owner of this branch', 'error')
+        flash(_('You are not the owner of this branch'), 'error')
         return redirect('/' + project + '/' + branch)
     pendencies = get_pendencies(project, branch)
     if pendencies:
@@ -254,12 +270,12 @@ def save(project, branch, filename):
             dest_file.write(request.form['code'].encode('utf8'))
     repo = git.Repo(join(user_repo_path, 'source'))
     repo.index.add([filename + '.rst'])
-    repo.index.commit('Change in ' + filename + ' by ' + current_user.username)
+    repo.index.commit(_('Change in %s by %s') % (filename, current_user.username))
     git_api = repo.git
     origin = get_branch_origin(project, branch)
     if branch != origin:
         git_api.push('origin', branch)
-        flash('Page submitted to _' + origin, 'info')
+        flash(_('Page submitted to _%s') % origin, 'info')
     build(project, branch)
     return redirect('/' + project + '/' + branch + '/view/' + filename)
 
@@ -267,7 +283,7 @@ def save(project, branch, filename):
 @app.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
 def edit(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
-        flash('You are not the owner of this branch', 'error')
+        flash(_('You are not the owner of this branch'), 'error')
         return redirect('/' + project + '/' + branch + '/clone')
     pendencies = get_pendencies(project, branch)
     if pendencies:
@@ -282,9 +298,9 @@ def edit(project, branch, filename):
         rst = content_file.read()
     with codecs.open(branch_html_path, 'r', 'utf-8') as content_file:
         doc = render_template_string(content_file.read(), barebones=True)
-    text = {'title': 'Edit:', 'image': 'Image', 'math': 'Math mode',
-            'sections': 'Sections', 'style': 'Style',
-            'cancel': 'Cancel', 'preview': 'Preview', 'submit': 'Submit'}
+    text = {'title': _('Edit:'), 'image': _('Image'), 'math': _('Math mode'),
+            'sections': _('Sections'), 'style': _('Style'),
+            'cancel': _('Cancel'), 'preview': _('Preview'), 'submit': _('Submit')}
     return render_template('edit.html', doc=doc, rst=rst, filename=filename, branch=branch,
                            project=project, text=text, render_sidebar=False)
 
@@ -292,11 +308,11 @@ def edit(project, branch, filename):
 @app.route('/<project>/<branch>/diff/<path:filename>')
 def diff(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
-        flash('You are not the owner of this branch', 'error')
+        flash(_('You are not the owner of this branch'), 'error')
         return redirect('/' + project + '/' + branch)
     merging = get_merging(project, branch)
     if not merging:
-        flash('You are not merging', 'error')
+        flash(_('You are not merging'), 'error')
         return redirect('/' + project)
     bar_menu = std_menu(current_user.username)
     differ = HtmlDiff()
@@ -308,8 +324,8 @@ def diff(project, branch, filename):
     old = string.split(git_api.show('master:' + filename + file_extension), '\n')
     diff = differ.make_table(new, old)
     diff = string.replace(diff, 'nowrap="nowrap"', '')
-    text = {'title': ' has suggested a change to the file: ',
-            'instructions': 'The proposed version is on the left, while the old version is on the right.'}
+    text = {'title': _(' has suggested a change to the file: '),
+            'instructions': _('The proposed version is on the left, while the old version is on the right.')}
     return render_template('diff.html',  project=project, other=merging['branch'],
                            diff=diff, filename=filename + file_extension, branch=branch,
                            text=text, bar_menu=bar_menu)
@@ -325,17 +341,17 @@ def merge(project, branch, other):
         merging = {'branch': other, 'modified': modified, 'reviewed': []}
         write_json(join('repos', project, branch, 'merging.json'), merging)
     bar_menu = std_menu(current_user.username)
-    text = {'title': 'Merging from _', 'unseen': 'Modifications not yet reviewed',
-            'review': 'Review file', 'accept': 'Accept suggestions', 'view': 'View differences',
-            'reviewed': 'Changes reviewed', 'finally': 'You have finished all the reviews',
-            'finish': 'Finish merge'}
+    text = {'title': _('Merging from _'), 'unseen': _('Modifications not yet reviewed'),
+            'review': _('Review file'), 'accept': _('Accept suggestions'), 'view': _('View differences'),
+            'reviewed': _('Changes reviewed'), 'finally': _('You have finished all the reviews'),
+            'finish': _('Finish merge')}
     return render_template('merge.html', project=project, modified=merging['modified'],
                            reviewed=merging['reviewed'], branch=branch, other=other,
                            text=text, bar_menu=bar_menu)
 
 @app.route('/<project>')
 def index(project):
-    text = {'title': 'List of branches'}
+    text = {'title': _('List of branches')}
     if (current_user.is_authenticated):
         bar_menu = std_menu(current_user.username)
     else:
@@ -350,7 +366,7 @@ def projects():
         bar_menu = std_menu(current_user.username)
     else:
         bar_menu = [{'url': '/login', 'name': 'login'}]
-    text = {'title': 'Projects list', 'download': 'Download', 'new': 'Create new project'}
+    text = {'title': _('Projects list'), 'download': _('Download'), 'new': _('Create new project')}
     return render_template('projects.html', projects=projects, bar_menu=bar_menu,
                            text=text, copyright='CC-BY-SA-NC')
 
@@ -364,42 +380,42 @@ def profile():
 @app.route('/new', methods = ['GET', 'POST'])
 def new():
     if not current_user.is_authenticated:
-        flash('You need to be logged in to create a new project', 'error')
+        flash(_('You need to be logged in to create a new project'), 'error')
         return redirect(url_for('login'))
     bar_menu = std_menu(current_user.username)
     if request.method == 'POST':
         user_repo_path = join('repos', request.form['project'], current_user.username)
         if os.path.isdir(user_repo_path):
-            flash('This project name already exists', 'error')
+            flash(_('This project name already exists'), 'error')
             return render_template('new.html', username=current_user.username, bar_menu=bar_menu)
         else:
             create_project(request.form['project'], current_user.username)
-            flash('Project created successfuly!', 'info')
+            flash(_('Project created successfuly!'), 'info')
             return redirect('/')
-    text = {'title': 'Create new project', 'submit': 'Submit'}
+    text = {'title': _('Create new project'), 'submit': 'Submit'}
     return render_template('new.html', username=current_user.username,
                            text=text, bar_menu=bar_menu)
 
 @app.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
 def clone(project, branch):
     if not current_user.is_authenticated:
-        flash('You need to be logged in to clone a project', 'error')
+        flash(_('You need to be logged in to clone a project'), 'error')
         return redirect(url_for('login'))
     bar_menu = std_menu(current_user.username)
     if request.method == 'POST':
         new_repo_path = join('repos', project, request.form['name'])
         if os.path.isdir(new_repo_path):
-            flash('This branch name already exists', 'error')
+            flash(_('This branch name already exists'), 'error')
             return redirect('/' + project + '/' + branch + '/clone')
         else:
             new_branch = request.form['name']
             create_branch(project, branch, new_branch, current_user.username)
-            flash('Project cloned successfuly!', 'info')
+            flash(_('Project cloned successfuly!'), 'info')
             return redirect('/' + project + '/' + new_branch + '/view/index.html')
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
-    text = {'title': 'Create your own branch of this project', 'submit': 'Submit',
-            'name': 'Choose branch name'}
+    text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
+            'name': _('Choose branch name')}
     return render_template('clone.html', username=current_user.username, project=project,
                            branch=branch, branches=branches, text=text, bar_menu=bar_menu)
 

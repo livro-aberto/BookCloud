@@ -4,6 +4,7 @@ images/*
 repos/*
 *.sqlite
 config.py
+vir/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

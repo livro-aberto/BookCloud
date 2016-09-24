@@ -2,6 +2,6 @@
 
 source vir/bin/activate
 
-py.test -s tests/
+python run.py
 
 deactivate

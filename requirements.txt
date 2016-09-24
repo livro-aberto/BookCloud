@@ -1,3 +1,4 @@
+
 toml>=0.7
 Mail>=2.1.0
 flask>=0.11.1
@@ -6,6 +7,8 @@ flask_sqlalchemy>=2.1
 flask_user>=0.6.8
 flask-login>=0.3.2
 flask-wtf>=0.12
+flask-pytest>=0.0.5
+pytest-flask>=0.10.0
 Flask-Migrate>=2.0.0
 gitpython>=2.0.8
 sphinxcontrib-tikz>=0.4.2
