@@ -21,7 +21,7 @@ msgstr "Você precisa clonar esse repositório"
 
 #: application/views.py:95
 msgid "Initial commit"
-msgstr "Submissão inicial"
+msgstr "Submissao inicial"
 
 #: application/views.py:186
 msgid "Project branches"
@@ -46,11 +46,11 @@ msgstr "Você ainda tem arquivos não revisados"
 
 #: application/views.py:227
 msgid "You have finished merging _%s"
-msgstr "Você finalizou a consolidação do ramo _"
+msgstr "Você finalizou a consolidação do ramo _%s"
 
 #: application/views.py:267
 msgid "Change in %s by %s"
-msgstr "Mudanças em %s por %s"
+msgstr "Mudancas em %s por %s"
 
 #: application/views.py:272
 msgid "Page submitted to _%s"

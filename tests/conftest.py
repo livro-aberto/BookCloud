@@ -19,8 +19,8 @@ the_app = create_app(dict(
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
 ))
 
-import application.views as views
-views.set_lang('en_US')
+#import application.views as views
+#views.set_lang('en_US')
 
 def find_or_create_user(name, password):
     """ Find existing user or create new user """

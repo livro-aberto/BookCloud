@@ -31,7 +31,7 @@
 
     <title>{% block title %}{% endblock %}</title>
 
-    <link rel="stylesheet" href="/_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="{{ url_for('get_global_static', filename='bizstyle.css') }}" type="text/css" />
     <!--<link rel="stylesheet" href="/_static/basic.css" type="text/css" />
     <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />-->
 
@@ -81,7 +81,7 @@
       {% block bar %}
       <ul>
         <li class="left" style="margin-right: 10px">
-          <a href="/">home</a>
+          <a href="{{ url_for('projects') }}">home</a>
         </li>
         {% for t in bar_menu %}
         <li class="right" style="margin-right: 10px">

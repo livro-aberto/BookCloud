@@ -7,14 +7,14 @@
 <ul id="navigation">
   {% for p in projects %}
   <li>
-    <a href="/{{ p }}/branches">{{ p }}</a>
-    - {{ text['download'] }} <a href="/{{ p }}/pdf">pdf</a>
+    <a href="{{ url_for('branches', project=p) }}">{{ p }}</a>
+    - {{ text['download'] }} <a href="{{ url_for('pdf', project=p) }}">pdf</a>
   </li>
   {% endfor %}
 </ul>
 
 <p>
-  <a href="/new">{{ text['new'] }}</a>
+  <a href="{{ url_for('new') }}">{{ text['new'] }}</a>
 </p>
 {% endmacro %}
 

@@ -18,8 +18,10 @@
   - create functions `read_file` and `write_file` to reduce use of `with codecs...`
 
 
+
   - implement comments and issues
   - bug in diff? see also https://github.com/lqc/google-diff-match-patch
+  - give option for reviewer to delete branch on finishing merge
 
   - add ability to change language
   - update translation po files: http://stackoverflow.com/a/7497395

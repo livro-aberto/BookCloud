@@ -16,14 +16,18 @@ import sphinx
 
 import gettext
 
-lang = gettext.translation('messages', localedir='locale', languages=['pt_BR'])
-lang.install()
-_ = lang.ugettext
+#lang = gettext.translation('messages', localedir='locale', languages=['pt_BR'])
+#lang.install()
+#_ = lang.ugettext
 
+def enc(string):
+    return string.encode('utf-8')
 
-def set_lang(language):
+@app.before_first_request
+def set_lang():
+    language = app.config['LANGUAGE']
     lang = gettext.translation('messages', localedir='locale', languages=[language])
-    lang.install()
+    lang.install(True)
     _ = lang.ugettext
 
 config_path = 'conf'
@@ -65,11 +69,11 @@ def get_pendencies(project, branch):
     branch_repo_path = join('repos', project, branch)
     if not isdir(branch_repo_path):
         flash(_('You need to clone this repository first'), 'error')
-        return redirect('/' + project + '/branches')
+        return redirect(url_for(branches, project=project))
     # user is merging?
     merging = get_merging(project, branch)
     if merging:
-        return redirect('/' + project + '/' + branch + '/merge/' + merging['branch'])
+        return redirect(url_for(merge, project=project, branch=branch, other=merging['branch']))
     # user has a pending request?
     requests = get_requests(project, branch)
     if requests:
@@ -198,40 +202,40 @@ def branches(project):
 def accept(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
-        return redirect('/' + project + '/' + branch)
+        return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
     if not merging:
         flash(_('You are not merging a submission'), 'error')
-        return redirect('/' + project + '/' + branch)
+        return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
     if not filename in merging['modified']:
         flash('File ' + filename + ' is not being reviewed', 'error')
-        return redirect('/' + project + '/' + branch)
+        return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
     merging['modified'].remove(filename)
     merging['reviewed'].append(filename)
     merge_file_path = join('repos', project, branch, 'merging.json')
     write_json(merge_file_path, merging)
-    return redirect('/' + project + '/' + branch + '/merge/' + merging['branch'])
+    return redirect(url_for('merge', project=project, branch=branch, other=merging['branch']))
 
 @login_required
 @app.route('/<project>/<branch>/finish')
 def finish(project, branch):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
-        return redirect('/' + project + '/' + branch)
+        return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
     if not merging:
         flash(_('You are not merging!'), 'error')
-        return redirect('/' + project + '/' + branch)
+        return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
     if len(merging['modified']):
         flash(_('You still have unreviewed files'), 'error')
-        return redirect('/' + project + '/' + branch)
+        return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
     git_api = get_git(project, branch)
     git_api.commit('-m', 'Merge ' + merging['branch'])
     merge_file_path = join('repos', project, branch, 'merging.json')
     os.remove(merge_file_path)
     build(project, branch)
     flash(_('You have finished merging _%s') % merging['branch'], 'info')
-    return redirect('/' + project + '/' + branch + '/view/index.html')
+    return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
 
 @app.route('/<project>/<branch>/view/<path:filename>')
 def view(project, branch, filename):
@@ -259,7 +263,7 @@ def view(project, branch, filename):
 def save(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
-        return redirect('/' + project + '/' + branch)
+        return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
     pendencies = get_pendencies(project, branch)
     if pendencies:
         return pendencies
@@ -277,14 +281,14 @@ def save(project, branch, filename):
         git_api.push('origin', branch)
         flash(_('Page submitted to _%s') % origin, 'info')
     build(project, branch)
-    return redirect('/' + project + '/' + branch + '/view/' + filename)
+    return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
 
 @login_required
 @app.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
 def edit(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
-        return redirect('/' + project + '/' + branch + '/clone')
+        return redirect(url_for('clone', project=project, branch=branch))
     pendencies = get_pendencies(project, branch)
     if pendencies:
         return pendencies
@@ -309,11 +313,11 @@ def edit(project, branch, filename):
 def diff(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
-        return redirect('/' + project + '/' + branch)
+        redirect(url_for('view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
     if not merging:
         flash(_('You are not merging'), 'error')
-        return redirect('/' + project)
+        redirect(url_for('project', project=project))
     bar_menu = std_menu(current_user.username)
     differ = HtmlDiff()
     filename, file_extension = os.path.splitext(filename)
@@ -391,7 +395,7 @@ def new():
         else:
             create_project(request.form['project'], current_user.username)
             flash(_('Project created successfuly!'), 'info')
-            return redirect('/')
+            return redirect(url_for('projects'))
     text = {'title': _('Create new project'), 'submit': 'Submit'}
     return render_template('new.html', username=current_user.username,
                            text=text, bar_menu=bar_menu)
@@ -406,12 +410,12 @@ def clone(project, branch):
         new_repo_path = join('repos', project, request.form['name'])
         if os.path.isdir(new_repo_path):
             flash(_('This branch name already exists'), 'error')
-            return redirect('/' + project + '/' + branch + '/clone')
+            return redirect(url_for('clone', project=project, branch=branch))
         else:
             new_branch = request.form['name']
             create_branch(project, branch, new_branch, current_user.username)
             flash(_('Project cloned successfuly!'), 'info')
-            return redirect('/' + project + '/' + new_branch + '/view/index.html')
+            return redirect(url_for('view', project=project, branch=new_branch, filename='index.html'))
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
@@ -463,9 +467,9 @@ def show_source(filename):
 def get_image(project, filename):
     return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
 
-@app.route('/<project>/view/genindex.html')
-def genindex(project):
-    return redirect('/' + project + '/view/index')
+@app.route('/<project>/<branch>/view/genindex.html')
+def genindex(project, branch):
+    return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
 
 @app.route('/login')
 def login():

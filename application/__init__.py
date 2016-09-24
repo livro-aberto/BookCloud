@@ -10,34 +10,7 @@ import os
 # Setup Flask app and app.config
 app = Flask(__name__)
 
-def create_app(extra_config_settings={}):
-    """
-    Initialize Flask applicaton
-    """
-
-    app.config.from_object('config')
-
-    # Read extra config settings from function parameter 'extra_config_settings'
-    print(extra_config_settings)
-    app.config.update(extra_config_settings)  # Overwrite with 'extra_config_settings' parameter
-    print(app.config['TESTING'])
-
-
-    if app.testing or app.config['TESTING']:
-        app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF checks while testing
-        app.config['LANGUAGE'] = 'en_US'
-
-    # Setup Flask-Mail
-    mail = Mail(app)
-
-    return app
-
-create_app()
-
-# Initialize Flask extensions
 db = SQLAlchemy(app)                            # Initialize Flask-SQLAlchemy
-migrate = Migrate(app, db)                      # Initialize Flask-Migrate
-mail = Mail(app)                                # Initialize Flask-Mail
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
 class User(db.Model, UserMixin):
@@ -84,11 +57,37 @@ class Branch(db.Model):
         self.project_id = project_id
 
 
-# Create all database tables
-db.create_all()
+def create_app(extra_config_settings={}):
+    """
+    Initialize Flask applicaton
+    """
 
-# Setup Flask-User
-db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
-user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
+    app.config.from_object('config')
 
-import application.views
+    # Read extra config settings from function parameter 'extra_config_settings'
+    app.config.update(extra_config_settings)  # Overwrite with 'extra_config_settings' parameter
+
+    app.config['LANGUAGE'] = 'pt_BR'
+    if app.testing or app.config['TESTING']:
+        app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF checks while testing
+        app.config['LANGUAGE'] = 'en_US'
+
+    # Setup Flask-Mail
+    mail = Mail(app)
+
+
+    # Create all database tables
+    db.create_all()
+
+    # Setup Flask-User
+    db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
+    user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
+
+
+    import application.views
+
+
+    return app
+
+
+

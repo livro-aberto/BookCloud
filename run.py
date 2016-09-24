@@ -1,4 +1,6 @@
-from application import app
+from application import create_app
 
-app.config.from_object(__name__)
+
+app = create_app()
+
 app.run(debug=True)
