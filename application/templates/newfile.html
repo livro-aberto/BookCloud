@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ text['title'] }}{% endblock%}
+
+{% macro contents() %}
+<h1>{{ text['title'] }}</h1>
+
+<p>
+  <form method="post">
+    <input type="text" id="filename" name="filename"></textarea>
+<br>
+<br>
+    <input id="submit" name="submit" type="submit" formaction="{{ url_for('newfile', project=project, branch=branch) }}" value="{{ text['submit'] }}">
+  </form>
+</p>
+{% endmacro %}
+

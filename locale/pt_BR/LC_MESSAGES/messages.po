@@ -5,178 +5,194 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2016-09-24 14:44+BRT\n"
+"POT-Creation-Date: 2016-09-25 19:49+BRT\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
 
-
-#: application/views.py:61
+#: application/views.py:63
 msgid "You need to clone this repository first"
 msgstr "Você precisa clonar esse repositório"
 
-#: application/views.py:95
+#: application/views.py:97
 msgid "Initial commit"
 msgstr "Submissao inicial"
 
-#: application/views.py:186
+#: application/views.py:178
 msgid "Project branches"
 msgstr "Ramos do projeto"
 
-#: application/views.py:194 application/views.py:213 application/views.py:255
-#: application/views.py:280 application/views.py:305
+#: application/views.py:186 application/views.py:205 application/views.py:247
+#: application/views.py:272 application/views.py:302
 msgid "You are not the owner of this branch"
 msgstr "Você não é o proprietário deste ramo"
 
-#: application/views.py:198
+#: application/views.py:190
 msgid "You are not merging a submission"
 msgstr "Você não está consolidando uma submissão"
 
-#: application/views.py:217
+#: application/views.py:209
 msgid "You are not merging!"
 msgstr "Você não está consolidando uma submissão"
 
-#: application/views.py:220
+#: application/views.py:212
 msgid "You still have unreviewed files"
 msgstr "Você ainda tem arquivos não revisados"
 
-#: application/views.py:227
+#: application/views.py:219
 msgid "You have finished merging _%s"
 msgstr "Você finalizou a consolidação do ramo _%s"
 
-#: application/views.py:267
+#: application/views.py:259
 msgid "Change in %s by %s"
 msgstr "Mudancas em %s por %s"
 
-#: application/views.py:272
+#: application/views.py:264
 msgid "Page submitted to _%s"
 msgstr "Submissão submetida para _%s"
 
-#: application/views.py:295
+#: application/views.py:287
 msgid "Edit:"
 msgstr "Editar:"
 
-#: application/views.py:295
+#: application/views.py:287
 msgid "Image"
 msgstr "Imagem"
 
-#: application/views.py:295
+#: application/views.py:287
 msgid "Math mode"
 msgstr "Modo matemático"
 
-#: application/views.py:296
+#: application/views.py:288
 msgid "Sections"
 msgstr "Seções"
 
-#: application/views.py:296
+#: application/views.py:288
 msgid "Style"
 msgstr "Estilo"
 
-#: application/views.py:297
+#: application/views.py:289
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: application/views.py:297
+#: application/views.py:289
 msgid "Preview"
 msgstr "Prever"
 
-#: application/views.py:297
+#: application/views.py:289
 msgid "Submit"
 msgstr "Submeter"
 
-#: application/views.py:309
+#: application/views.py:306
 msgid "You are not merging"
 msgstr "Você não está consolidando uma submissão"
 
-#: application/views.py:321
+#: application/views.py:318
 msgid " has suggested a change to the file: "
 msgstr " sugeriu uma mudança no arquivo: "
 
-#: application/views.py:322
-msgid "The proposed version is on the left, while the old version is on the right."
+#: application/views.py:319
+msgid ""
+"The proposed version is on the left, while the old version is on the right."
 msgstr "A versão proposta está à esquerda, enquanto a versão antiga à direita."
 
-#: application/views.py:338
+#: application/views.py:335
 msgid "Merging from _"
 msgstr "Consolidando do ramo _"
 
-#: application/views.py:338
+#: application/views.py:335
 msgid "Modifications not yet reviewed"
 msgstr "Modificações não revisadas"
 
-#: application/views.py:339
+#: application/views.py:336
 msgid "Accept suggestions"
 msgstr "Aceitar sugestões"
 
-#: application/views.py:339
+#: application/views.py:336
 msgid "Review file"
 msgstr "Revisar arquivo"
 
-#: application/views.py:339
+#: application/views.py:336
 msgid "View differences"
 msgstr "Ver diferenças"
 
-#: application/views.py:340
+#: application/views.py:337
 msgid "Changes reviewed"
 msgstr "Mudanças revisadas"
 
-#: application/views.py:340
+#: application/views.py:337
 msgid "You have finished all the reviews"
 msgstr "Você finalizou todas as revisões"
 
-#: application/views.py:341
+#: application/views.py:338
 msgid "Finish merge"
 msgstr "Finalizar consolidação"
 
-#: application/views.py:348
+#: application/views.py:345
 msgid "List of branches"
 msgstr "Lista de ramos"
 
-#: application/views.py:363
+#: application/views.py:360
 msgid "Download"
 msgstr "Baixar"
 
-#: application/views.py:363
+#: application/views.py:360
 msgid "Projects list"
 msgstr "Lista de projetos"
 
-#: application/views.py:363 application/views.py:389
+#: application/views.py:360 application/views.py:386
 msgid "Create new project"
 msgstr "Criar novo projeto"
 
-#: application/views.py:377
+#: application/views.py:374
 msgid "You need to be logged in to create a new project"
 msgstr "Você precisa estar logado para criar um novo projeto"
 
-#: application/views.py:383
+#: application/views.py:380
 msgid "This project name already exists"
 msgstr "Este nome de projeto já existe"
 
-#: application/views.py:387
+#: application/views.py:384
 msgid "Project created successfuly!"
 msgstr "Projeto criado com sucesso"
 
-#: application/views.py:396
+#: application/views.py:393
+msgid "You need to be logged in to create a new file"
+msgstr "Você precisa estar logado para criar um novo arquivo"
+
+#: application/views.py:402
+msgid "This file name name already exists"
+msgstr "Esse nome de arquivo já existe"
+
+#: application/views.py:405
+msgid "File created successfuly!"
+msgstr "Arquivo criado com sucesso"
+
+#: application/views.py:408
+msgid "Create new file"
+msgstr "Criar novo arquivo"
+
+#: application/views.py:415
 msgid "You need to be logged in to clone a project"
 msgstr "Você precisa estar logado para criar um ramo"
 
-#: application/views.py:402
+#: application/views.py:421
 msgid "This branch name already exists"
 msgstr "Esse nome de ramo já existe"
 
-#: application/views.py:407
+#: application/views.py:426
 msgid "Project cloned successfuly!"
 msgstr "Ramo criado com sucesso"
 
-#: application/views.py:411
+#: application/views.py:430
 msgid "Create your own branch of this project"
 msgstr "Crie seu próprio ramo deste projeto"
 
-#: application/views.py:412
+#: application/views.py:431
 msgid "Choose branch name"
 msgstr "Escolha um nome para o ramo"
-

@@ -1,5 +1,4 @@
   - make sure usernames, project names and branch names are alphanumeric only
-  - ability to add new file (possibly with template for name)
   - add common prefix to all routes (for serving on folder of domain). Or can this be done in Apache?
 
   - implement two-way merge, see https://github.com/lqc/google-diff-match-patch
@@ -8,8 +7,11 @@
   - add project_properties to be passed to jinja files, including for instance copyright
   - use context processors to automatically add variables to templates
   - start using user data that is automatically passed to jinja instead of explicitly from render
+  - ask in stackexchange if there is a way to access view arguments from jinja without passing them
   - create functions `read_file` and `write_file` to reduce use of `with codecs...`
 
+  - use safe_join to avoid malicious filenames
+  - change `std_menu`: it should receive `current_user`, query if it is authenticated and do everything on its own
   - ability to rename file (possibly with template for name)
   - ability to remove file
   - add more options to project, such as: language, title... (see sphinx's conf.py)
@@ -18,6 +20,7 @@
   - add project options
   - add branch options
 
+  - add template names for new files
   - implement comments and issues
   - bug in diff? see also https://github.com/lqc/google-diff-match-patch
   - give option for reviewer to delete branch on finishing merge
@@ -30,3 +33,15 @@
     - https://github.com/lqc/google-diff-match-patch
     - https://github.com/sphinx-doc/sphinx/tree/master/sphinx/themes/bizstyle/static
     - https://github.com/mathjax/MathJax
+
+
+
+
+make a help for updating po files
+
+    pygettext -o /tmp/messages.pot  application/views.py
+    msgmerge locale/pt_BR/LC_MESSAGES/messages.po /tmp/messages.pot > /tmp/final.po
+
+edit the final file and put it in the right place (look for items marked fuzzy)
+
+    msgfmt locale/pt_BR/LC_MESSAGES/messages.po -o locale/pt_BR/LC_MESSAGES/messages.mo

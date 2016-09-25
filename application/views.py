@@ -1,6 +1,6 @@
 import os
 import json
-from os.path import join, isdir, isfile
+from os.path import isdir, isfile, join
 import flask
 from flask import render_template, render_template_string, request, redirect, url_for, Response, flash
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
@@ -13,15 +13,9 @@ from difflib import HtmlDiff
 import codecs # deals with encoding better
 import sphinx
 
-
 import gettext
 
-#lang = gettext.translation('messages', localedir='locale', languages=['pt_BR'])
-#lang.install()
-#_ = lang.ugettext
-
-def enc(string):
-    return string.encode('utf-8')
+config_path = 'conf'
 
 @app.before_first_request
 def set_lang():
@@ -29,8 +23,6 @@ def set_lang():
     lang = gettext.translation('messages', localedir='locale', languages=[language])
     lang.install(True)
     _ = lang.ugettext
-
-config_path = 'conf'
 
 def get_git(project, branch):
     repo_path = join('repos', project, branch, 'source')
@@ -114,30 +106,20 @@ def create_project(project, user_name):
     new_branch = Branch('master', project_id, origin_id, user_id)
     db.session.add(new_branch)
     db.session.commit()
-    # updating branch self reference
+    # updating branch's self reference
     new_branch = Branch.query.filter_by(project_id=project_id).first()
     new_branch.origin_id = new_branch.id
     db.session.commit()
-    # properties = {'project': project, 'owner': user_name, 'reviewer': user_name, 'origin': 'master'}
-    # write_json(join('repos', project, 'master', 'properties.json'), properties)
-    # properties = {'reviewer': user_name}
-    # write_json(join('repos', project, 'master', 'properties.json'), properties)
     build(project, 'master')
 
 def get_branch_owner(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     return Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
-    # properties = load_json(join('repos', project, branch, 'properties.json'))
-    # return properties['owner']
 
 def get_branch_origin(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
     return Branch.query.filter_by(origin_id=origin_id).first().name
-    # properties = load_json(join('repos', project, branch, 'properties.json'))
-    # origin = properties['origin']
-    # properties = load_json(join('repos', project, origin, 'properties.json'))
-    # return properties['reviewer']
 
 def create_branch(project, origin, branch, user_name):
     # Clone repository from a certain origin branch
@@ -393,16 +375,37 @@ def new():
         return redirect(url_for('login'))
     bar_menu = std_menu(current_user.username)
     if request.method == 'POST':
-        user_repo_path = join('repos', request.form['project'], current_user.username)
+        user_repo_path = join('repos', request.form['project'])
         if os.path.isdir(user_repo_path):
             flash(_('This project name already exists'), 'error')
-            return render_template('new.html', username=current_user.username, bar_menu=bar_menu)
         else:
             create_project(request.form['project'], current_user.username)
             flash(_('Project created successfuly!'), 'info')
             return redirect(url_for('projects'))
     text = {'title': _('Create new project'), 'submit': 'Submit'}
-    return render_template('new.html', username=current_user.username,
+    return render_template('new.html', text=text, bar_menu=bar_menu)
+
+@app.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
+def newfile(project, branch):
+    if not current_user.is_authenticated:
+        flash(_('You need to be logged in to create a new file'), 'error')
+        return redirect(url_for('login'))
+    bar_menu = std_menu(current_user.username)
+    if request.method == 'POST':
+        filename, file_extension = os.path.splitext(request.form['filename'])
+        if file_extension == '':
+            file_extension = '.rst'
+        file_path = join('repos', project, branch, 'source', filename + file_extension)
+        if os.path.isfile(file_path):
+            flash(_('This file name name already exists'), 'error')
+        else:
+            file = open(file_path, 'w+')
+            file.write('=' * len(filename) + '\n' + filename + '\n' + '=' * len(filename))
+            flash(_('File created successfuly!'), 'info')
+            build(project, branch)
+            return redirect(url_for('view', project=project, branch=branch, filename='index.html'))
+    text = {'title': _('Create new file'), 'submit': 'Submit'}
+    return render_template('newfile.html', project=project, branch=branch,
                            text=text, bar_menu=bar_menu)
 
 @app.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
@@ -425,8 +428,8 @@ def clone(project, branch):
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
             'name': _('Choose branch name')}
-    return render_template('clone.html', username=current_user.username, project=project,
-                           branch=branch, branches=branches, text=text, bar_menu=bar_menu)
+    return render_template('clone.html', project=project, branch=branch,
+                           branches=branches, text=text, bar_menu=bar_menu)
 
 @app.route('/<project>/pdf')
 def pdf(project):
