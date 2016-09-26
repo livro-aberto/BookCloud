@@ -33,7 +33,8 @@
     - https://github.com/lqc/google-diff-match-patch
     - https://github.com/sphinx-doc/sphinx/tree/master/sphinx/themes/bizstyle/static
     - https://github.com/mathjax/MathJax
-
+  - fix conf path in sphinx (pointing to /home/gutosurrex...)
+  - fix BookCloud.wsgi to use a configuration value as path
 
 
 
