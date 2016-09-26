@@ -10,7 +10,7 @@
     <input type="text" id="project" name="project">{{ rst }}</textarea>
 <br>
 <br>
-    <input id="submit" name="submit" type="submit" formaction="{{ url_for('new') }}" value="{{ text['submit'] }}">
+    <input id="submit" name="submit" type="submit" formaction="{{ url_for('.new') }}" value="{{ text['submit'] }}">
   </form>
 </p>
 {% endmacro %}

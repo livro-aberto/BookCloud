@@ -10,7 +10,10 @@ import os
 # Setup Flask app and app.config
 app = Flask(__name__)
 
-db = SQLAlchemy(app)                            # Initialize Flask-SQLAlchemy
+# Initialize Flask-SQLAlchemy
+db = SQLAlchemy(app)
+
+
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
 class User(db.Model, UserMixin):
@@ -61,6 +64,7 @@ def create_app(extra_config_settings={}):
     """
     Initialize Flask applicaton
     """
+    import application.views
 
     app.config.from_object('config')
 
@@ -71,6 +75,10 @@ def create_app(extra_config_settings={}):
     if app.testing or app.config['TESTING']:
         app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF checks while testing
         app.config['LANGUAGE'] = 'en_US'
+        app.config['BOOKCLOUD_URL_PREFIX'] = ''
+
+    app.register_blueprint(application.views.bookcloud,
+                           url_prefix=app.config['BOOKCLOUD_URL_PREFIX'])
 
     # Setup Flask-Mail
     mail = Mail(app)
@@ -82,10 +90,6 @@ def create_app(extra_config_settings={}):
     # Setup Flask-User
     db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
     user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
-
-
-    import application.views
-
 
     return app
 

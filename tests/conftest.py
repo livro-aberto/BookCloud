@@ -17,6 +17,7 @@ the_app = create_app(dict(
     SERVER_NAME='localhost',  # Enable url_for() without request context
     SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',  # In-memory SQLite DB
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
+    #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'              # v0.5.3 and up
 ))
 
 #import application.views as views

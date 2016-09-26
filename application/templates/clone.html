@@ -6,7 +6,7 @@
 <h1>{{ text['title'] }}</h1>
 <ul id="navigation">
 
-<form action="{{ url_for('clone', project=project, branch=branch) }}" method="POST">
+<form action="{{ url_for('.clone', project=project, branch=branch) }}" method="POST">
 
   {{ text['name'] }}
 
@@ -17,7 +17,7 @@
   <br>
   <br>
 
-  <input id="submit" type="submit" name="submit" value="Submit" formaction="{{ url_for('clone', project=project, branch=branch) }}">
+  <input id="submit" type="submit" name="submit" value="Submit" formaction="{{ url_for('.clone', project=project, branch=branch) }}">
 
 </form>
 

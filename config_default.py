@@ -11,6 +11,21 @@ USER_ENABLE_CONFIRM_EMAIL =  False
 USER_SEND_REGISTERED_EMAIL = False
 USER_ENABLE_LOGIN_WITHOUT_CONFIRM_EMAIL = False
 
+# Endpoints are converted to URLs using url_for()
+# The empty endpoint ('') will be mapped to the root URL ('/')
+USER_AFTER_CHANGE_PASSWORD_ENDPOINT      = 'bookcloud.projects'              # v0.5.3 and up
+USER_AFTER_CHANGE_USERNAME_ENDPOINT      = 'bookcloud.projects'              # v0.5.3 and up
+USER_AFTER_CONFIRM_ENDPOINT              = 'bookcloud.projects'              # v0.5.3 and up
+USER_AFTER_FORGOT_PASSWORD_ENDPOINT      = 'bookcloud.projects'              # v0.5.3 and up
+USER_AFTER_LOGIN_ENDPOINT                = 'bookcloud.projects'              # v0.5.3 and up
+USER_AFTER_LOGOUT_ENDPOINT               = 'user.login'                      # v0.5.3 and up
+USER_AFTER_REGISTER_ENDPOINT             = 'bookcloud.projects'              # v0.5.3 and up
+USER_AFTER_RESEND_CONFIRM_EMAIL_ENDPOINT = 'bookcloud.projects'              # v0.5.3 and up
+USER_AFTER_RESET_PASSWORD_ENDPOINT       = 'bookcloud.projects'              # v0.6 and up
+USER_INVITE_ENDPOINT                     = 'bookcloud.projects'              # v0.6.2 and up
+
+
+
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 MAIL_USERNAME =           os.getenv('MAIL_USERNAME',        'email@example.com')
