@@ -23,13 +23,14 @@ the_app = create_app(dict(
 #import application.views as views
 #views.set_lang('en_US')
 
-def find_or_create_user(name, password):
+def find_or_create_user(name, email, password):
     """ Find existing user or create new user """
     from application import User
     user = User.query.filter(User.username == name).first()
     if not user:
         user = User(username=name,
                     password=the_app.user_manager.hash_password(password),
+                    email=email,
                     active=True)
         the_db.session.add(user)
     return user
@@ -41,8 +42,8 @@ def create_users():
     the_db.create_all()
 
     # Add users
-    user = find_or_create_user(u'foo', 'Foo123')
-    user = find_or_create_user(u'bar', 'Bar123')
+    user = find_or_create_user(u'foo', 'foo@example.com', 'Foo123')
+    user = find_or_create_user(u'bar', 'bar@example.com', 'Bar123')
 
     # Save to DB
     the_db.session.commit()
