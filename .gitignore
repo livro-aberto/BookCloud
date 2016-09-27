@@ -5,6 +5,7 @@ repos/*
 *.sqlite
 config.py
 vir/*
+conf/conf.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

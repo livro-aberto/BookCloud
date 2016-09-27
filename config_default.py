@@ -4,6 +4,7 @@ import os
 SECRET_KEY =              os.getenv('SECRET_KEY',       'THIS IS AN INSECURE SECRET')
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL',     'mysql://username:password@localhost/db_name')
 CSRF_ENABLED = True
+SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 # Flask-Mail settings
 USER_ENABLE_EMAIL =          False
@@ -25,8 +26,6 @@ USER_AFTER_RESET_PASSWORD_ENDPOINT       = 'bookcloud.projects'
 USER_INVITE_ENDPOINT                     = 'bookcloud.projects'
 
 BOOKCLOUD_URL_PREFIX = '/'
-
-SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 MAIL_USERNAME =           os.getenv('MAIL_USERNAME',        'email@example.com')
 MAIL_PASSWORD =           os.getenv('MAIL_PASSWORD',        'password')

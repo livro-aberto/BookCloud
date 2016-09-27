@@ -22,6 +22,8 @@ Create config file
 
     cp conf_default.py conf.py
 
+    cp conf/conf_default.py conf/conf.py
+
 edit the `conf.py` file. Specially:
 
   1. Change your secret key

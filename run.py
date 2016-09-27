@@ -1,6 +1,41 @@
-from application import create_app
+from application import create_app, db as the_db
 
+app = create_app(dict(
+    TESTING=True,  # Propagate exceptions
+    LOGIN_DISABLED=False,  # Enable @register_required
+    MAIL_SUPPRESS_SEND=True,  # Disable Flask-Mail send
+    SQLALCHEMY_DATABASE_URI='sqlite:///db.sqlite',  # In-memory SQLite DB
+    WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
+    BOOKCLOUD_URL_PREFIX = '',
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'              # v0.5.3 and up
+))
 
-app = create_app()
+def find_or_create_user(name, email, password):
+    """ Find existing user or create new user """
+    from application import User
+    user = User.query.filter(User.username == name).first()
+    if not user:
+        user = User(username=name,
+                    password=app.user_manager.hash_password(password),
+                    email=email,
+                    active=True)
+        the_db.session.add(user)
+    return user
+
+def create_users():
+    """ Create users when app starts """
+
+    # Create all tables
+    the_db.create_all()
+
+    # Add users
+    user = find_or_create_user(u'foo', 'foo@example.com', 'Foo123')
+    user = find_or_create_user(u'bar', 'bar@example.com', 'Bar123')
+
+    # Save to DB
+    the_db.session.commit()
+
+create_users()
 
 app.run(debug=True)
