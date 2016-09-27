@@ -18,7 +18,7 @@ import os
 style = "biz"
 
 html_theme = style
-html_theme_path = ["/home/gutosurrex/gsync/Programming/BookCloud/conf/", ]
+html_theme_path = ["/var/www/BookCloud/conf/", ]
 html_static_path = [style + '/static']
 html_theme_options = {'nosidebar': False}
 
