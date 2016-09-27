@@ -29,7 +29,7 @@ edit the `conf.py` file. Specially:
 
 
 
-# Notation
+## Notation
 
 
 users: @john
@@ -37,3 +37,4 @@ branches: _fixing
 files: #intro
 
 
+## Add instructions for locale compilation

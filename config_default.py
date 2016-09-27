@@ -24,7 +24,7 @@ USER_AFTER_RESEND_CONFIRM_EMAIL_ENDPOINT = 'bookcloud.projects'              # v
 USER_AFTER_RESET_PASSWORD_ENDPOINT       = 'bookcloud.projects'              # v0.6 and up
 USER_INVITE_ENDPOINT                     = 'bookcloud.projects'              # v0.6.2 and up
 
-
+BOOKCLOUD_URL_PREFIX = '/'
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
