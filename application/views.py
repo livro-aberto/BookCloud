@@ -435,14 +435,12 @@ def clone(project, branch):
                            branches=branches, text=text, bar_menu=bar_menu)
 
 @bookcloud.route('/<project>/<branch>/pdf')
-def pdf(project):
+def pdf(project, branch):
     if (current_user.is_authenticated):
-        build_path = os.path.abspath(join('repos', project,
-                                          branch, current_user.username, 'build/latex'))
+        build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
     else:
-        build_path = os.path.abspath(join('repos', project,
-                                          branch, get_creator(project), 'build/latex'))
-    build_latex(project, current_user.username)
+        build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
+    build_latex(project, branch)
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')

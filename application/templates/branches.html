@@ -9,7 +9,7 @@
 {% for b in branches %}
 <li>
   <a href="{{ url_for('.view', project=project, branch=b, filename='index.html') }}">{{ b }}</a>
-  - {{ text['download'] }} <a href="{{ url_for('.pdf', project=p, branch=b) }}">pdf</a>
+  - {{ text['download'] }} <a href="{{ url_for('.pdf', project=project, branch=b) }}">pdf</a>
 </li>
 {% endfor %}
 
