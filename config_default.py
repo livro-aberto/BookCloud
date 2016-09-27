@@ -2,7 +2,7 @@ import os
 
 # Flask settings
 SECRET_KEY =              os.getenv('SECRET_KEY',       'THIS IS AN INSECURE SECRET')
-SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL',     'sqlite:///db.sqlite')
+SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL',     'mysql://username:password@localhost/db_name')
 CSRF_ENABLED = True
 
 # Flask-Mail settings
@@ -13,16 +13,16 @@ USER_ENABLE_LOGIN_WITHOUT_CONFIRM_EMAIL = False
 
 # Endpoints are converted to URLs using url_for()
 # The empty endpoint ('') will be mapped to the root URL ('/')
-USER_AFTER_CHANGE_PASSWORD_ENDPOINT      = 'bookcloud.projects'              # v0.5.3 and up
-USER_AFTER_CHANGE_USERNAME_ENDPOINT      = 'bookcloud.projects'              # v0.5.3 and up
-USER_AFTER_CONFIRM_ENDPOINT              = 'bookcloud.projects'              # v0.5.3 and up
-USER_AFTER_FORGOT_PASSWORD_ENDPOINT      = 'bookcloud.projects'              # v0.5.3 and up
-USER_AFTER_LOGIN_ENDPOINT                = 'bookcloud.projects'              # v0.5.3 and up
-USER_AFTER_LOGOUT_ENDPOINT               = 'user.login'                      # v0.5.3 and up
-USER_AFTER_REGISTER_ENDPOINT             = 'bookcloud.projects'              # v0.5.3 and up
-USER_AFTER_RESEND_CONFIRM_EMAIL_ENDPOINT = 'bookcloud.projects'              # v0.5.3 and up
-USER_AFTER_RESET_PASSWORD_ENDPOINT       = 'bookcloud.projects'              # v0.6 and up
-USER_INVITE_ENDPOINT                     = 'bookcloud.projects'              # v0.6.2 and up
+USER_AFTER_CHANGE_PASSWORD_ENDPOINT      = 'bookcloud.projects'
+USER_AFTER_CHANGE_USERNAME_ENDPOINT      = 'bookcloud.projects'
+USER_AFTER_CONFIRM_ENDPOINT              = 'bookcloud.projects'
+USER_AFTER_FORGOT_PASSWORD_ENDPOINT      = 'bookcloud.projects'
+USER_AFTER_LOGIN_ENDPOINT                = 'bookcloud.projects'
+USER_AFTER_LOGOUT_ENDPOINT               = 'user.login'
+USER_AFTER_REGISTER_ENDPOINT             = 'bookcloud.projects'
+USER_AFTER_RESEND_CONFIRM_EMAIL_ENDPOINT = 'bookcloud.projects'
+USER_AFTER_RESET_PASSWORD_ENDPOINT       = 'bookcloud.projects'
+USER_INVITE_ENDPOINT                     = 'bookcloud.projects'
 
 BOOKCLOUD_URL_PREFIX = '/'
 

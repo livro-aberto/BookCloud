@@ -28,6 +28,33 @@ edit the `conf.py` file. Specially:
   2. Setup your email
 
 
+## To install sql
+
+Install
+
+    sudo apt-get install mysql
+
+add a root password
+
+    login as root
+    mysql -u root -p
+
+create a new user
+
+    CREATE USER 'newusersname'@'localhost' IDENTIFIED BY 'password';
+
+grant user access to anything
+
+    GRANT ALL PRIVILEGES ON * . * TO 'newusersname'@'localhost';
+    FLUSH PRIVILEGES;
+
+log out with root (Ctr-D) log in with user
+
+    mysql -u newusersname -p
+
+create a new database
+
+    CREATE DATABASE databasename;
 
 ## Notation
 
