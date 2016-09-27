@@ -8,7 +8,7 @@
   {% for p in projects %}
   <li>
     <a href="{{ url_for('.branches', project=p) }}">{{ p }}</a>
-    - {{ text['download'] }} <a href="{{ url_for('.pdf', project=p) }}">pdf</a>
+    - {{ text['download'] }} <a href="{{ url_for('.pdf', project=p, branch='master') }}">pdf</a>
   </li>
   {% endfor %}
 </ul>
