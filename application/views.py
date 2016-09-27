@@ -74,9 +74,10 @@ def get_pendencies(project, branch):
         return requests
     # update from reviewer (if the user is not his own reviewer)
     if branch != 'master':
+        origin_branch = get_branch_origin(project, branch)
         git_api = get_git(project, branch)
         git_api.fetch()
-        git_api.merge('-s', 'recursive', '-Xours', 'origin/master')
+        git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
         git_api.push('origin', branch)
         build(project, branch)
 
@@ -87,21 +88,20 @@ def config_repo(repo, user_name, email):
 
 def create_project(project, user_name):
     # create a repository
-    repo_path = join('repos', project, 'master')
+    repo_path = join('repos', project, 'master/source')
     os.makedirs(repo_path)
-    os.makedirs(join(repo_path, 'source'))
-    git.Repo.init(join(repo_path, 'source'))
-    repo = git.Repo(join(repo_path, 'source'))
-    config_repo(repo, 'master', user_name + '@example.com')
-    copyfile('application/empty_repo/source/index.rst', join(repo_path, 'source/index.rst'))
-    copyfile('application/empty_repo/.gitignore', join(repo_path, 'source/.gitignore'))
+    git.Repo.init(repo_path)
+    repo = git.Repo(repo_path)
+    config_repo(repo, user_name, user_name + '@example.com')
+    copyfile('application/empty_repo/source/index.rst', join(repo_path, 'index.rst'))
+    copyfile('application/empty_repo/.gitignore', join(repo_path, '.gitignore'))
     repo.index.add(['index.rst', '.gitignore'])
     repo.index.commit(_('Initial commit'))
     # add project to database
     user_id = User.query.filter(User.username == user_name).first().id
     new_project = Project(project, user_id)
     db.session.add(new_project)
-    # add branch to database
+    # add master branch to database
     db.session.commit()
     project_id = Project.query.filter_by(name=project).first().id
     origin_id = 1
@@ -125,12 +125,12 @@ def get_branch_origin(project, branch):
 
 def create_branch(project, origin, branch, user_name):
     # Clone repository from a certain origin branch
-    repo_path = join('repos', project, branch, 'source')
-    main_repo = git.Repo(join('repos', project, origin, 'source'))
-    main_repo.clone(os.path.abspath(join(os.getcwd(), repo_path)))
-    repo = git.Repo(os.path.abspath(join(os.getcwd(), repo_path)))
-    config_repo(repo, user_name, user_name + '@here.com')
-    git_api = repo.git
+    branch_path = join('repos', project, branch, 'source')
+    origin_repo = git.Repo(join('repos', project, origin, 'source'))
+    origin_repo.clone(os.path.abspath(join(os.getcwd(), branch_path)))
+    branch_repo = git.Repo(os.path.abspath(join(os.getcwd(), branch_path)))
+    config_repo(branch_repo, user_name, user_name + '@here.com')
+    git_api = branch_repo.git
     git_api.checkout('HEAD', b=branch)
 
     project_id = Project.query.filter_by(name=project).first().id
@@ -140,8 +140,8 @@ def create_branch(project, origin, branch, user_name):
 
     db.session.add(new_branch)
     db.session.commit()
-    properties = {'origin': origin}
-    write_json(join('repos', project, branch, 'properties.json'), properties)
+    #properties = {'origin': origin}
+    #write_json(join('repos', project, branch, 'properties.json'), properties)
     build(project, branch)
 
 def build(project, branch):
@@ -403,7 +403,7 @@ def newfile(project, branch):
             flash(_('This file name name already exists'), 'error')
         else:
             file = open(file_path, 'w+')
-            file.write('=' * len(filename) + '\n' + filename + '\n' + '=' * len(filename))
+            file.write('=' * len(filename) + '\n' + filename + '\n' + '=' * len(filename) + '\n')
             flash(_('File created successfuly!'), 'info')
             build(project, branch)
             return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))

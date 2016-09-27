@@ -102,7 +102,7 @@ def test_page_urls(client):
                                   filename='index'), follow_redirects=True)
     assert 'You are not the owner of this branch' in response.data
 
-    # Save index page in master branch
+    # Clone project
     response = client.post(url_for('bookcloud.clone',
                                    project=new_project_name,
                                    branch='master'),
@@ -146,5 +146,64 @@ def test_page_urls(client):
                                   branch='master'), follow_redirects=True)
     assert 'You have finished merging _feature' in response.data
     assert 'Some contents' in response.data
+
+
+    # Logout
+    response = client.get(url_for('user.logout'), follow_redirects=True)
+    assert b'You have signed out successfully.' in response.data
+
+    # Login as second order collaborator
+    response = client.post(url_for('user.login'), follow_redirects=True,
+                           data=dict(username='bla', password='Bla123'))
+    assert b'You have signed in successfully' in response.data
+
+    # Clone the feature branch
+    response = client.post(url_for('bookcloud.clone',
+                                   project=new_project_name,
+                                   branch='feature'),
+                           follow_redirects=True,
+                           data=dict(name='typo'))
+    assert b'Project cloned successfuly!' in response.data
+
+    # Save a change to index page in typo branch
+    response = client.post(url_for('bookcloud.save',
+                                   project=new_project_name,
+                                   branch='typo',
+                                   filename='index'),
+                           follow_redirects=True,
+                           data=dict(code='Title of test page\n==================\n\nSome more contents...'))
+    assert b'Page submitted to _master' in response.data
+
+    # Log as project creator again
+    response = client.get(url_for('user.logout'), follow_redirects=True)
+    assert b'You have signed out successfully.' in response.data
+    response = client.post(url_for('user.login'), follow_redirects=True,
+                           data=dict(username='foo', password='Foo123'))
+    assert b'You have signed in successfully' in response.data
+
+    # Visit main page (don't see merge request)
+    response = client.get(url_for('bookcloud.view',
+                                  project=new_project_name,
+                                  branch='master',
+                                  filename='index.html'))
+    assert 'Title of test page' in response.data
+
+    # Log as project first order contributor
+    response = client.get(url_for('user.logout'), follow_redirects=True)
+    assert b'You have signed out successfully.' in response.data
+    response = client.post(url_for('user.login'), follow_redirects=True,
+                           data=dict(username='bar', password='Bar123'))
+    assert b'You have signed in successfully' in response.data
+
+    # Visit feature branch to see the request
+    response = client.get(url_for('bookcloud.view',
+                                  project=new_project_name,
+                                  branch='feature',
+                                  filename='index.html'))
+    assert 'Request from' in response.data
+
+
+
+
 
     shutil.rmtree(os.path.abspath(os.path.join('repos', new_project_name)))

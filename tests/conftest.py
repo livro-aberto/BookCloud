@@ -44,6 +44,7 @@ def create_users():
     # Add users
     user = find_or_create_user(u'foo', 'foo@example.com', 'Foo123')
     user = find_or_create_user(u'bar', 'bar@example.com', 'Bar123')
+    user = find_or_create_user(u'bla', 'bla@example.com', 'Bla123')
 
     # Save to DB
     the_db.session.commit()
