@@ -185,21 +185,6 @@ def build_latex(project, branch):
     return True
 
 @login_required
-@bookcloud.route('/<project>/branches', methods = ['GET', 'POST'])
-def branches(project):
-    path = join('repos', project)
-    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
-    if (current_user.is_authenticated):
-        bar_menu = std_menu(current_user.username)
-    else:
-        bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
-    text = {'title': _('Project branches')}
-    tree = { 'master': get_sub_branches(project, 'master') }
-    print(tree)
-    return render_template('branches.html', project=project, branches=branches, tree=tree,
-                           text=text, bar_menu=bar_menu)
-
-@login_required
 @bookcloud.route('/<project>/<branch>/accept/<path:filename>')
 def accept(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
@@ -363,12 +348,27 @@ def merge(project, branch, other):
 
 @bookcloud.route('/<project>')
 def index(project):
-    text = {'title': _('List of branches')}
     if (current_user.is_authenticated):
         bar_menu = std_menu(current_user.username)
     else:
         bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
     return render_template('branches.html', text=text, project=project, bar_menu=bar_menu)
+
+
+@login_required
+@bookcloud.route('/<project>/branches', methods = ['GET', 'POST'])
+def branches(project):
+    path = join('repos', project)
+    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
+    if (current_user.is_authenticated):
+        bar_menu = std_menu(current_user.username)
+    else:
+        bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
+    text = {'title': _('List of branches'),
+            'instructions': _('Here you can see the project: %s...') % project}
+    tree = { 'master': get_sub_branches(project, 'master') }
+    return render_template('branches.html', project=project, branches=branches, tree=tree,
+                           text=text, bar_menu=bar_menu)
 
 @bookcloud.route('/')
 def projects():
@@ -378,7 +378,9 @@ def projects():
         bar_menu = std_menu(current_user.username)
     else:
         bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
-    text = {'title': _('Projects list'), 'download': _('Download'), 'new': _('Create new project')}
+    text = {'title': _('Projects list'), 'download': _('Download'),
+            'new': _('Create new project'),
+            'instructions': _('Here you can see all the projects...')}
     return render_template('projects.html', projects=projects, bar_menu=bar_menu,
                            text=text, copyright='CC-BY-SA-NC')
 
