@@ -1,6 +1,7 @@
   - make sure usernames, project names and branch names are alphanumeric only
   - print tree in branches view
 
+  - replace all possible function calls using names to objects (user, project, branch...)
   - upload figures
   - implement two-way merge, see https://github.com/lqc/google-diff-match-patch
   - allow reviewer to continue editing without addressing merge requests

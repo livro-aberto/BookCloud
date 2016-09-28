@@ -120,6 +120,20 @@ def get_branch_owner(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     return Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
 
+def get_sub_branches(project, branch):
+    project_id = Project.query.filter_by(name=project).first().id
+    branch_id = Branch.query.filter_by(project_id=project_id, name=branch).first().id
+    children_list = Branch.query.filter_by(project_id=project_id, origin_id=branch_id)
+    answer = {}
+    #if children_list.first() == None:
+    #    return answer
+    for child in children_list:
+        if child.name != 'master':
+            print(child.name)
+            answer[child.name] = get_sub_branches(project, child.name)
+    #return { 'name': branch, 'subtree': answer }
+    return answer
+
 def get_branch_origin(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
@@ -180,7 +194,9 @@ def branches(project):
     else:
         bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
     text = {'title': _('Project branches')}
-    return render_template('branches.html', project=project, branches=branches,
+    tree = { 'master': get_sub_branches(project, 'master') }
+    print(tree)
+    return render_template('branches.html', project=project, branches=branches, tree=tree,
                            text=text, bar_menu=bar_menu)
 
 @login_required
