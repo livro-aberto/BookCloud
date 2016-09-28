@@ -1,5 +1,9 @@
   - make sure usernames, project names and branch names are alphanumeric only
-  - print tree in branches view
+  - save a file without submitting (don't use word preview).
+  - split the branch tree into active and inactive branches.
+    only show the smallest tree that contains all the active.
+
+  - url spaces: have the std_menu receive project and branch
 
   - replace all possible function calls using names to objects (user, project, branch...)
   - upload figures
