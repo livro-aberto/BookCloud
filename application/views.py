@@ -58,12 +58,14 @@ def get_requests(project, branch):
         return render_template('requests.html', project=project, branch=branch,
                                unmerged=unmerged, bar_menu=bar_menu)
 
-def get_pendencies(project, branch):
+def get_pendencies(project, branch, username):
     # user already has the repository?
+    if username != get_branch_owner(project, branch):
+        return None
     branch_repo_path = join('repos', project, branch)
-    if not isdir(branch_repo_path):
-        flash(_('You need to clone this repository first'), 'error')
-        return redirect(url_for(branches, project=project))
+    # if not isdir(branch_repo_path):
+    #     flash(_('You need to clone this repository first'), 'error')
+    #     return redirect(url_for(branches, project=project))
     # user is merging?
     merging = get_merging(project, branch)
     if merging:
@@ -121,20 +123,20 @@ def get_branch_owner(project, branch):
 def get_branch_origin(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
-    return Branch.query.filter_by(origin_id=origin_id).first().name
+    return Branch.query.filter_by(id=origin_id).first().name
 
 def create_branch(project, origin, branch, user_name):
     # Clone repository from a certain origin branch
     branch_path = join('repos', project, branch, 'source')
     origin_repo = git.Repo(join('repos', project, origin, 'source'))
-    origin_repo.clone(os.path.abspath(join(os.getcwd(), branch_path)))
+    origin_repo.clone(os.path.abspath(join(os.getcwd(), branch_path)), branch=origin)
     branch_repo = git.Repo(os.path.abspath(join(os.getcwd(), branch_path)))
     config_repo(branch_repo, user_name, user_name + '@here.com')
     git_api = branch_repo.git
     git_api.checkout('HEAD', b=branch)
 
     project_id = Project.query.filter_by(name=project).first().id
-    origin_id = Branch.query.filter_by(project_id=project_id, name=origin).first().origin_id
+    origin_id = Branch.query.filter_by(project_id=project_id, name=origin).first().id
     owner_id = User.query.filter_by(username=user_name).first().id
     new_branch = Branch(branch, project_id, origin_id, owner_id)
 
@@ -229,7 +231,7 @@ def view(project, branch, filename):
     user_repo_path = join('repos', project, branch,
                           'build/html', filename + file_extension)
     if (current_user.is_authenticated):
-        pendencies = get_pendencies(project, branch)
+        pendencies = get_pendencies(project, branch, current_user.username)
         if pendencies:
             return pendencies
         bar_menu = [{'url': url_for('user.logout'), 'name': 'logout'},
@@ -249,7 +251,7 @@ def save(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    pendencies = get_pendencies(project, branch)
+    pendencies = get_pendencies(project, branch, current_user.username)
     if pendencies:
         return pendencies
     filename, file_extension = os.path.splitext(filename)
@@ -274,7 +276,7 @@ def edit(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.clone', project=project, branch=branch))
-    pendencies = get_pendencies(project, branch)
+    pendencies = get_pendencies(project, branch, current_user.username)
     if pendencies:
         return pendencies
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')

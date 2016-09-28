@@ -165,14 +165,14 @@ def test_page_urls(client):
                            data=dict(name='typo'))
     assert b'Project cloned successfuly!' in response.data
 
-    # Save a change to index page in typo branch
+    # Save a change in typo branch
     response = client.post(url_for('bookcloud.save',
                                    project=new_project_name,
                                    branch='typo',
                                    filename='index'),
                            follow_redirects=True,
                            data=dict(code='Title of test page\n==================\n\nSome more contents...'))
-    assert b'Page submitted to _master' in response.data
+    assert b'Page submitted to _feature' in response.data
 
     # Log as project creator again
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -201,6 +201,48 @@ def test_page_urls(client):
                                   branch='feature',
                                   filename='index.html'))
     assert 'Request from' in response.data
+
+    # Merging from typo to feature
+    response = client.get(url_for('bookcloud.merge',
+                                  project=new_project_name,
+                                  branch='feature',
+                                  other='typo'))
+    assert 'Merging from _feature' in response.data
+    response = client.get(url_for('bookcloud.accept',
+                                  project=new_project_name,
+                                  branch='feature',
+                                  filename='index.rst'), follow_redirects=True)
+    assert 'You have finished all the reviews' in response.data
+    response = client.get(url_for('bookcloud.finish',
+                                  project=new_project_name,
+                                  branch='feature'), follow_redirects=True)
+    assert 'You have finished merging _typo' in response.data
+    assert 'Some more contents' in response.data
+
+    # Log as project creator again
+    response = client.get(url_for('user.logout'), follow_redirects=True)
+    assert b'You have signed out successfully.' in response.data
+    response = client.post(url_for('user.login'), follow_redirects=True,
+                           data=dict(username='foo', password='Foo123'))
+    assert b'You have signed in successfully' in response.data
+
+    # Merging from feature to master
+    response = client.get(url_for('bookcloud.merge',
+                                  project=new_project_name,
+                                  branch='master',
+                                  other='feature'))
+    assert 'Merging from _feature' in response.data
+    response = client.get(url_for('bookcloud.accept',
+                                  project=new_project_name,
+                                  branch='master',
+                                  filename='index.rst'), follow_redirects=True)
+
+    assert 'You have finished all the reviews' in response.data
+    response = client.get(url_for('bookcloud.finish',
+                                  project=new_project_name,
+                                  branch='master'), follow_redirects=True)
+    assert 'You have finished merging _feature' in response.data
+    assert 'Some more contents' in response.data
 
 
 
