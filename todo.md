@@ -1,6 +1,7 @@
   - make sure usernames, project names and branch names are alphanumeric only
-  - add common prefix to all routes (for serving on folder of domain). Or can this be done in Apache?
+  - print tree in branches view
 
+  - upload figures
   - implement two-way merge, see https://github.com/lqc/google-diff-match-patch
   - allow reviewer to continue editing without addressing merge requests
   - use one origin for the project and everyone clones from there (even master)
@@ -9,6 +10,8 @@
   - start using user data that is automatically passed to jinja instead of explicitly from render
   - ask in stackexchange if there is a way to access view arguments from jinja without passing them
   - create functions `read_file` and `write_file` to reduce use of `with codecs...`
+  - implement delete branch
+  - implement delete project
 
   - use safe_join to avoid malicious filenames
   - change `std_menu`: it should receive `current_user`, query if it is authenticated and do everything on its own
