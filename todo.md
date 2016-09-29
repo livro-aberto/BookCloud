@@ -2,13 +2,16 @@
     - allow user to delete branch
   - use safe_join to avoid malicious filenames
 
-
   - implement flask-babel:
-    http://stackoverflow.com/a/9515968
-    https://pythonhosted.org/Flask-Babel/
-    http://jinja.pocoo.org/docs/dev/templates/#i18n-in-templates
+    best tutorial:
+      http://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-xiv-i18n-and-l10n
+    more stuff:
+      http://stackoverflow.com/a/9515968
+      https://pythonhosted.org/Flask-Babel/
+      http://jinja.pocoo.org/docs/dev/templates/#i18n-in-templates
 
-  - save a file without submitting (don't use word preview).
+  - save a file without submitting (don't use word preview, use save and exit).
+    perhaps a red submit button and always a submit in the menu
   - split the branch tree into active and inactive branches.
     only show the smallest tree that contains all the active
     then below show the full tree
@@ -24,11 +27,11 @@
 
   - add template names for new files
 
+  - use wtform to guarantee that names are well input (don't trust client browser for validation)
+
   - use context processors to automatically add variables to templates
   - start using user data that is automatically passed to jinja instead of explicitly from render
     is it already there? we could use the context processor as well
-
-  - create functions `read_file` and `write_file` to reduce use of `with codecs...`
 
   - implement delete project
 

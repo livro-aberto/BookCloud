@@ -31,18 +31,18 @@ def get_git(project, branch):
     repo = git.Repo(repo_path)
     return repo.git
 
-def load_json(path):
+def load_file(path):
     with codecs.open(path, 'r', 'utf-8') as content_file:
-        return json.loads(content_file.read())
+        return content_file.read()
 
-def write_json(path, structure):
+def write_file(path, contents):
     with codecs.open(path, 'w', 'utf-8') as dest_file:
-        dest_file.write(json.dumps(structure))
+        dest_file.write(contents)
 
 def get_merging(project, branch):
     merge_file_path = join('repos', project, branch, 'merging.json')
     if isfile(merge_file_path):
-        return load_json(merge_file_path)
+        return json.loads(load_file(merge_file_path))
 
 def get_requests(project, branch):
     git_api = get_git(project, branch)
@@ -341,8 +341,7 @@ def view(project, branch, filename):
         menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
                                               filename=filename), 'name': 'edit'})
     build(project, branch)
-    with codecs.open(user_repo_path, 'r', 'utf-8') as content_file:
-        content = content_file.read()
+    content = load_file(user_repo_path)
     return render_template_string(content, menu=menu, render_sidebar=True)
 
 @login_required
@@ -357,13 +356,10 @@ def edit(project, branch, filename):
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
     branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
     if request.method == 'POST':
-        with codecs.open(branch_source_path, 'w') as dest_file:
-            dest_file.write(request.form['code'].encode('utf8'))
+        write_file(branch_source_path, request.form['code'].encode('utf8'))
     build(project, branch)
-    with codecs.open(branch_source_path, 'r', 'utf-8') as content_file:
-        rst = content_file.read()
-    with codecs.open(branch_html_path, 'r', 'utf-8') as content_file:
-        doc = render_template_string(content_file.read(), barebones=True)
+    rst = load_file(branch_source_path)
+    doc = render_template_string(load_file(branch_html_path), barebones=True)
     text = {'title': _('Edit:'), 'image': _('Image'), 'math': _('Math mode'),
             'sections': _('Sections'), 'style': _('Style'),
             'cancel': _('Cancel'), 'preview': _('Preview'), 'submit': _('Submit')}
@@ -382,8 +378,7 @@ def commit(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
     user_repo_path = join('repos', project, branch)
     if request.method == 'POST':
-        with codecs.open(join(user_repo_path, 'source', filename + '.rst'), 'w') as dest_file:
-            dest_file.write(request.form['code'].encode('utf8'))
+        write_file(join(user_repo_path, 'source', filename + '.rst'), request.form['code'].encode('utf8'))
     repo = git.Repo(join(user_repo_path, 'source'))
     repo.index.add([filename + '.rst'])
     repo.index.commit(_('Change in %s by %s') % (filename, current_user.username))
@@ -404,7 +399,7 @@ def merge(project, branch, other):
         git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', other)
         modified = string.split(git_api.diff('HEAD', '--name-only'))
         merging = {'branch': other, 'modified': modified, 'reviewed': []}
-        write_json(join('repos', project, branch, 'merging.json'), merging)
+        write_file(join('repos', project, branch, 'merging.json'), json.dumps(merging))
     menu = menu_bar(project, branch)
     text = {'title': _('Merging from _'), 'unseen': _('Modifications not yet reviewed'),
             'review': _('Review file'), 'accept': _('Accept suggestions'), 'view': _('View differences'),
@@ -433,8 +428,7 @@ def diff(project, branch, filename):
     differ = HtmlDiff()
     filename, file_extension = os.path.splitext(filename)
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
-    with codecs.open(branch_source_path, 'r', 'utf-8') as content_file:
-        new = string.split(content_file.read(), '\n')
+    new = string.split(load_file(branch_source_path), '\n')
     git_api = get_git(project, branch)
     old = string.split(git_api.show('master:' + filename + file_extension), '\n')
     diff = differ.make_table(new, old)
@@ -461,7 +455,7 @@ def accept(project, branch, filename):
     merging['modified'].remove(filename)
     merging['reviewed'].append(filename)
     merge_file_path = join('repos', project, branch, 'merging.json')
-    write_json(merge_file_path, merging)
+    write_file(merge_file_path, json.dumps(merging))
     return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
 
 @bookcloud.route('/<project>/<branch>/view/genindex.html')
@@ -495,8 +489,7 @@ def get_global_static(filename):
 @bookcloud.route('/<project>/<branch>/view/_sources/<path:filename>')
 def show_source(project, branch, filename):
     sources_path = join('repos', project, branch, 'build/html/_sources', filename)
-    with codecs.open(sources_path, 'r', 'utf-8') as content_file:
-        content = content_file.read()
+    content = load_file(sources_path)
     return Response(content, mimetype='text/txt')
 
 @bookcloud.route('/<project>/images/<path:filename>')
