@@ -6,20 +6,20 @@
 <h1>{{ text['title'] }}</h1>
 <ul id="navigation">
 
-<form action="{{ url_for('.clone', project=project, branch=branch) }}" method="POST">
+  <form action="{{ url_for('.clone', project=project, branch=branch) }}" method="POST">
 
-  {{ text['name'] }}
+    {{ text['name'] }}
 
-  <br>
+    <br>
 
-  <input type="text" name="name"><br>
+    <input type="text" id="name" name="name"
+           pattern="([a-zA-Z0-9]|-|_|.){4,30}$"
+           title="{{ text['allowed'] }}">
+    <input id="submit" name="submit" type="submit"
+           formaction="{{ url_for('.clone', project=project, branch=branch) }}"
+           value="{{ text['submit'] }}">
 
-  <br>
-  <br>
-
-  <input id="submit" type="submit" name="submit" value="Submit" formaction="{{ url_for('.clone', project=project, branch=branch) }}">
-
-</form>
+  </form>
 
 </ul>
 

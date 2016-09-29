@@ -1,14 +1,12 @@
   - check if branch is active
     - allow user to delete branch
-  - make sure usernames, project names and branch names are alphanumeric only
-    Characters that go well with filenames
-      a-z
-      A-Z
-      0-9
-      underscore (_)
-      dash (-)
-      period (.)
   - use safe_join to avoid malicious filenames
+
+
+  - implement flask-babel:
+    http://stackoverflow.com/a/9515968
+    https://pythonhosted.org/Flask-Babel/
+    http://jinja.pocoo.org/docs/dev/templates/#i18n-in-templates
 
   - save a file without submitting (don't use word preview).
   - split the branch tree into active and inactive branches.

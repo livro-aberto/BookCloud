@@ -7,10 +7,14 @@
 
 <p>
   <form method="post">
-    <input type="text" id="project" name="project">{{ rst }}</textarea>
-<br>
-<br>
-    <input id="submit" name="submit" type="submit" formaction="{{ url_for('.new') }}" value="{{ text['submit'] }}">
+
+    <input type="text" id="project" name="project"
+           pattern="([a-zA-Z0-9]|-|_|.){4,30}$"
+           title="{{ text['allowed'] }}">
+    <input id="submit" name="submit" type="submit"
+           formaction="{{ url_for('.new') }}"
+           value="{{ text['submit'] }}">
+
   </form>
 </p>
 {% endmacro %}

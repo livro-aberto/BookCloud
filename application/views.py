@@ -220,8 +220,10 @@ def new():
         else:
             create_project(request.form['project'], current_user.username)
             flash(_('Project created successfuly!'), 'info')
-            return redirect(url_for('.home'))
-    text = {'title': _('Create new project'), 'submit': 'Submit'}
+            return redirect(url_for('.project',
+                                    project=request.form['project']))
+    text = {'title': _('Create new project'), 'submit': _('Submit'),
+            'allowed': _('Name should have...')}
     return render_template('new.html', text=text, menu=menu)
 
 @login_required
@@ -275,7 +277,7 @@ def clone(project, branch):
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
-            'name': _('Choose branch name')}
+            'allowed': _('Name should have...'), 'name': _('Choose branch name')}
     return render_template('clone.html', project=project, branch=branch,
                            text=text, menu=menu)
 
@@ -293,12 +295,13 @@ def newfile(project, branch):
         else:
             file = open(file_path, 'w+')
             equals = '=' * len(filename) + '\n'
-            file.write(equals + filename + equals)
+            file.write(equals + filename + '\n' + equals)
             flash(_('File created successfuly!'), 'info')
             build(project, branch)
             return redirect(url_for('.view', project=project,
                                     branch=branch, filename='index.html'))
-    text = {'title': _('Create new file'), 'submit': 'Submit'}
+    text = {'title': _('Create new file'), 'submit': 'Submit',
+            'allowed': _('Name should have...')}
     return render_template('newfile.html', project=project, branch=branch,
                            text=text, menu=menu)
 
