@@ -80,14 +80,19 @@
       <h3>Navigation</h3>
       {% block bar %}
       <ul>
-        <li class="left" style="margin-right: 10px">
-          <a href="{{ url_for('.projects') }}">home</a>
-        </li>
-        {% for t in bar_menu %}
-        <li class="right" style="margin-right: 10px">
-          <a href="{{ t.url }}">{{ t.name }}</a>
-        </li>
-        {% endfor %}
+        {% if menu %}
+          {% for t in menu.left %}
+          <li class="left" style="margin-right: 10px">
+            <a href="{{ t.url }}">{{ t.name }}</a>
+          </li>
+          {% endfor %}
+
+          {% for t in menu.right %}
+          <li class="right" style="margin-right: 10px">
+            <a href="{{ t.url }}">{{ t.name }}</a>
+          </li>
+          {% endfor %}
+        {% endif %}
       </ul>
       {% endblock %}
     </div>

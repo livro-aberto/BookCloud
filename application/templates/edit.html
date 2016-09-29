@@ -112,7 +112,7 @@ div.bodywrapper {
             <input type="button" value="{{ text['cancel'] }}"/>
           </a>
           <input id="preview" name="preview" type="submit" formaction="{{ url_for('.edit', project=project, branch=branch, filename=filename) }}" value="{{ text['preview'] }}">
-          <input id="submit" name="submit" type="submit" formaction="{{ url_for('.save', project=project, branch=branch, filename=filename) }}" value="{{ text['submit'] }}">
+          <input id="submit" name="submit" type="submit" formaction="{{ url_for('.commit', project=project, branch=branch, filename=filename) }}" value="{{ text['submit'] }}">
         </form>
       </div>
 

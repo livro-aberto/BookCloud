@@ -63,7 +63,7 @@ def test_page_urls(client):
     assert 'Math mode' in response.data
 
     # Save index page in master branch
-    response = client.post(url_for('bookcloud.save',
+    response = client.post(url_for('bookcloud.commit',
                                    project=new_project_name,
                                    branch='master',
                                    filename='index'),
@@ -111,7 +111,7 @@ def test_page_urls(client):
     assert b'Project cloned successfuly!' in response.data
 
     # Save a change to index page in feature branch
-    response = client.post(url_for('bookcloud.save',
+    response = client.post(url_for('bookcloud.commit',
                                    project=new_project_name,
                                    branch='feature',
                                    filename='index'),
@@ -166,7 +166,7 @@ def test_page_urls(client):
     assert b'Project cloned successfuly!' in response.data
 
     # Save a change in typo branch
-    response = client.post(url_for('bookcloud.save',
+    response = client.post(url_for('bookcloud.commit',
                                    project=new_project_name,
                                    branch='typo',
                                    filename='index'),
