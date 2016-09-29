@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ text['title'] }}{% endblock%}
+
+{% macro contents() %}
+<h1>{{ text['title'] }}</h1>
+<ul id="navigation">
+
+  <p>
+    {{ text['instructions'] }}
+  </p>
+
+  <ul class="sitemap">
+    {% for key, value in tree.iteritems() recursive %}
+    <li>
+      <a href="{{ url_for('.view', project=project, branch=key, filename='index.html') }}">{{ key }}</a>
+      - {{ text['download'] }} <a href="{{ url_for('.pdf', project=project, branch=key) }}">pdf</a>
+      {% if value is mapping %}
+      <ul class="submenu">
+        {{ loop(value.iteritems()) }}
+      </ul>
+      {% endif %}
+      {% endfor %}
+  </ul>
+
+</ul>
+{% endmacro %}
+
