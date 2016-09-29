@@ -1,7 +1,13 @@
   - check if branch is active
     - allow user to delete branch
   - make sure usernames, project names and branch names are alphanumeric only
-
+    Characters that go well with filenames
+      a-z
+      A-Z
+      0-9
+      underscore (_)
+      dash (-)
+      period (.)
   - use safe_join to avoid malicious filenames
 
   - save a file without submitting (don't use word preview).
