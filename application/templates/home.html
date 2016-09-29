@@ -12,10 +12,10 @@
     {{ text['instructions'] }}
   </p>
 
-  {% for p in projects %}
+  {% for project in projects %}
   <li>
-    <a href="{{ url_for('.project', project=p) }}">{{ p }}</a>
-    - {{ text['download'] }} <a href="{{ url_for('.pdf', project=p, branch='master') }}">pdf</a>
+    <a href="{{ url_for('.project', project=project) }}">{{ project }}</a>
+    - {{ text['download'] }} <a href="{{ url_for('.pdf', project=project, branch='master') }}">pdf</a>
   </li>
   {% endfor %}
 </ul>

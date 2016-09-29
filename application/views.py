@@ -179,7 +179,7 @@ def build_latex(project, branch):
     return True
 
 def menu_bar(project=None, branch='master'):
-    left  = [{'url': url_for('bookcloud.projects'), 'name': 'home'}]
+    left  = [{'url': url_for('bookcloud.home'), 'name': 'home'}]
     if project:
         left.append({'url': url_for('bookcloud.project', project=project), 'name': project})
         left.append({'url': url_for('bookcloud.branch', project=project,
@@ -192,14 +192,14 @@ def menu_bar(project=None, branch='master'):
     return { 'left': left, 'right': right}
 
 @bookcloud.route('/')
-def projects():
+def home():
     path = 'repos'
     projects = [d for d in os.listdir(path) if isdir(join(path, d))]
     menu = menu_bar()
     text = {'title': _('Projects list'), 'download': _('Download'),
             'new': _('Create new project'),
             'instructions': _('Here you can see all the projects...')}
-    return render_template('projects.html', projects=projects, menu=menu,
+    return render_template('home.html', projects=projects, menu=menu,
                            text=text, copyright='CC-BY-SA-NC')
 
 @bookcloud.route('/profile')
@@ -220,7 +220,7 @@ def new():
         else:
             create_project(request.form['project'], current_user.username)
             flash(_('Project created successfuly!'), 'info')
-            return redirect(url_for('.projects'))
+            return redirect(url_for('.home'))
     text = {'title': _('Create new project'), 'submit': 'Submit'}
     return render_template('new.html', text=text, menu=menu)
 
@@ -233,7 +233,7 @@ def project(project):
     text = {'title': _('List of branches'),
             'instructions': _('Here you can see the project: %s...') % project}
     tree = { 'master': get_sub_branches(project, 'master') }
-    return render_template('project.html', project=project, branches=branches, tree=tree,
+    return render_template('project.html', project=project, tree=tree,
                            text=text, menu=menu)
 
 @bookcloud.route('/<project>/pdf')
@@ -251,7 +251,9 @@ def pdf(project, branch='master'):
 @bookcloud.route('/<project>/<branch>', methods = ['GET', 'POST'])
 def branch(project, branch):
     menu = menu_bar(project, branch)
-    text = {'title': _('Project (%s), branch (_%s)') % (project, branch)}
+    text = {'title': _('Project (%s), branch (_%s)') % (project, branch),
+            'newfile': _('Create a new file'),
+            'view': _('View the branch index')}
     return render_template('branch.html', project=project, branch=branch,
                            text=text, menu=menu)
 
@@ -275,7 +277,7 @@ def clone(project, branch):
     text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
             'name': _('Choose branch name')}
     return render_template('clone.html', project=project, branch=branch,
-                           branches=branches, text=text, menu=menu)
+                           text=text, menu=menu)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
@@ -319,7 +321,7 @@ def finish(project, branch):
     os.remove(merge_file_path)
     build(project, branch)
     flash(_('You have finished merging _%s') % merging['branch'], 'info')
-    return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    return redirect(url_for('.branch', project=project, branch=branch))
 
 @bookcloud.route('/<project>/<branch>/view/<path:filename>')
 def view(project, branch, filename):
@@ -435,7 +437,7 @@ def diff(project, branch, filename):
     diff = differ.make_table(new, old)
     diff = string.replace(diff, 'nowrap="nowrap"', '')
     text = {'title': _(' has suggested a change to the file: '),
-            'instructions': _('The proposed version is on the left, while the old version is on the right.')}
+            'instructions': _('The proposed (left), old (right).')}
     return render_template('diff.html',  project=project, other=merging['branch'],
                            diff=diff, filename=filename + file_extension, branch=branch,
                            text=text, menu=menu)
@@ -458,6 +460,10 @@ def accept(project, branch, filename):
     merge_file_path = join('repos', project, branch, 'merging.json')
     write_json(merge_file_path, merging)
     return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
+
+@bookcloud.route('/<project>/<branch>/view/genindex.html')
+def genindex(project, branch):
+    return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
 
 # Static stuff
 
@@ -483,9 +489,9 @@ def get_static(project, action, filename):
 def get_global_static(filename):
     return flask.send_from_directory(os.path.abspath('conf/biz/static/'), filename)
 
-@bookcloud.route('/_sources/<path:filename>')
-def show_source(filename):
-    sources_path = join('repos', current_user.username, 'build/html/_sources', filename)
+@bookcloud.route('/<project>/<branch>/view/_sources/<path:filename>')
+def show_source(project, branch, filename):
+    sources_path = join('repos', project, branch, 'build/html/_sources', filename)
     with codecs.open(sources_path, 'r', 'utf-8') as content_file:
         content = content_file.read()
     return Response(content, mimetype='text/txt')
@@ -493,10 +499,6 @@ def show_source(filename):
 @bookcloud.route('/<project>/images/<path:filename>')
 def get_image(project, filename):
     return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
-
-@bookcloud.route('/<project>/<branch>/view/genindex.html')
-def genindex(project, branch):
-    return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
 
 @bookcloud.route('/login')
 def login():

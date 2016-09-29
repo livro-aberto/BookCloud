@@ -8,10 +8,14 @@
 
   <br>
 
-  <br>
+  <a href="{{ url_for('.view', project=project, branch=branch, filename='index.html') }}">{{ text['view'] }}</a>
+
   <br>
 
-</form>
+  <a href="{{ url_for('.newfile', project=project, branch=branch) }}">{{ text['newfile'] }}</a>
+
+  <br>
+
 
 </ul>
 

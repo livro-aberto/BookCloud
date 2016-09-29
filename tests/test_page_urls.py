@@ -15,7 +15,7 @@ char_set = string.ascii_uppercase + string.digits
 
 def test_page_urls(client):
     # Visit home page
-    response = client.get(url_for('bookcloud.projects'))
+    response = client.get(url_for('bookcloud.home'))
     assert b'Projects list' in response.data
 
     # Login
@@ -40,7 +40,7 @@ def test_page_urls(client):
     assert new_project_name in response.data
 
     # Check that project is there
-    response = client.get(url_for('bookcloud.projects'))
+    response = client.get(url_for('bookcloud.home'))
     assert new_project_name in response.data
 
     # Visit new project
@@ -145,8 +145,13 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master'), follow_redirects=True)
     assert 'You have finished merging _feature' in response.data
-    assert 'Some contents' in response.data
 
+    # Check changes took place
+    response = client.get(url_for('bookcloud.view',
+                                  project=new_project_name,
+                                  branch='master',
+                                  filename='index'))
+    assert 'Some contents' in response.data
 
     # Logout
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -217,6 +222,10 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='feature'), follow_redirects=True)
     assert 'You have finished merging _typo' in response.data
+    response = client.get(url_for('bookcloud.view',
+                                  project=new_project_name,
+                                  branch='feature',
+                                  filename='index'))
     assert 'Some more contents' in response.data
 
     # Log as project creator again
@@ -242,6 +251,10 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master'), follow_redirects=True)
     assert 'You have finished merging _feature' in response.data
+    response = client.get(url_for('bookcloud.view',
+                                  project=new_project_name,
+                                  branch='master',
+                                  filename='index'))
     assert 'Some more contents' in response.data
 
 
