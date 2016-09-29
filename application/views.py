@@ -156,8 +156,6 @@ def create_branch(project, origin, branch, user_name):
 
     db.session.add(new_branch)
     db.session.commit()
-    #properties = {'origin': origin}
-    #write_json(join('repos', project, branch, 'properties.json'), properties)
     build(project, branch)
 
 def build(project, branch):
@@ -184,24 +182,121 @@ def build_latex(project, branch):
     os.system(command)
     return True
 
+@bookcloud.route('/')
+def projects():
+    path = 'repos'
+    projects = [d for d in os.listdir(path) if isdir(join(path, d))]
+    if current_user.is_authenticated:
+        bar_menu = std_menu(current_user.username)
+    else:
+        bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
+    text = {'title': _('Projects list'), 'download': _('Download'),
+            'new': _('Create new project'),
+            'instructions': _('Here you can see all the projects...')}
+    return render_template('projects.html', projects=projects, bar_menu=bar_menu,
+                           text=text, copyright='CC-BY-SA-NC')
+
+@bookcloud.route('/profile')
+def profile():
+    if not current_user.is_authenticated:
+        redirect(url_for('user.login'))
+    bar_menu = std_menu(current_user.username)
+    return render_template('profile.html', username=current_user.username, bar_menu=bar_menu)
+
+@bookcloud.route('/new', methods = ['GET', 'POST'])
+def new():
+    if not current_user.is_authenticated:
+        flash(_('You need to be logged in to create a new project'), 'error')
+        return redirect(url_for('user.login'))
+    bar_menu = std_menu(current_user.username)
+    if request.method == 'POST':
+        user_repo_path = join('repos', request.form['project'])
+        if os.path.isdir(user_repo_path):
+            flash(_('This project name already exists'), 'error')
+        else:
+            create_project(request.form['project'], current_user.username)
+            flash(_('Project created successfuly!'), 'info')
+            return redirect(url_for('.projects'))
+    text = {'title': _('Create new project'), 'submit': 'Submit'}
+    return render_template('new.html', text=text, bar_menu=bar_menu)
+
+@bookcloud.route('/<project>')
+def project(project):
+    return redirect(url_for('.view', project=project, branch='master', filename='index.html'))
+
 @login_required
-@bookcloud.route('/<project>/<branch>/accept/<path:filename>')
-def accept(project, branch, filename):
-    if current_user.username != get_branch_owner(project, branch):
-        flash(_('You are not the owner of this branch'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    merging = get_merging(project, branch)
-    if not merging:
-        flash(_('You are not merging a submission'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    if not filename in merging['modified']:
-        flash('File ' + filename + ' is not being reviewed', 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    merging['modified'].remove(filename)
-    merging['reviewed'].append(filename)
-    merge_file_path = join('repos', project, branch, 'merging.json')
-    write_json(merge_file_path, merging)
-    return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
+@bookcloud.route('/<project>/branches', methods = ['GET', 'POST'])
+def branches(project):
+    path = join('repos', project)
+    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
+    if (current_user.is_authenticated):
+        bar_menu = std_menu(current_user.username)
+    else:
+        bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
+    text = {'title': _('List of branches'),
+            'instructions': _('Here you can see the project: %s...') % project}
+    tree = { 'master': get_sub_branches(project, 'master') }
+    return render_template('branches.html', project=project, branches=branches, tree=tree,
+                           text=text, bar_menu=bar_menu)
+
+@bookcloud.route('/<project>/pdf')
+@bookcloud.route('/<project>/<branch>/pdf')
+def pdf(project, branch='master'):
+    if (current_user.is_authenticated):
+        build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
+    else:
+        build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
+    build_latex(project, branch)
+    command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
+    os.system(command)
+    return flask.send_from_directory(build_path, 'linux.pdf')
+
+@bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
+def clone(project, branch):
+    if not current_user.is_authenticated:
+        flash(_('You need to be logged in to clone a project'), 'error')
+        return redirect(url_for('user.login'))
+    bar_menu = std_menu(current_user.username)
+    if request.method == 'POST':
+        new_repo_path = join('repos', project, request.form['name'])
+        if os.path.isdir(new_repo_path):
+            flash(_('This branch name already exists'), 'error')
+            return redirect(url_for('.clone', project=project, branch=branch))
+        else:
+            new_branch = request.form['name']
+            create_branch(project, branch, new_branch, current_user.username)
+            flash(_('Project cloned successfuly!'), 'info')
+            return redirect(url_for('.view', project=project, branch=new_branch, filename='index.html'))
+    path = join('repos', project)
+    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
+    text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
+            'name': _('Choose branch name')}
+    return render_template('clone.html', project=project, branch=branch,
+                           branches=branches, text=text, bar_menu=bar_menu)
+
+@bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
+def newfile(project, branch):
+    if not current_user.is_authenticated:
+        flash(_('You need to be logged in to create a new file'), 'error')
+        return redirect(url_for('.login'))
+    bar_menu = std_menu(current_user.username)
+    if request.method == 'POST':
+        filename, file_extension = os.path.splitext(request.form['filename'])
+        if file_extension == '':
+            file_extension = '.rst'
+        file_path = join('repos', project, branch, 'source', filename + file_extension)
+        if os.path.isfile(file_path):
+            flash(_('This file name name already exists'), 'error')
+        else:
+            file = open(file_path, 'w+')
+            file.write('=' * len(filename) + '\n' + filename + '\n' + '=' * len(filename) + '\n')
+            flash(_('File created successfuly!'), 'info')
+            build(project, branch)
+            return redirect(url_for('.view', project=project,
+                                    branch=branch, filename='index.html'))
+    text = {'title': _('Create new file'), 'submit': 'Submit'}
+    return render_template('newfile.html', project=project, branch=branch,
+                           text=text, bar_menu=bar_menu)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/finish')
@@ -247,6 +342,31 @@ def view(project, branch, filename):
     return render_template_string(content, bar_menu=bar_menu, render_sidebar=True)
 
 @login_required
+@bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
+def edit(project, branch, filename):
+    if current_user.username != get_branch_owner(project, branch):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.clone', project=project, branch=branch))
+    pendencies = get_pendencies(project, branch, current_user.username)
+    if pendencies:
+        return pendencies
+    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
+    branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
+    if request.method == 'POST':
+        with codecs.open(branch_source_path, 'w') as dest_file:
+            dest_file.write(request.form['code'].encode('utf8'))
+    build(project, branch)
+    with codecs.open(branch_source_path, 'r', 'utf-8') as content_file:
+        rst = content_file.read()
+    with codecs.open(branch_html_path, 'r', 'utf-8') as content_file:
+        doc = render_template_string(content_file.read(), barebones=True)
+    text = {'title': _('Edit:'), 'image': _('Image'), 'math': _('Math mode'),
+            'sections': _('Sections'), 'style': _('Style'),
+            'cancel': _('Cancel'), 'preview': _('Preview'), 'submit': _('Submit')}
+    return render_template('edit.html', doc=doc, rst=rst, filename=filename, branch=branch,
+                           project=project, text=text, render_sidebar=False)
+
+@login_required
 @bookcloud.route('/<project>/<branch>/save/<path:filename>', methods = ['GET', 'POST'])
 def save(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
@@ -272,29 +392,23 @@ def save(project, branch, filename):
     return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
 
 @login_required
-@bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
-def edit(project, branch, filename):
-    if current_user.username != get_branch_owner(project, branch):
-        flash(_('You are not the owner of this branch'), 'error')
-        return redirect(url_for('.clone', project=project, branch=branch))
-    pendencies = get_pendencies(project, branch, current_user.username)
-    if pendencies:
-        return pendencies
-    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
-    branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
-    if request.method == 'POST':
-        with codecs.open(branch_source_path, 'w') as dest_file:
-            dest_file.write(request.form['code'].encode('utf8'))
-    build(project, branch)
-    with codecs.open(branch_source_path, 'r', 'utf-8') as content_file:
-        rst = content_file.read()
-    with codecs.open(branch_html_path, 'r', 'utf-8') as content_file:
-        doc = render_template_string(content_file.read(), barebones=True)
-    text = {'title': _('Edit:'), 'image': _('Image'), 'math': _('Math mode'),
-            'sections': _('Sections'), 'style': _('Style'),
-            'cancel': _('Cancel'), 'preview': _('Preview'), 'submit': _('Submit')}
-    return render_template('edit.html', doc=doc, rst=rst, filename=filename, branch=branch,
-                           project=project, text=text, render_sidebar=False)
+@bookcloud.route('/<project>/<branch>/merge/<other>')
+def merge(project, branch, other):
+    merging = get_merging(project, branch)
+    if not merging:
+        git_api = get_git(project, branch)
+        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', other)
+        modified = string.split(git_api.diff('HEAD', '--name-only'))
+        merging = {'branch': other, 'modified': modified, 'reviewed': []}
+        write_json(join('repos', project, branch, 'merging.json'), merging)
+    bar_menu = std_menu(current_user.username)
+    text = {'title': _('Merging from _'), 'unseen': _('Modifications not yet reviewed'),
+            'review': _('Review file'), 'accept': _('Accept suggestions'), 'view': _('View differences'),
+            'reviewed': _('Changes reviewed'), 'finally': _('You have finished all the reviews'),
+            'finish': _('Finish merge')}
+    return render_template('merge.html', project=project, modified=merging['modified'],
+                           reviewed=merging['reviewed'], branch=branch, other=other,
+                           text=text, bar_menu=bar_menu)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/review/<path:filename>')
@@ -328,137 +442,25 @@ def diff(project, branch, filename):
                            text=text, bar_menu=bar_menu)
 
 @login_required
-@bookcloud.route('/<project>/<branch>/merge/<other>')
-def merge(project, branch, other):
+@bookcloud.route('/<project>/<branch>/accept/<path:filename>')
+def accept(project, branch, filename):
+    if current_user.username != get_branch_owner(project, branch):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
     if not merging:
-        git_api = get_git(project, branch)
-        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', other)
-        modified = string.split(git_api.diff('HEAD', '--name-only'))
-        merging = {'branch': other, 'modified': modified, 'reviewed': []}
-        write_json(join('repos', project, branch, 'merging.json'), merging)
-    bar_menu = std_menu(current_user.username)
-    text = {'title': _('Merging from _'), 'unseen': _('Modifications not yet reviewed'),
-            'review': _('Review file'), 'accept': _('Accept suggestions'), 'view': _('View differences'),
-            'reviewed': _('Changes reviewed'), 'finally': _('You have finished all the reviews'),
-            'finish': _('Finish merge')}
-    return render_template('merge.html', project=project, modified=merging['modified'],
-                           reviewed=merging['reviewed'], branch=branch, other=other,
-                           text=text, bar_menu=bar_menu)
+        flash(_('You are not merging a submission'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    if not filename in merging['modified']:
+        flash('File ' + filename + ' is not being reviewed', 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    merging['modified'].remove(filename)
+    merging['reviewed'].append(filename)
+    merge_file_path = join('repos', project, branch, 'merging.json')
+    write_json(merge_file_path, merging)
+    return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
 
-@bookcloud.route('/<project>')
-def project(project):
-    return redirect(url_for('.view', project=project, branch='master', filename='index.html'))
-
-@login_required
-@bookcloud.route('/<project>/branches', methods = ['GET', 'POST'])
-def branches(project):
-    path = join('repos', project)
-    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
-    if (current_user.is_authenticated):
-        bar_menu = std_menu(current_user.username)
-    else:
-        bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
-    text = {'title': _('List of branches'),
-            'instructions': _('Here you can see the project: %s...') % project}
-    tree = { 'master': get_sub_branches(project, 'master') }
-    return render_template('branches.html', project=project, branches=branches, tree=tree,
-                           text=text, bar_menu=bar_menu)
-
-@bookcloud.route('/')
-def projects():
-    path = 'repos'
-    projects = [d for d in os.listdir(path) if isdir(join(path, d))]
-    if current_user.is_authenticated:
-        bar_menu = std_menu(current_user.username)
-    else:
-        bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
-    text = {'title': _('Projects list'), 'download': _('Download'),
-            'new': _('Create new project'),
-            'instructions': _('Here you can see all the projects...')}
-    return render_template('projects.html', projects=projects, bar_menu=bar_menu,
-                           text=text, copyright='CC-BY-SA-NC')
-
-@bookcloud.route('/profile')
-def profile():
-    if not current_user.is_authenticated:
-        redirect(url_for('user.login'))
-    bar_menu = std_menu(current_user.username)
-    return render_template('profile.html', username=current_user.username, bar_menu=bar_menu)
-
-@bookcloud.route('/new', methods = ['GET', 'POST'])
-def new():
-    if not current_user.is_authenticated:
-        flash(_('You need to be logged in to create a new project'), 'error')
-        return redirect(url_for('user.login'))
-    bar_menu = std_menu(current_user.username)
-    if request.method == 'POST':
-        user_repo_path = join('repos', request.form['project'])
-        if os.path.isdir(user_repo_path):
-            flash(_('This project name already exists'), 'error')
-        else:
-            create_project(request.form['project'], current_user.username)
-            flash(_('Project created successfuly!'), 'info')
-            return redirect(url_for('.projects'))
-    text = {'title': _('Create new project'), 'submit': 'Submit'}
-    return render_template('new.html', text=text, bar_menu=bar_menu)
-
-@bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
-def newfile(project, branch):
-    if not current_user.is_authenticated:
-        flash(_('You need to be logged in to create a new file'), 'error')
-        return redirect(url_for('.login'))
-    bar_menu = std_menu(current_user.username)
-    if request.method == 'POST':
-        filename, file_extension = os.path.splitext(request.form['filename'])
-        if file_extension == '':
-            file_extension = '.rst'
-        file_path = join('repos', project, branch, 'source', filename + file_extension)
-        if os.path.isfile(file_path):
-            flash(_('This file name name already exists'), 'error')
-        else:
-            file = open(file_path, 'w+')
-            file.write('=' * len(filename) + '\n' + filename + '\n' + '=' * len(filename) + '\n')
-            flash(_('File created successfuly!'), 'info')
-            build(project, branch)
-            return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    text = {'title': _('Create new file'), 'submit': 'Submit'}
-    return render_template('newfile.html', project=project, branch=branch,
-                           text=text, bar_menu=bar_menu)
-
-@bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
-def clone(project, branch):
-    if not current_user.is_authenticated:
-        flash(_('You need to be logged in to clone a project'), 'error')
-        return redirect(url_for('user.login'))
-    bar_menu = std_menu(current_user.username)
-    if request.method == 'POST':
-        new_repo_path = join('repos', project, request.form['name'])
-        if os.path.isdir(new_repo_path):
-            flash(_('This branch name already exists'), 'error')
-            return redirect(url_for('.clone', project=project, branch=branch))
-        else:
-            new_branch = request.form['name']
-            create_branch(project, branch, new_branch, current_user.username)
-            flash(_('Project cloned successfuly!'), 'info')
-            return redirect(url_for('.view', project=project, branch=new_branch, filename='index.html'))
-    path = join('repos', project)
-    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
-    text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
-            'name': _('Choose branch name')}
-    return render_template('clone.html', project=project, branch=branch,
-                           branches=branches, text=text, bar_menu=bar_menu)
-
-@bookcloud.route('/<project>/<branch>/pdf')
-def pdf(project, branch):
-    if (current_user.is_authenticated):
-        build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
-    else:
-        build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
-    build_latex(project, branch)
-    command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
-    os.system(command)
-    return flask.send_from_directory(build_path, 'linux.pdf')
+# Static stuff
 
 @bookcloud.route('/<project>/comment_summary/<path:filename>')
 def comment_summary(project, filename):
