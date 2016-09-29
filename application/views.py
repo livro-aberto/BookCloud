@@ -347,13 +347,8 @@ def merge(project, branch, other):
                            text=text, bar_menu=bar_menu)
 
 @bookcloud.route('/<project>')
-def index(project):
-    if (current_user.is_authenticated):
-        bar_menu = std_menu(current_user.username)
-    else:
-        bar_menu = [{'url': url_for('user.login'), 'name': 'login'}]
-    return render_template('branches.html', text=text, project=project, bar_menu=bar_menu)
-
+def project(project):
+    return redirect(url_for('.view', project=project, branch='master', filename='index.html'))
 
 @login_required
 @bookcloud.route('/<project>/branches', methods = ['GET', 'POST'])
@@ -387,7 +382,7 @@ def projects():
 @bookcloud.route('/profile')
 def profile():
     if not current_user.is_authenticated:
-        redirect (url_for('user.login'))
+        redirect(url_for('user.login'))
     bar_menu = std_menu(current_user.username)
     return render_template('profile.html', username=current_user.username, bar_menu=bar_menu)
 
@@ -469,10 +464,10 @@ def pdf(project, branch):
 def comment_summary(project, filename):
     return 'Comments from ' + filename
 
-@bookcloud.route('/<project>/<action>/_images/<path:filename>')
-@bookcloud.route('/edit/<project>/images/<path:filename>', methods = ['GET'])
-def get_tikz(project, action, filename):
-    images_path = join('repos', project, current_user.username, 'build/html/_images')
+@bookcloud.route('/<project>/<branch>/<action>/_images/<path:filename>')
+#@bookcloud.route('/edit/<project>/<branch>/images/<path:filename>', methods = ['GET'])
+def get_tikz(project, branch, action, filename):
+    images_path = join('repos', project, branch, 'build/html/_images')
     return flask.send_from_directory(os.path.abspath(images_path), filename)
 
 @bookcloud.route('/<project>/<action>/_static/<path:filename>')
