@@ -44,7 +44,7 @@ def test_page_urls(client):
     assert new_project_name in response.data
 
     # Visit new project
-    response = client.get(url_for('bookcloud.branches',
+    response = client.get(url_for('bookcloud.project',
                                   project=new_project_name))
     assert 'master' in response.data
 
@@ -243,9 +243,6 @@ def test_page_urls(client):
                                   branch='master'), follow_redirects=True)
     assert 'You have finished merging _feature' in response.data
     assert 'Some more contents' in response.data
-
-
-
 
 
     shutil.rmtree(os.path.abspath(os.path.join('repos', new_project_name)))

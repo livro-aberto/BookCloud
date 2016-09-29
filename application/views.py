@@ -182,7 +182,7 @@ def menu_bar(project=None, branch='master'):
     left  = [{'url': url_for('bookcloud.projects'), 'name': 'home'}]
     if project:
         left.append({'url': url_for('bookcloud.project', project=project), 'name': project})
-        left.append({'url': url_for('bookcloud.branches', project=project,
+        left.append({'url': url_for('bookcloud.branch', project=project,
                                     branch=branch), 'name': branch})
     if current_user.is_authenticated:
         right = [{'url': url_for('user.logout'), 'name': 'logout'},
@@ -209,11 +209,9 @@ def profile():
     menu = menu_bar()
     return render_template('profile.html', username=current_user.username, menu=menu)
 
+@login_required
 @bookcloud.route('/new', methods = ['GET', 'POST'])
 def new():
-    if not current_user.is_authenticated:
-        flash(_('You need to be logged in to create a new project'), 'error')
-        return redirect(url_for('user.login'))
     menu = menu_bar()
     if request.method == 'POST':
         user_repo_path = join('repos', request.form['project'])
@@ -226,20 +224,16 @@ def new():
     text = {'title': _('Create new project'), 'submit': 'Submit'}
     return render_template('new.html', text=text, menu=menu)
 
+@login_required
 @bookcloud.route('/<project>')
 def project(project):
-    return redirect(url_for('.view', project=project, branch='master', filename='index.html'))
-
-@login_required
-@bookcloud.route('/<project>/branches', methods = ['GET', 'POST'])
-def branches(project):
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     menu = menu_bar(project)
     text = {'title': _('List of branches'),
             'instructions': _('Here you can see the project: %s...') % project}
     tree = { 'master': get_sub_branches(project, 'master') }
-    return render_template('branches.html', project=project, branches=branches, tree=tree,
+    return render_template('project.html', project=project, branches=branches, tree=tree,
                            text=text, menu=menu)
 
 @bookcloud.route('/<project>/pdf')
@@ -254,11 +248,16 @@ def pdf(project, branch='master'):
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
 
+@bookcloud.route('/<project>/<branch>', methods = ['GET', 'POST'])
+def branch(project, branch):
+    menu = menu_bar(project, branch)
+    text = {'title': _('Project (%s), branch (_%s)') % (project, branch)}
+    return render_template('branch.html', project=project, branch=branch,
+                           text=text, menu=menu)
+
+@login_required
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
 def clone(project, branch):
-    if not current_user.is_authenticated:
-        flash(_('You need to be logged in to clone a project'), 'error')
-        return redirect(url_for('user.login'))
     menu = menu_bar(project, branch)
     if request.method == 'POST':
         new_repo_path = join('repos', project, request.form['name'])
@@ -269,7 +268,8 @@ def clone(project, branch):
             new_branch = request.form['name']
             create_branch(project, branch, new_branch, current_user.username)
             flash(_('Project cloned successfuly!'), 'info')
-            return redirect(url_for('.view', project=project, branch=new_branch, filename='index.html'))
+            return redirect(url_for('.view', project=project, branch=new_branch,
+                                    filename='index.html'))
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
@@ -277,11 +277,9 @@ def clone(project, branch):
     return render_template('clone.html', project=project, branch=branch,
                            branches=branches, text=text, menu=menu)
 
+@login_required
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
 def newfile(project, branch):
-    if not current_user.is_authenticated:
-        flash(_('You need to be logged in to create a new file'), 'error')
-        return redirect(url_for('.login'))
     menu = menu_bar(project, branch)
     if request.method == 'POST':
         filename, file_extension = os.path.splitext(request.form['filename'])
@@ -292,7 +290,8 @@ def newfile(project, branch):
             flash(_('This file name name already exists'), 'error')
         else:
             file = open(file_path, 'w+')
-            file.write('=' * len(filename) + '\n' + filename + '\n' + '=' * len(filename) + '\n')
+            equals = '=' * len(filename) + '\n'
+            file.write(equals + filename + equals)
             flash(_('File created successfuly!'), 'info')
             build(project, branch)
             return redirect(url_for('.view', project=project,
