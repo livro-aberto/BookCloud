@@ -65,7 +65,8 @@ def get_pendencies(project, branch, username):
     # user is merging?
     merging = get_merging(project, branch)
     if merging:
-        return redirect(url_for(merge, project=project, branch=branch, other=merging['branch']))
+        return redirect(url_for('.merge', project=project,
+                                branch=branch, other=merging['branch']))
     # user has a pending request?
     requests = get_requests(project, branch)
     if requests:
@@ -194,7 +195,17 @@ def menu_bar(project=None, branch='master'):
 @bookcloud.route('/')
 def home():
     path = 'repos'
-    projects = [d for d in os.listdir(path) if isdir(join(path, d))]
+    projects = [d.name for d in Project.query.all()]
+    project_folders = [d for d in os.listdir(path) if isdir(join(path, d))]
+    projects_without_folder = set(projects) - set(project_folders)
+    if projects_without_folder:
+        flash('Projects (%s) have no folder' % ', '.join(projects_without_folder),
+              'error')
+    folders_without_project = set(project_folders) - set(projects)
+    if folders_without_project:
+        flash('Folders (%s) have no project' % ', '.join(folders_without_project),
+              'error')
+    projects = list(set(projects) - set(projects_without_folder))
     menu = menu_bar()
     text = {'title': _('Projects list'), 'download': _('Download'),
             'new': _('Create new project'),
@@ -206,7 +217,19 @@ def home():
 @bookcloud.route('/profile')
 def profile():
     menu = menu_bar()
-    return render_template('profile.html', username=current_user.username, menu=menu)
+    projects = [d for d in Project.query.all()]
+    collection = []
+    for p in projects:
+        user_id = User.query.filter_by(username=current_user.username).first().id
+        user_branches = [b.name for b in Branch.query.filter_by(project_id=p.id,
+                                                                owner_id=user_id)]
+        if user_branches:
+            collection.append({'project': p.name,
+                               'branches': user_branches})
+    text = {'title': _('Projects list'),
+            'instructions': _('Here you can see all your branches')}
+    return render_template('profile.html', username=current_user.username,
+                           text=text, collection=collection, menu=menu)
 
 @login_required
 @bookcloud.route('/new', methods = ['GET', 'POST'])

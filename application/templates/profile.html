@@ -4,5 +4,30 @@
 
 {% macro contents() %}
 <h1>Hi {{ username }}</h1>
+
+<ul id="navigation">
+
+  <p>
+    {{ text['instructions'] }}
+  </p>
+
+  {% for item in collection %}
+  <li>
+    <a href="{{ url_for('.project', project=item.project) }}">{{ item.project }}</a>
+
+    <ul>
+      {% for branch in item.branches %}
+      <li>
+        <a href="{{ url_for('.branch', project=item.project, branch=branch) }}">{{ branch }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+
+  </li>
+  {% endfor %}
+</ul>
+
+
+
 {% endmacro %}
 
