@@ -338,8 +338,12 @@ def view(project, branch, filename):
         pendencies = get_pendencies(project, branch, current_user.username)
         if pendencies:
             return pendencies
-        menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
-                                              filename=filename), 'name': 'edit'})
+        if current_user.username == get_branch_owner(project, branch):
+            menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
+                                                 filename=filename), 'name': 'edit'})
+        else:
+            menu['right'].append({'url': url_for('.clone', project=project, branch=branch),
+                                  'name': 'clone'})
     build(project, branch)
     content = load_file(user_repo_path)
     return render_template_string(content, menu=menu, render_sidebar=True)
