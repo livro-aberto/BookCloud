@@ -221,9 +221,10 @@ def profile():
     collection = []
     for p in projects:
         user_id = User.query.filter_by(username=current_user.username).first().id
-        user_branches = [b.name for b in Branch.query.filter_by(project_id=p.id,
+        user_branches = [b for b in Branch.query.filter_by(project_id=p.id,
                                                                 owner_id=user_id)]
         if user_branches:
+            print(user_branches[0].origin.name)
             collection.append({'project': p.name,
                                'branches': user_branches})
     text = {'title': _('Projects list'),

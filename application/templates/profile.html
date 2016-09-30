@@ -18,7 +18,8 @@
     <ul>
       {% for branch in item.branches %}
       <li>
-        <a href="{{ url_for('.branch', project=item.project, branch=branch) }}">{{ branch }}</a>
+        <a href="{{ url_for('.branch', project=item.project, branch=branch.name) }}">
+          {{ branch.name }}</a> .....(contributes to {{ branch.origin.name }})
       </li>
       {% endfor %}
     </ul>

@@ -36,7 +36,8 @@ class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    owner = db.relationship('User')
+    owner = relationship('User')
+    branches = relationship('Branch', back_populates='project')
 
     def __init__(self, name, owner_id):
         self.name = name
@@ -49,9 +50,11 @@ class Branch(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     origin_id = db.Column(db.Integer, db.ForeignKey('branch.id'))
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
-    owner = db.relationship('User')
-    origin = db.relationship('Branch')
-    project = db.relationship('Project')
+    owner = relationship('User')
+    origin = relationship('Branch', remote_side=id)
+    collaborators = relationship('Branch')
+    project = relationship('Project', back_populates='branches')
+
 
     def __init__(self, name, project_id, origin_id, owner_id):
         self.name = name
