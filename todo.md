@@ -1,6 +1,14 @@
-  - check if branch is active
+  - think about what should come first: commit or merge requests
+  - commit should not be associated with a filename (therefore, not be accessible from the edit page)
+  - fix method get_requests so that it returns the actual requests (use database?)
+    - check if branch is active
     - allow user to delete branch
+  - add more presence of the database, such as when listing projects
+
+  - bug in diff? see also https://github.com/lqc/google-diff-match-patch
+
   - use safe_join to avoid malicious filenames
+
 
   - implement flask-babel:
     best tutorial:
@@ -16,6 +24,8 @@
     only show the smallest tree that contains all the active
     then below show the full tree
 
+  - is it possible to remove all the menu = menu_bar() calls, by using context processors?
+
   - add master and parent branches to menu bar?
 
   - replace all possible function calls using names to objects (user, project, branch...)
@@ -25,6 +35,7 @@
 
   - add logging: http://damyanon.net/flask-series-logging/
 
+  - create a function to fix file.extension handling
   - add template names for new files
 
   - use wtform to guarantee that names are well input (don't trust client browser for validation)
@@ -48,7 +59,6 @@
   - ask in stackexchange if there is a way to access view arguments from jinja without passing them
 
   - implement comments and issues
-  - bug in diff? see also https://github.com/lqc/google-diff-match-patch
 
   - make a timeout for sphinx-build: http://stackoverflow.com/a/4825933
   - implement submodules for javascript code,

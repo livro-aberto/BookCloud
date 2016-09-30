@@ -202,10 +202,9 @@ def home():
     return render_template('home.html', projects=projects, menu=menu,
                            text=text, copyright='CC-BY-SA-NC')
 
+@login_required
 @bookcloud.route('/profile')
 def profile():
-    if not current_user.is_authenticated:
-        redirect(url_for('user.login'))
     menu = menu_bar()
     return render_template('profile.html', username=current_user.username, menu=menu)
 
@@ -241,10 +240,7 @@ def project(project):
 @bookcloud.route('/<project>/pdf')
 @bookcloud.route('/<project>/<branch>/pdf')
 def pdf(project, branch='master'):
-    if (current_user.is_authenticated):
-        build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
-    else:
-        build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
+    build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
     build_latex(project, branch)
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
@@ -274,8 +270,6 @@ def clone(project, branch):
             flash(_('Project cloned successfuly!'), 'info')
             return redirect(url_for('.view', project=project, branch=new_branch,
                                     filename='index.html'))
-    path = join('repos', project)
-    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
             'allowed': _('Name should have...'), 'name': _('Choose branch name')}
     return render_template('clone.html', project=project, branch=branch,
@@ -454,7 +448,7 @@ def accept(project, branch, filename):
         flash(_('You are not merging a submission'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     if not filename in merging['modified']:
-        flash('File ' + filename + ' is not being reviewed', 'error')
+        flash('File %s is not being reviewed' % filename, 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     merging['modified'].remove(filename)
     merging['reviewed'].append(filename)
