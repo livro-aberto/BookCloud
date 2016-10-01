@@ -93,6 +93,10 @@ def package():
         repo_path = join('repos', project, branch, 'source')
         return git.Repo(repo_path).is_dirty()
     sent_package['is_dirty'] = is_dirty
+    sent_package['get_requests'] = get_requests
+    def has_requests(project, branch):
+        return len(get_requests(project, branch)) > 0
+    sent_package['has_requests'] = has_requests
     return sent_package
 
 def create_project(project, user):
@@ -355,6 +359,10 @@ def finish(project, branch):
     git_api.commit('-m', 'Merge ' + merging['branch'])
     merge_file_path = join('repos', project, branch, 'merging.json')
     os.remove(merge_file_path)
+    origin = get_branch_origin(project, branch)
+    if branch != origin:
+        git_api.push('origin', branch)
+        flash(_('Page submitted to _%s') % origin, 'info')
     build(project, branch)
     flash(_('You have finished merging _%s') % merging['branch'], 'info')
     return redirect(url_for('.branch', project=project, branch=branch))

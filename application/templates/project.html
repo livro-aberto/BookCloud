@@ -16,6 +16,12 @@
     <a href="{{ url_for('.view', project=project, branch='master',
              filename='index.html') }}">master</a>,
              owned by ({{ tree[0]['branch'].owner.username }})
+             {% if is_dirty(project, 'master') %}
+             (modified)
+             {% endif %}
+             {% if has_requests(project, 'master') %}
+             (has requests)
+             {% endif %}
              - {{ text['download'] }} <a href="{{ url_for('.pdf', project=project,
              branch='master') }}">pdf</a>
   </p>
@@ -33,6 +39,9 @@
           owned by ({{ item['branch'].owner.username }})
           {% if is_dirty(project, item['branch'].name) %}
           (modified)
+          {% endif %}
+          {% if has_requests(project, item['branch'].name) %}
+          (has requests)
           {% endif %}
           - {{ text['download'] }}
           <a href="{{ url_for('.pdf', project=project,
