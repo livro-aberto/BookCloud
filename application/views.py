@@ -71,7 +71,7 @@ def get_pendencies(project, branch, username):
 
 def update_branch(project, branch):
     # update from reviewer (if not master)
-    if branch != 'master':
+    if branch != 'master' and not is_dirty(project, branch):
         origin_branch = get_branch_origin(project, branch)
         git_api = get_git(project, branch)
         git_api.fetch()
@@ -84,14 +84,15 @@ def config_repo(repo, user_name, email):
     config.set_value('user', 'email', email)
     config.set_value('user', 'name', user_name)
 
+def is_dirty(project, branch):
+    repo_path = join('repos', project, branch, 'source')
+    return git.Repo(repo_path).is_dirty()
+
 @app.context_processor
 def package():
     #if 'project' in request.view_args:
     #    if 'branch' in request.view_args:
     sent_package = {}
-    def is_dirty(project, branch):
-        repo_path = join('repos', project, branch, 'source')
-        return git.Repo(repo_path).is_dirty()
     sent_package['is_dirty'] = is_dirty
     sent_package['get_requests'] = get_requests
     def has_requests(project, branch):
@@ -375,12 +376,12 @@ def view(project, branch, filename):
     user_repo_path = join('repos', project, branch,
                           'build/html', filename + file_extension)
     menu = menu_bar(project, branch)
+    update_branch(project, branch)
     if (current_user.is_authenticated):
-        pendencies = get_pendencies(project, branch, current_user.username)
-        update_branch(project, branch)
-        if pendencies:
-            return pendencies
         if current_user.username == get_branch_owner(project, branch):
+            pendencies = get_pendencies(project, branch, current_user.username)
+            if pendencies:
+                return pendencies
             menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
                                                  filename=filename), 'name': 'edit'})
         else:
