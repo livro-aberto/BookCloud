@@ -56,7 +56,6 @@ def get_requests(project, branch):
                                unmerged=unmerged, menu=menu)
 
 def get_pendencies(project, branch, username):
-    print('a')
     # user already has the repository?
     if username != get_branch_owner(project, branch):
         return None
@@ -76,7 +75,6 @@ def get_pendencies(project, branch, username):
     # update from reviewer (if the user is not his own reviewer)
     if branch != 'master':
         origin_branch = get_branch_origin(project, branch)
-        print(origin_branch)
         git_api = get_git(project, branch)
         git_api.fetch()
         git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
@@ -121,19 +119,11 @@ def get_branch_owner(project, branch):
     return Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
 
 def get_sub_branches(branch_obj):
-    #project_id = Project.query.filter_by(name=project).first().id
-    #branch_id = Branch.query.filter_by(project_id=project_id, name=branch).first().id
     children = Branch.query.filter_by(origin_id=branch_obj.id)
-    #Project.query.filter_by(name=project).first().branches
-    #children_list = Branch.query.filter_by(project_id=project_id, origin_id=branch_id)
     answer = { 'branch': branch_obj, 'subtree': [] }
-    #if children_list.first() == None:
-    #    return answer
     for child in children:
         if child.name != 'master':
-            #print(child.name)
             answer['subtree'].append(get_sub_branches(child))
-    #return { 'name': branch, 'subtree': answer }
     return answer
 
 def get_branch_origin(project, branch):
@@ -264,7 +254,6 @@ def project(project):
     project_id = Project.query.filter_by(name=project).first().id
     master = Branch.query.filter_by(project_id=project_id, name='master').first()
     tree = [ get_sub_branches(master) ]
-    print(tree)
     return render_template('project.html', project=project, tree=tree,
                            text=text, menu=menu)
 
