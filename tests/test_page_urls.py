@@ -170,14 +170,13 @@ def test_page_urls(client):
                            data=dict(name='typo'))
     assert b'Project cloned successfuly!' in response.data
 
-    # Save a change in typo branch
-    response = client.post(url_for('bookcloud.commit',
+    # Create a new file
+    response = client.post(url_for('bookcloud.newfile',
                                    project=new_project_name,
-                                   branch='typo',
-                                   filename='index'),
+                                   branch='typo'),
                            follow_redirects=True,
-                           data=dict(code='Title of test page\n==================\n\nSome more contents...'))
-    assert b'Page submitted to _feature' in response.data
+                           data=dict(filename='another'))
+    assert b'File created successfuly!' in response.data
 
     # Log as project creator again
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -216,7 +215,7 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='feature',
-                                  filename='index.rst'), follow_redirects=True)
+                                  filename='another.rst'), follow_redirects=True)
     assert 'You have finished all the reviews' in response.data
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
@@ -225,8 +224,8 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.view',
                                   project=new_project_name,
                                   branch='feature',
-                                  filename='index'))
-    assert 'Some more contents' in response.data
+                                  filename='another'))
+    assert '<h1>another' in response.data
 
     # Log as project creator again
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -244,7 +243,7 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='master',
-                                  filename='index.rst'), follow_redirects=True)
+                                  filename='another.rst'), follow_redirects=True)
 
     assert 'You have finished all the reviews' in response.data
     response = client.get(url_for('bookcloud.finish',
@@ -254,8 +253,8 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.view',
                                   project=new_project_name,
                                   branch='master',
-                                  filename='index'))
-    assert 'Some more contents' in response.data
+                                  filename='another'))
+    assert '<h1>another' in response.data
 
 
     shutil.rmtree(os.path.abspath(os.path.join('repos', new_project_name)))
