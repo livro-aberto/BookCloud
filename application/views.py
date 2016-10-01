@@ -62,12 +62,6 @@ def get_pendencies(project, branch, username):
     if merging:
         return redirect(url_for('.merge', project=project,
                                 branch=branch, other=merging['branch']))
-    # user has a pending request?
-    requests = get_requests(project, branch)
-    if len(requests):
-        menu = menu_bar(current_user.username)
-        return render_template('requests.html', project=project, branch=branch,
-                               unmerged=requests, menu=menu)
 
 def update_branch(project, branch):
     # update from reviewer (if not master)
@@ -191,15 +185,22 @@ def build_latex(project, branch):
 
 def menu_bar(project=None, branch='master'):
     left  = [{'url': url_for('bookcloud.home'), 'name': 'home'}]
-    if project:
-        left.append({'url': url_for('bookcloud.project', project=project), 'name': project})
-        left.append({'url': url_for('bookcloud.branch', project=project,
-                                    branch=branch), 'name': branch})
     if current_user.is_authenticated:
         right = [{'url': url_for('user.logout'), 'name': 'logout'},
                     {'url': url_for('bookcloud.profile'), 'name': current_user.username}]
     else:
         right = [{'url': url_for('user.login'), 'name': 'login'}]
+    if project:
+        left.append({'url': url_for('bookcloud.project', project=project), 'name': project})
+        left.append({'url': url_for('bookcloud.branch', project=project,
+                                    branch=branch), 'name': branch})
+        if is_dirty(project, branch):
+            right.append({'url': url_for('.commit', project=project, branch=branch),
+                          'name': 'commit', 'style': 'attention'})
+        else:
+            if len(get_requests(project, branch)):
+                right.append({'url': url_for('.requests', project=project, branch=branch),
+                              'name': 'requests', 'style': 'attention'})
     return { 'left': left, 'right': right}
 
 @bookcloud.route('/')
@@ -344,6 +345,17 @@ def newfile(project, branch):
                            text=text, menu=menu)
 
 @login_required
+@bookcloud.route('/<project>/<branch>/requests')
+def requests(project, branch):
+    if is_dirty(project, branch):
+        flash(_('Commit your changes before reviewing requests'), 'error')
+        return redirect(url_for('.branch', project=project, branch=branch))
+    requests = get_requests(project, branch)
+    menu = menu_bar(project, branch)
+    return render_template('requests.html', project=project, branch=branch,
+                           unmerged=requests, menu=menu)
+
+@login_required
 @bookcloud.route('/<project>/<branch>/finish')
 def finish(project, branch):
     if current_user.username != get_branch_owner(project, branch):
@@ -405,40 +417,48 @@ def edit(project, branch, filename):
     branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
     if request.method == 'POST':
         write_file(branch_source_path, request.form['code'].encode('utf8'))
+        repo = git.Repo(join('repos', project, branch, 'source'))
+        repo.index.add([filename + '.rst'])
     build(project, branch)
     rst = load_file(branch_source_path)
     doc = render_template_string(load_file(branch_html_path), barebones=True)
     text = {'title': _('Edit:'), 'image': _('Image'), 'math': _('Math mode'),
             'sections': _('Sections'), 'style': _('Style'),
-            'cancel': _('Cancel'), 'preview': _('Preview'), 'submit': _('Submit')}
+            'cancel': _('Exit'), 'preview': _('Save'), 'submit': _('Commit')}
     return render_template('edit.html', doc=doc, rst=rst, filename=filename, branch=branch,
                            project=project, text=text, render_sidebar=False)
 
 @login_required
-@bookcloud.route('/<project>/<branch>/commit/<path:filename>', methods = ['GET', 'POST'])
-def commit(project, branch, filename):
+@bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
+def commit(project, branch):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    pendencies = get_pendencies(project, branch, current_user.username)
-    if pendencies:
-        return pendencies
-    update_branch(project, branch)
-    filename, file_extension = os.path.splitext(filename)
+    merging = get_merging(project, branch)
+    if merging:
+        flash(_('You need to finish merging'), 'error')
+        return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
     user_repo_path = join('repos', project, branch)
-    if request.method == 'POST':
-        write_file(join(user_repo_path, 'source', filename + '.rst'), request.form['code'].encode('utf8'))
     repo = git.Repo(join(user_repo_path, 'source'))
-    repo.index.add([filename + '.rst'])
-    author = git.Actor(current_user.username, current_user.email)
-    repo.index.commit(_('Change in %s') % filename, author=author)
-    git_api = repo.git
-    origin = get_branch_origin(project, branch)
-    if branch != origin:
-        git_api.push('origin', branch)
-        flash(_('Page submitted to _%s') % origin, 'info')
-    build(project, branch)
-    return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    if request.method == 'POST':
+        author = git.Actor(current_user.username, current_user.email)
+        if len(request.form['message']):
+            message = request.form['message']
+        else:
+            message = _('Some changes')
+        repo.index.commit(message, author=author)
+        origin = get_branch_origin(project, branch)
+        if branch != origin:
+            git_api = repo.git
+            git_api.push('origin', branch)
+            flash(_('Page submitted to _%s') % origin, 'info')
+        flash('Change commited', 'info')
+        return redirect(url_for('.branch', project=project, branch=branch))
+    text = {'title': _('Commit your changes'), 'submit': 'Submit',
+            'allowed': _('Message should have...'), 'name': _('Choose message')}
+    menu = menu_bar(project, branch)
+    return render_template('commit.html', project=project, branch=branch,
+                           menu=menu, text=text)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/merge/<other>')

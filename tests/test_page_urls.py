@@ -63,13 +63,23 @@ def test_page_urls(client):
     assert 'Math mode' in response.data
 
     # Save index page in master branch
-    response = client.post(url_for('bookcloud.commit',
+    response = client.post(url_for('bookcloud.edit',
                                    project=new_project_name,
                                    branch='master',
                                    filename='index'),
                            follow_redirects=True,
                            data=dict(code='Title of test page\n=================='))
+    response = client.get(url_for('bookcloud.view',
+                              project=new_project_name,
+                              branch='master',
+                              filename='index'))
     assert b'Title of test page' in response.data
+
+    # Commit change
+    response = client.post(url_for('bookcloud.commit',
+                                   project=new_project_name,
+                                   branch='master'),
+                           data=dict(message="For you!!!"))
 
     # Logout
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -111,12 +121,19 @@ def test_page_urls(client):
     assert b'Project cloned successfuly!' in response.data
 
     # Save a change to index page in feature branch
-    response = client.post(url_for('bookcloud.commit',
+    response = client.post(url_for('bookcloud.edit',
                                    project=new_project_name,
                                    branch='feature',
                                    filename='index'),
                            follow_redirects=True,
                            data=dict(code='Title of test page\n==================\n\nSome contents...'))
+
+    # Commit change
+    response = client.post(url_for('bookcloud.commit',
+                                   project=new_project_name,
+                                   branch='feature'), follow_redirects=True,
+                           data=dict(message="For you!!!"))
+    print(response.data)
     assert b'Page submitted to _master' in response.data
 
     # Log as project creator again
@@ -178,6 +195,13 @@ def test_page_urls(client):
                            data=dict(filename='another'))
     assert b'File created successfuly!' in response.data
 
+    # Commit change
+    response = client.post(url_for('bookcloud.commit',
+                                   project=new_project_name,
+                                   branch='typo'), follow_redirects=True,
+                           data=dict(message="For you!!!"))
+    assert b'Page submitted to _feature' in response.data
+
     # Log as project creator again
     response = client.get(url_for('user.logout'), follow_redirects=True)
     assert b'You have signed out successfully.' in response.data
@@ -198,13 +222,6 @@ def test_page_urls(client):
     response = client.post(url_for('user.login'), follow_redirects=True,
                            data=dict(username='bar', password='Bar123'))
     assert b'You have signed in successfully' in response.data
-
-    # Visit feature branch to see the request
-    response = client.get(url_for('bookcloud.view',
-                                  project=new_project_name,
-                                  branch='feature',
-                                  filename='index.html'))
-    assert 'Request from' in response.data
 
     # Merging from typo to feature
     response = client.get(url_for('bookcloud.merge',

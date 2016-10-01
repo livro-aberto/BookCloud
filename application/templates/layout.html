@@ -70,7 +70,11 @@
         color: white;
         margin-bottom: 15px;
       }
-</style>
+
+      .attention{
+        background-color: #ea9b92;
+      }
+    </style>
 
   </head>
 
@@ -89,7 +93,10 @@
 
           {% for t in menu.right %}
           <li class="right" style="margin-right: 10px">
-            <a href="{{ t.url }}">{{ t.name }}</a>
+            <a href="{{ t.url }}"
+               {%- if t.style == 'attention' %}
+               class="attention"
+               {%- endif %}>{{ t.name }}</a>
           </li>
           {% endfor %}
         {% endif %}

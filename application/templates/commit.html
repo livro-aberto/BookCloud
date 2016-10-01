@@ -12,11 +12,11 @@
 
     <br>
 
-    <input type="text" id="name" name="name"
-           pattern="([a-zA-Z0-9]|-|_|.){4,30}$"
+    <input type="text" id="message" name="message"
+           pattern="([a-zA-Z0-9]|-| |?|,|_|.){4,60}$"
            title="{{ text['allowed'] }}">
     <input id="submit" name="submit" type="submit"
-           formaction="{{ url_for('.clone', project=project, branch=branch) }}"
+           formaction="{{ url_for('.commit', project=project, branch=branch) }}"
            value="{{ text['submit'] }}">
 
   </form>

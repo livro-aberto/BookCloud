@@ -17,10 +17,10 @@
              filename='index.html') }}">master</a>,
              owned by ({{ tree[0]['branch'].owner.username }})
              {% if is_dirty(project, 'master') %}
-             (modified)
+             <b>(modified)</b>
              {% endif %}
              {% if has_requests(project, 'master') %}
-             (has requests)
+             <b>(has requests)</b>
              {% endif %}
              - {{ text['download'] }} <a href="{{ url_for('.pdf', project=project,
              branch='master') }}">pdf</a>
@@ -38,10 +38,10 @@
                    filename='index.html') }}">{{ item['branch'].name }}</a>,
           owned by ({{ item['branch'].owner.username }})
           {% if is_dirty(project, item['branch'].name) %}
-          (modified)
+          <b>(modified)</b>
           {% endif %}
           {% if has_requests(project, item['branch'].name) %}
-          (has requests)
+          <b>(has requests)</b>
           {% endif %}
           - {{ text['download'] }}
           <a href="{{ url_for('.pdf', project=project,
