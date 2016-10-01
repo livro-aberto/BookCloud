@@ -2,8 +2,9 @@ import os
 import json
 from os.path import isdir, isfile, join
 import flask
-from flask import render_template, render_template_string, request, redirect, url_for, Response, flash, Blueprint
-from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
+from flask import render_template, render_template_string, request
+from flask import redirect, url_for, Response, flash, Blueprint
+from flask_user import login_required, SQLAlchemyAdapter, current_user
 from application import app, db, User, Project, Branch
 import string
 from shutil import copyfile
@@ -55,6 +56,7 @@ def get_requests(project, branch):
                                unmerged=unmerged, menu=menu)
 
 def get_pendencies(project, branch, username):
+    print('a')
     # user already has the repository?
     if username != get_branch_owner(project, branch):
         return None
@@ -74,6 +76,7 @@ def get_pendencies(project, branch, username):
     # update from reviewer (if the user is not his own reviewer)
     if branch != 'master':
         origin_branch = get_branch_origin(project, branch)
+        print(origin_branch)
         git_api = get_git(project, branch)
         git_api.fetch()
         git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
@@ -117,17 +120,19 @@ def get_branch_owner(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     return Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
 
-def get_sub_branches(project, branch):
-    project_id = Project.query.filter_by(name=project).first().id
-    branch_id = Branch.query.filter_by(project_id=project_id, name=branch).first().id
-    children_list = Branch.query.filter_by(project_id=project_id, origin_id=branch_id)
-    answer = {}
+def get_sub_branches(branch_obj):
+    #project_id = Project.query.filter_by(name=project).first().id
+    #branch_id = Branch.query.filter_by(project_id=project_id, name=branch).first().id
+    children = Branch.query.filter_by(origin_id=branch_obj.id)
+    #Project.query.filter_by(name=project).first().branches
+    #children_list = Branch.query.filter_by(project_id=project_id, origin_id=branch_id)
+    answer = { 'branch': branch_obj, 'subtree': [] }
     #if children_list.first() == None:
     #    return answer
-    for child in children_list:
+    for child in children:
         if child.name != 'master':
-            print(child.name)
-            answer[child.name] = get_sub_branches(project, child.name)
+            #print(child.name)
+            answer['subtree'].append(get_sub_branches(child))
     #return { 'name': branch, 'subtree': answer }
     return answer
 
@@ -199,11 +204,11 @@ def home():
     project_folders = [d for d in os.listdir(path) if isdir(join(path, d))]
     projects_without_folder = set(projects) - set(project_folders)
     if projects_without_folder:
-        flash('Projects (%s) have no folder' % ', '.join(projects_without_folder),
+        flash('Some projects have no folder (%s)' % ', '.join(projects_without_folder),
               'error')
     folders_without_project = set(project_folders) - set(projects)
     if folders_without_project:
-        flash('Folders (%s) have no project' % ', '.join(folders_without_project),
+        flash('Some folders have no project (%s)' % ', '.join(folders_without_project),
               'error')
     projects = list(set(projects) - set(projects_without_folder))
     menu = menu_bar()
@@ -224,7 +229,6 @@ def profile():
         user_branches = [b for b in Branch.query.filter_by(project_id=p.id,
                                                                 owner_id=user_id)]
         if user_branches:
-            print(user_branches[0].origin.name)
             collection.append({'project': p.name,
                                'branches': user_branches})
     text = {'title': _('Projects list'),
@@ -255,9 +259,12 @@ def project(project):
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     menu = menu_bar(project)
-    text = {'title': _('List of branches'),
+    text = {'title': _('List of branches'), 'download': _('Download '),
             'instructions': _('Here you can see the project: %s...') % project}
-    tree = { 'master': get_sub_branches(project, 'master') }
+    project_id = Project.query.filter_by(name=project).first().id
+    master = Branch.query.filter_by(project_id=project_id, name='master').first()
+    tree = [ get_sub_branches(master) ]
+    print(tree)
     return render_template('project.html', project=project, tree=tree,
                            text=text, menu=menu)
 
@@ -303,6 +310,10 @@ def clone(project, branch):
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
 def newfile(project, branch):
     menu = menu_bar(project, branch)
+    if current_user.username != get_branch_owner(project, branch):
+        flash(_('You are not the owner of this branch'))
+        return redirect(url_for('.view', project=project,
+                                branch=branch, filename='index.html'))
     if request.method == 'POST':
         filename, file_extension = os.path.splitext(request.form['filename'])
         if file_extension == '':
@@ -311,9 +322,13 @@ def newfile(project, branch):
         if os.path.isfile(file_path):
             flash(_('This file name name already exists'), 'error')
         else:
-            file = open(file_path, 'w+')
+            #file = open(file_path, 'w+')
             equals = '=' * len(filename) + '\n'
-            file.write(equals + filename + '\n' + equals)
+            #file.write(equals + filename + '\n' + equals)
+            write_file(file_path, equals + filename + '\n' + equals)
+            repo = git.Repo(join('repos', project, branch, 'source'))
+            repo.index.add([filename + file_extension])
+            repo.index.commit(_('Adding file %s' % filename))
             flash(_('File created successfuly!'), 'info')
             build(project, branch)
             return redirect(url_for('.view', project=project,
@@ -452,7 +467,10 @@ def diff(project, branch, filename):
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
     new = string.split(load_file(branch_source_path), '\n')
     git_api = get_git(project, branch)
-    old = string.split(git_api.show('master:' + filename + file_extension), '\n')
+    if git_api.ls_tree('-r', '--name-only', branch, filename + file_extension) != '':
+        old = string.split(git_api.show(branch + ':' + filename + file_extension), '\n')
+    else:
+        old = ''
     diff = differ.make_table(new, old)
     diff = string.replace(diff, 'nowrap="nowrap"', '')
     text = {'title': _(' has suggested a change to the file: '),

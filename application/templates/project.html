@@ -3,25 +3,49 @@
 {% block title %}{{ text['title'] }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ text['title'] }}</h1>
-<ul id="navigation">
 
   <p>
     {{ text['instructions'] }}
   </p>
 
-  <ul class="sitemap">
-    {% for key, value in tree.iteritems() recursive %}
-    <li>
-      <a href="{{ url_for('.view', project=project, branch=key, filename='index.html') }}">{{ key }}</a>
-      - {{ text['download'] }} <a href="{{ url_for('.pdf', project=project, branch=key) }}">pdf</a>
-      {% if value is mapping %}
-      <ul class="submenu">
-        {{ loop(value.iteritems()) }}
-      </ul>
-      {% endif %}
+  <h1>{{ text['title'] }}</h1>
+  <ul id="navigation">
+
+  <p>
+    The main branch is:
+    <a href="{{ url_for('.view', project=project, branch='master',
+             filename='index.html') }}">master</a>,
+             owned by ({{ tree[0]['branch'].owner.username }})
+             - {{ text['download'] }} <a href="{{ url_for('.pdf', project=project,
+             branch='master') }}">pdf</a>
+  </p>
+
+  {% if tree[0].subtree != [] %}
+    <p>
+      These are the sub-branches:
+    </p>
+
+    <ul>
+      {% for item in tree[0].subtree recursive %}
+        <li>
+          <a href="{{ url_for('.view', project=project, branch=item['branch'].name,
+                   filename='index.html') }}">{{ item['branch'].name }}</a>,
+          owned by ({{ item['branch'].owner.username }})
+          - {{ text['download'] }}
+          <a href="{{ url_for('.pdf', project=project,
+          branch=item['branch'].name) }}">pdf</a>
+
+          {% if item['subtree'] != [] %}
+            <ul>
+              {{ loop(item['subtree']) }}
+            </ul>
+          {% endif %}
+        </li>
       {% endfor %}
-  </ul>
+    </ul>
+  {% else %}
+    It has no sub-branches.
+  {% endif %}
 
 </ul>
 {% endmacro %}
