@@ -86,19 +86,20 @@ def config_repo(repo, user_name, email):
     config.set_value('user', 'email', email)
     config.set_value('user', 'name', user_name)
 
-def create_project(project, user_name):
+def create_project(project, user):
     # create a repository
     repo_path = join('repos', project, 'master/source')
     os.makedirs(repo_path)
     git.Repo.init(repo_path)
     repo = git.Repo(repo_path)
-    config_repo(repo, user_name, user_name + '@example.com')
+    config_repo(repo, user.username, user.email)
     copyfile('application/empty_repo/source/index.rst', join(repo_path, 'index.rst'))
     copyfile('application/empty_repo/.gitignore', join(repo_path, '.gitignore'))
     repo.index.add(['index.rst', '.gitignore'])
-    repo.index.commit(_('Initial commit'))
+    author = git.Actor(user.username, user.email)
+    repo.index.commit(_('Initial commit'), author=author)
     # add project to database
-    user_id = User.query.filter(User.username == user_name).first().id
+    user_id = User.query.filter(User.username == user.username).first().id
     new_project = Project(project, user_id)
     db.session.add(new_project)
     # add master branch to database
@@ -235,7 +236,7 @@ def new():
         if os.path.isdir(user_repo_path):
             flash(_('This project name already exists'), 'error')
         else:
-            create_project(request.form['project'], current_user.username)
+            create_project(request.form['project'], current_user)
             flash(_('Project created successfuly!'), 'info')
             return redirect(url_for('.project',
                                     project=request.form['project']))
@@ -317,7 +318,8 @@ def newfile(project, branch):
             write_file(file_path, equals + filename + '\n' + equals)
             repo = git.Repo(join('repos', project, branch, 'source'))
             repo.index.add([filename + file_extension])
-            repo.index.commit(_('Adding file %s' % filename))
+            author = git.Actor(current_user.username, current_user.email)
+            repo.index.commit(_('Adding file %s' % filename), author=author)
             flash(_('File created successfuly!'), 'info')
             build(project, branch)
             return redirect(url_for('.view', project=project,
@@ -407,7 +409,8 @@ def commit(project, branch, filename):
         write_file(join(user_repo_path, 'source', filename + '.rst'), request.form['code'].encode('utf8'))
     repo = git.Repo(join(user_repo_path, 'source'))
     repo.index.add([filename + '.rst'])
-    repo.index.commit(_('Change in %s by %s') % (filename, current_user.username))
+    author = git.Actor(current_user.username, current_user.email)
+    repo.index.commit(_('Change in %s') % filename, author=author)
     git_api = repo.git
     origin = get_branch_origin(project, branch)
     if branch != origin:
