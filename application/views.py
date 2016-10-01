@@ -50,19 +50,13 @@ def get_requests(project, branch):
     branches = string.split(git_api.branch())
     merged = string.split(git_api.branch('--merged'))
     unmerged = [item for item in branches if item not in merged]
-    menu = menu_bar(current_user.username)
-    if len(unmerged):
-        return render_template('requests.html', project=project, branch=branch,
-                               unmerged=unmerged, menu=menu)
+    return unmerged
 
 def get_pendencies(project, branch, username):
-    # user already has the repository?
+    # is the user the owner?
     if username != get_branch_owner(project, branch):
         return None
     branch_repo_path = join('repos', project, branch)
-    # if not isdir(branch_repo_path):
-    #     flash(_('You need to clone this repository first'), 'error')
-    #     return redirect(url_for(branches, project=project))
     # user is merging?
     merging = get_merging(project, branch)
     if merging:
@@ -70,9 +64,13 @@ def get_pendencies(project, branch, username):
                                 branch=branch, other=merging['branch']))
     # user has a pending request?
     requests = get_requests(project, branch)
-    if requests:
-        return requests
-    # update from reviewer (if the user is not his own reviewer)
+    if len(requests):
+        menu = menu_bar(current_user.username)
+        return render_template('requests.html', project=project, branch=branch,
+                               unmerged=requests, menu=menu)
+
+def update_branch(project, branch):
+    # update from reviewer (if not master)
     if branch != 'master':
         origin_branch = get_branch_origin(project, branch)
         git_api = get_git(project, branch)
@@ -85,6 +83,17 @@ def config_repo(repo, user_name, email):
     config = repo.config_writer()
     config.set_value('user', 'email', email)
     config.set_value('user', 'name', user_name)
+
+@app.context_processor
+def package():
+    #if 'project' in request.view_args:
+    #    if 'branch' in request.view_args:
+    sent_package = {}
+    def is_dirty(project, branch):
+        repo_path = join('repos', project, branch, 'source')
+        return git.Repo(repo_path).is_dirty()
+    sent_package['is_dirty'] = is_dirty
+    return sent_package
 
 def create_project(project, user):
     # create a repository
@@ -360,6 +369,7 @@ def view(project, branch, filename):
     menu = menu_bar(project, branch)
     if (current_user.is_authenticated):
         pendencies = get_pendencies(project, branch, current_user.username)
+        update_branch(project, branch)
         if pendencies:
             return pendencies
         if current_user.username == get_branch_owner(project, branch):
@@ -381,6 +391,7 @@ def edit(project, branch, filename):
     pendencies = get_pendencies(project, branch, current_user.username)
     if pendencies:
         return pendencies
+    update_branch(project, branch)
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
     branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
     if request.method == 'POST':
@@ -403,6 +414,7 @@ def commit(project, branch, filename):
     pendencies = get_pendencies(project, branch, current_user.username)
     if pendencies:
         return pendencies
+    update_branch(project, branch)
     filename, file_extension = os.path.splitext(filename)
     user_repo_path = join('repos', project, branch)
     if request.method == 'POST':

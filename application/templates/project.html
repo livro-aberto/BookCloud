@@ -31,6 +31,9 @@
           <a href="{{ url_for('.view', project=project, branch=item['branch'].name,
                    filename='index.html') }}">{{ item['branch'].name }}</a>,
           owned by ({{ item['branch'].owner.username }})
+          {% if is_dirty(project, item['branch'].name) %}
+          (modified)
+          {% endif %}
           - {{ text['download'] }}
           <a href="{{ url_for('.pdf', project=project,
           branch=item['branch'].name) }}">pdf</a>

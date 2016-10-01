@@ -1,8 +1,8 @@
   - think about what should come first: commit or merge requests
   - commit should not be associated with a filename
     (therefore, not be accessible from the edit page)
+    perhaps a commit could have an optional filename, with post contents to be added
   - fix method get_requests so that it returns the actual requests (use database?)
-    - check if branch is active
     - allow user to delete branch
   - add more presence of the database, such as when listing projects
 
