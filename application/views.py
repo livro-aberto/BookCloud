@@ -306,6 +306,11 @@ def pdf(project, branch='master'):
 
 @bookcloud.route('/<project>/<branch>', methods = ['GET', 'POST'])
 def branch(project, branch):
+    if (current_user.is_authenticated):
+        if current_user.username == get_branch_owner(project, branch):
+            pendencies = get_pendencies(project, branch, current_user.username)
+            if pendencies:
+                return pendencies
     menu = menu_bar(project, branch)
     text = {'title': _('Project (%s), branch (_%s)') % (project, branch),
             'newfile': _('Create a new file'),
@@ -370,6 +375,9 @@ def newfile(project, branch):
 @login_required
 @bookcloud.route('/<project>/<branch>/requests')
 def requests(project, branch):
+    if current_user.username != get_branch_owner(project, branch):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     if is_dirty(project, branch):
         flash(_('Commit your changes before reviewing requests'), 'error')
         return redirect(url_for('.branch', project=project, branch=branch))
@@ -448,8 +456,10 @@ def edit(project, branch, filename):
     text = {'title': _('Edit:'), 'image': _('Image'), 'math': _('Math mode'),
             'sections': _('Sections'), 'style': _('Style'),
             'cancel': _('Exit'), 'preview': _('Save'), 'submit': _('Commit')}
+    menu = {'right': [{'name': branch,
+                       'url': url_for('.edit', project=project, branch=branch, filename=filename)}]}
     return render_template('edit.html', doc=doc, rst=rst, filename=filename, branch=branch,
-                           project=project, text=text, render_sidebar=False)
+                           menu=menu, project=project, text=text, render_sidebar=False)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
@@ -494,14 +504,15 @@ def merge(project, branch, other):
         modified = string.split(git_api.diff('HEAD', '--name-only'))
         merging = {'branch': other, 'modified': modified, 'reviewed': []}
         write_file(join('repos', project, branch, 'merging.json'), json.dumps(merging))
-    menu = menu_bar(project, branch)
     text = {'title': _('Merging from _'), 'unseen': _('Modifications not yet reviewed'),
             'review': _('Review file'), 'accept': _('Accept suggestions'), 'view': _('View differences'),
             'reviewed': _('Changes reviewed'), 'finally': _('You have finished all the reviews'),
             'finish': _('Finish merge')}
+    menu = {'right': [{'name': branch,
+                       'url': url_for('.merge', project=project, branch=branch, other=other)}]}
     return render_template('merge.html', project=project, modified=merging['modified'],
                            reviewed=merging['reviewed'], branch=branch, other=other,
-                           text=text, menu=menu)
+                           menu=menu, text=text)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/review/<path:filename>')
