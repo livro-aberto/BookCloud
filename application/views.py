@@ -10,6 +10,7 @@ import string
 from shutil import copyfile
 import git
 from difflib import HtmlDiff
+import traceback
 
 import codecs # deals with encoding better
 import sphinx
@@ -582,9 +583,15 @@ def logout():
 def page_not_found(e):
     return render_template('404.html'), 404
 
-@bookcloud.errorhandler(500)
+#@bookcloud.errorhandler(500)
+@bookcloud.errorhandler(Exception)
 def internal_server_error(e):
-    return render_template('500.html'), 500
+    print(">>>" + repr(e))
+    message = repr(e)
+    trace = traceback.format_exc()
+    trace = string.split(trace, '\n')
+    return render_template('500.html', message=message,
+                           trace=trace), 500
 
 # @bookcloud.errorhandler(403)
 # def page_forbidden(e):

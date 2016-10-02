@@ -1,3 +1,4 @@
+  - use wtform to guarantee that names are well input (don't trust client browser for validation)
   - think about what should come first: commit or merge requests
   - allow user to delete branch
   - add more presence of the database, such as when listing projects
@@ -32,8 +33,6 @@
 
   - create a function to fix file.extension handling
   - add template names for new files
-
-  - use wtform to guarantee that names are well input (don't trust client browser for validation)
 
   - use context processors to automatically add variables to templates
   - start using user data that is automatically passed to jinja instead of explicitly from render

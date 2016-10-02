@@ -4,6 +4,14 @@
 
 {% macro contents() %}
 <h1>Internal serve error</h1>
+
 {{ message }}
+
+<h2>Execution stack</h2>
+
+{% for line in trace %}
+{{ line }}<br>
+{% endfor %}
+
 {% endmacro %}
 
