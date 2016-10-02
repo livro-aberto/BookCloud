@@ -36,7 +36,7 @@ def test_page_urls(client):
     # Create a new project
     new_project_name = ''.join(random.sample(char_set, 20))
     response = client.post(url_for('bookcloud.new'), follow_redirects=True,
-                           data=dict(project=new_project_name))
+                           data=dict(name=new_project_name))
     assert new_project_name in response.data
 
     # Check that project is there

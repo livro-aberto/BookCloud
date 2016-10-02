@@ -267,18 +267,19 @@ def profile():
 @bookcloud.route('/new', methods = ['GET', 'POST'])
 def new():
     menu = menu_bar()
-    if request.method == 'POST':
-        user_repo_path = join('repos', request.form['project'])
+    form = IdentifierForm(request.form)
+    if request.method == 'POST' and form.validate():
+        user_repo_path = join('repos', form.name.data)
         if os.path.isdir(user_repo_path):
             flash(_('This project name already exists'), 'error')
         else:
-            create_project(request.form['project'], current_user)
+            create_project(form.name.data, current_user)
             flash(_('Project created successfuly!'), 'info')
             return redirect(url_for('.project',
-                                    project=request.form['project']))
+                                    project=form.name.data))
     text = {'title': _('Create new project'), 'submit': _('Submit'),
             'allowed': _('Name should have...')}
-    return render_template('new.html', text=text, menu=menu)
+    return render_template('new.html', text=text, menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>')
