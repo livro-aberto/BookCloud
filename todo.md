@@ -1,4 +1,3 @@
-  - use wtform to guarantee that names are well input (don't trust client browser for validation)
   - think about what should come first: commit or merge requests
   - allow user to delete branch
   - add more presence of the database, such as when listing projects

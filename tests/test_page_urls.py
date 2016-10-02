@@ -192,7 +192,7 @@ def test_page_urls(client):
                                    project=new_project_name,
                                    branch='typo'),
                            follow_redirects=True,
-                           data=dict(filename='another'))
+                           data=dict(name='another'))
     assert b'File created successfuly!' in response.data
 
     # Commit change

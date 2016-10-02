@@ -12,6 +12,8 @@ import git
 from difflib import HtmlDiff
 import traceback
 
+from wtforms import Form, BooleanField, StringField, validators
+
 import codecs # deals with encoding better
 import sphinx
 
@@ -20,6 +22,20 @@ import gettext
 config_path = 'conf'
 
 bookcloud = Blueprint('bookcloud', __name__, template_folder='templates',)
+
+
+class IdentifierForm(Form):
+    name = StringField('Identifier', [
+        validators.Length(min=4, max=25),
+        validators.Regexp('^[\w-]+$', message="Identifiers must contain only a-zA-Z0-9_-"),
+    ])
+
+class MessageForm(Form):
+    message = StringField('Message', [
+        validators.Length(min=4, max=25),
+        validators.Regexp('^[\w ,.?!-]+$',
+                          message="Messages must contain only a-zA-Z0-9_-,.!? and space"),
+    ])
 
 @app.before_first_request
 def set_lang():
@@ -185,7 +201,7 @@ def build_latex(project, branch):
     os.system(command)
     return True
 
-def menu_bar(project=None, branch='master'):
+def menu_bar(project=None, branch=None):
     left  = [{'url': url_for('bookcloud.home'), 'name': 'home'}]
     if current_user.is_authenticated:
         right = [{'url': url_for('user.logout'), 'name': 'logout'},
@@ -194,15 +210,18 @@ def menu_bar(project=None, branch='master'):
         right = [{'url': url_for('user.login'), 'name': 'login'}]
     if project:
         left.append({'url': url_for('bookcloud.project', project=project), 'name': project})
-        left.append({'url': url_for('bookcloud.branch', project=project,
-                                    branch=branch), 'name': branch})
-        if is_dirty(project, branch):
-            right.append({'url': url_for('.commit', project=project, branch=branch),
-                          'name': 'commit', 'style': 'attention'})
-        else:
-            if len(get_requests(project, branch)):
-                right.append({'url': url_for('.requests', project=project, branch=branch),
-                              'name': 'requests', 'style': 'attention'})
+        if branch:
+            left.append({'url': url_for('bookcloud.branch', project=project,
+                                        branch=branch), 'name': branch})
+            if current_user.is_authenticated:
+                if current_user.username == get_branch_owner(project, branch):
+                    if is_dirty(project, branch):
+                        right.append({'url': url_for('.commit', project=project, branch=branch),
+                                      'name': 'commit', 'style': 'attention'})
+                    else:
+                        if len(get_requests(project, branch)):
+                            right.append({'url': url_for('.requests', project=project, branch=branch),
+                                          'name': 'requests', 'style': 'attention'})
     return { 'left': left, 'right': right}
 
 @bookcloud.route('/')
@@ -297,8 +316,9 @@ def branch(project, branch):
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
 def clone(project, branch):
     menu = menu_bar(project, branch)
-    if request.method == 'POST':
-        new_repo_path = join('repos', project, request.form['name'])
+    form = IdentifierForm(request.form)
+    if request.method == 'POST' and form.validate():
+        new_repo_path = join('repos', project, form.name.data)
         if os.path.isdir(new_repo_path):
             flash(_('This branch name already exists'), 'error')
             return redirect(url_for('.clone', project=project, branch=branch))
@@ -311,20 +331,20 @@ def clone(project, branch):
     text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
             'allowed': _('Name should have...'), 'name': _('Choose branch name')}
     return render_template('clone.html', project=project, branch=branch,
-                           text=text, menu=menu)
+                           text=text, menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
 def newfile(project, branch):
     menu = menu_bar(project, branch)
+    form = IdentifierForm(request.form)
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'))
         return redirect(url_for('.view', project=project,
                                 branch=branch, filename='index.html'))
-    if request.method == 'POST':
-        filename, file_extension = os.path.splitext(request.form['filename'])
-        if file_extension == '':
-            file_extension = '.rst'
+    if request.method == 'POST' and form.validate():
+        filename = form.name.data
+        file_extension = '.rst'
         file_path = join('repos', project, branch, 'source', filename + file_extension)
         if os.path.isfile(file_path):
             flash(_('This file name name already exists'), 'error')
@@ -344,7 +364,7 @@ def newfile(project, branch):
     text = {'title': _('Create new file'), 'submit': 'Submit',
             'allowed': _('Name should have...')}
     return render_template('newfile.html', project=project, branch=branch,
-                           text=text, menu=menu)
+                           text=text, menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/requests')
@@ -442,10 +462,11 @@ def commit(project, branch):
         return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
     user_repo_path = join('repos', project, branch)
     repo = git.Repo(join(user_repo_path, 'source'))
-    if request.method == 'POST':
+    form = MessageForm(request.form)
+    if request.method == 'POST' and form.validate():
         author = git.Actor(current_user.username, current_user.email)
-        if len(request.form['message']):
-            message = request.form['message']
+        if len(form.message.data):
+            message = form.message.data
         else:
             message = _('Some changes')
         repo.index.commit(message, author=author)
@@ -460,7 +481,7 @@ def commit(project, branch):
             'allowed': _('Message should have...'), 'name': _('Choose message')}
     menu = menu_bar(project, branch)
     return render_template('commit.html', project=project, branch=branch,
-                           menu=menu, text=text)
+                           menu=menu, text=text, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/merge/<other>')

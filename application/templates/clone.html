@@ -1,27 +1,22 @@
 {% extends "layout.html" %}
 
+{% from "_formhelpers.html" import render_field %}
+
 {% block title %}{{ text['title'] }}{% endblock%}
 
 {% macro contents() %}
 <h1>{{ text['title'] }}</h1>
+
 <ul id="navigation">
 
+  {{ text['name'] }}
+
   <form method="POST">
-
-    {{ text['name'] }}
-
+    {{ render_field(form.name) }}
     <br>
-
-    <input type="text" id="name" name="name"
-           pattern="([a-zA-Z0-9]|-|_|.){4,30}$"
-           title="{{ text['allowed'] }}">
-    <input id="submit" name="submit" type="submit"
-           formaction="{{ url_for('.clone', project=project, branch=branch) }}"
-           value="{{ text['submit'] }}">
-
+    <input type=submit value=Register>
   </form>
 
 </ul>
-
 {% endmacro %}
 

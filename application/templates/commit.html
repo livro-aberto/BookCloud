@@ -1,27 +1,20 @@
 {% extends "layout.html" %}
 
+{% from "_formhelpers.html" import render_field %}
+
 {% block title %}{{ text['title'] }}{% endblock%}
 
 {% macro contents() %}
 <h1>{{ text['title'] }}</h1>
+
 <ul id="navigation">
 
   <form method="POST">
-
-    {{ text['name'] }}
-
+    {{ render_field(form.message) }}
     <br>
-
-    <input type="text" id="message" name="message"
-           pattern="([a-zA-Z0-9]|-| |?|,|_|.){4,60}$"
-           title="{{ text['allowed'] }}">
-    <input id="submit" name="submit" type="submit"
-           formaction="{{ url_for('.commit', project=project, branch=branch) }}"
-           value="{{ text['submit'] }}">
-
+    <input type=submit value=Register>
   </form>
 
 </ul>
-
 {% endmacro %}
 
