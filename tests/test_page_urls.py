@@ -126,14 +126,14 @@ def test_page_urls(client):
                                    branch='feature',
                                    filename='index'),
                            follow_redirects=True,
-                           data=dict(code='Title of test page\n==================\n\nSome contents...'))
+                           data=dict(code=u'Title of test page\n==================\n\nSome contents\n'
+                                     + u'\u0420\u043e\u0441\u0441\u0438\u044f'))
 
     # Commit change
     response = client.post(url_for('bookcloud.commit',
                                    project=new_project_name,
                                    branch='feature'), follow_redirects=True,
                            data=dict(message="For you!!!"))
-    print(response.data)
     assert b'Page submitted to _master' in response.data
 
     # Log as project creator again

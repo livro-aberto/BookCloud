@@ -37,8 +37,9 @@ def load_file(path):
         return content_file.read()
 
 def write_file(path, contents):
-    with codecs.open(path, 'w', 'utf-8') as dest_file:
-        dest_file.write(contents)
+    UTF8Writer = codecs.getwriter('utf8')
+    with open(path, 'w') as dest_file:
+        dest_file.write(contents.encode('utf8'))
 
 def get_merging(project, branch):
     merge_file_path = join('repos', project, branch, 'merging.json')
@@ -416,7 +417,7 @@ def edit(project, branch, filename):
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
     branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
     if request.method == 'POST':
-        write_file(branch_source_path, request.form['code'].encode('utf8'))
+        write_file(branch_source_path, request.form['code'])
         repo = git.Repo(join('repos', project, branch, 'source'))
         repo.index.add([filename + '.rst'])
     build(project, branch)

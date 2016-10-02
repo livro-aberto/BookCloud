@@ -1,9 +1,5 @@
   - think about what should come first: commit or merge requests
-  - commit should not be associated with a filename
-    (therefore, not be accessible from the edit page)
-    perhaps a commit could have an optional filename, with post contents to be added
-  - fix method get_requests so that it returns the actual requests (use database?)
-    - allow user to delete branch
+  - allow user to delete branch
   - add more presence of the database, such as when listing projects
 
   - bug in diff? see also https://github.com/lqc/google-diff-match-patch
@@ -19,8 +15,6 @@
       https://pythonhosted.org/Flask-Babel/
       http://jinja.pocoo.org/docs/dev/templates/#i18n-in-templates
 
-  - save a file without submitting (don't use word preview, use save and exit).
-    perhaps a red submit button and always a submit in the menu
   - split the branch tree into active and inactive branches.
     only show the smallest tree that contains all the active
     then below show the full tree
