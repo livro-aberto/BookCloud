@@ -32,7 +32,7 @@ class IdentifierForm(Form):
 
 class MessageForm(Form):
     message = StringField('Message', [
-        validators.Length(min=4, max=25),
+        validators.Length(min=4, max=60),
         validators.Regexp('^[\w ,.?!-]+$',
                           message="Messages must contain only a-zA-Z0-9_-,.!? and space"),
     ])
@@ -102,9 +102,11 @@ def is_dirty(project, branch):
 
 @app.context_processor
 def package():
-    #if 'project' in request.view_args:
-    #    if 'branch' in request.view_args:
     sent_package = {}
+    if 'project' in request.view_args:
+        sent_package['project'] = request.view_args['project']
+        if 'branch' in request.view_args:
+            sent_package['branch'] = request.view_args['branch']
     sent_package['is_dirty'] = is_dirty
     sent_package['get_requests'] = get_requests
     def has_requests(project, branch):
@@ -216,10 +218,12 @@ def menu_bar(project=None, branch=None):
             if current_user.is_authenticated:
                 if current_user.username == get_branch_owner(project, branch):
                     if is_dirty(project, branch):
+                        flash(_('You have uncommitted changes!!!'), 'error')
                         right.append({'url': url_for('.commit', project=project, branch=branch),
                                       'name': 'commit', 'style': 'attention'})
                     else:
                         if len(get_requests(project, branch)):
+                            flash(_('You have unreviewed requests!!!'), 'error')
                             right.append({'url': url_for('.requests', project=project, branch=branch),
                                           'name': 'requests', 'style': 'attention'})
     return { 'left': left, 'right': right}
@@ -292,8 +296,7 @@ def project(project):
     project_id = Project.query.filter_by(name=project).first().id
     master = Branch.query.filter_by(project_id=project_id, name='master').first()
     tree = [ get_sub_branches(master) ]
-    return render_template('project.html', project=project, tree=tree,
-                           text=text, menu=menu)
+    return render_template('project.html', tree=tree, text=text, menu=menu)
 
 @bookcloud.route('/<project>/pdf')
 @bookcloud.route('/<project>/<branch>/pdf')
@@ -315,8 +318,7 @@ def branch(project, branch):
     text = {'title': _('Project (%s), branch (_%s)') % (project, branch),
             'newfile': _('Create a new file'),
             'view': _('View the branch index')}
-    return render_template('branch.html', project=project, branch=branch,
-                           text=text, menu=menu)
+    return render_template('branch.html', text=text, menu=menu)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
@@ -336,8 +338,7 @@ def clone(project, branch):
                                     filename='index.html'))
     text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
             'allowed': _('Name should have...'), 'name': _('Choose branch name')}
-    return render_template('clone.html', project=project, branch=branch,
-                           text=text, menu=menu, form=form)
+    return render_template('clone.html', text=text, menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
@@ -369,8 +370,7 @@ def newfile(project, branch):
                                     branch=branch, filename='index.html'))
     text = {'title': _('Create new file'), 'submit': 'Submit',
             'allowed': _('Name should have...')}
-    return render_template('newfile.html', project=project, branch=branch,
-                           text=text, menu=menu, form=form)
+    return render_template('newfile.html', text=text, menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/requests')
@@ -383,8 +383,7 @@ def requests(project, branch):
         return redirect(url_for('.branch', project=project, branch=branch))
     requests = get_requests(project, branch)
     menu = menu_bar(project, branch)
-    return render_template('requests.html', project=project, branch=branch,
-                           unmerged=requests, menu=menu)
+    return render_template('requests.html', unmerged=requests, menu=menu)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/finish')
@@ -458,8 +457,8 @@ def edit(project, branch, filename):
             'cancel': _('Exit'), 'preview': _('Save'), 'submit': _('Commit')}
     menu = {'right': [{'name': branch,
                        'url': url_for('.edit', project=project, branch=branch, filename=filename)}]}
-    return render_template('edit.html', doc=doc, rst=rst, filename=filename, branch=branch,
-                           menu=menu, project=project, text=text, render_sidebar=False)
+    return render_template('edit.html', doc=doc, rst=rst, filename=filename,
+                           menu=menu, text=text, render_sidebar=False)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
@@ -491,8 +490,7 @@ def commit(project, branch):
     text = {'title': _('Commit your changes'), 'submit': 'Submit',
             'allowed': _('Message should have...'), 'name': _('Choose message')}
     menu = menu_bar(project, branch)
-    return render_template('commit.html', project=project, branch=branch,
-                           menu=menu, text=text, form=form)
+    return render_template('commit.html', menu=menu, text=text, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/merge/<other>')
@@ -510,8 +508,8 @@ def merge(project, branch, other):
             'finish': _('Finish merge')}
     menu = {'right': [{'name': branch,
                        'url': url_for('.merge', project=project, branch=branch, other=other)}]}
-    return render_template('merge.html', project=project, modified=merging['modified'],
-                           reviewed=merging['reviewed'], branch=branch, other=other,
+    return render_template('merge.html', modified=merging['modified'],
+                           reviewed=merging['reviewed'], other=other,
                            menu=menu, text=text)
 
 @login_required
@@ -543,8 +541,8 @@ def diff(project, branch, filename):
     diff = string.replace(diff, 'nowrap="nowrap"', '')
     text = {'title': _(' has suggested a change to the file: '),
             'instructions': _('The proposed (left), old (right).')}
-    return render_template('diff.html',  project=project, other=merging['branch'],
-                           diff=diff, filename=filename + file_extension, branch=branch,
+    return render_template('diff.html', other=merging['branch'],
+                           diff=diff, filename=filename + file_extension,
                            text=text, menu=menu)
 
 @login_required
