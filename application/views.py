@@ -100,6 +100,11 @@ def is_dirty(project, branch):
     repo_path = join('repos', project, branch, 'source')
     return git.Repo(repo_path).is_dirty()
 
+
+def get_branch_by_name(project, branch):
+    project_id = Project.query.filter_by(name=project).first().id
+    return Branch.query.filter_by(project_id=project_id, name=branch).first()
+
 @app.context_processor
 def package():
     sent_package = {}
@@ -112,6 +117,7 @@ def package():
     def has_requests(project, branch):
         return len(get_requests(project, branch)) > 0
     sent_package['has_requests'] = has_requests
+    sent_package['get_branch_by_name'] = get_branch_by_name
     return sent_package
 
 def create_project(project, user):

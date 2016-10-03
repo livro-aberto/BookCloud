@@ -3,7 +3,7 @@
 {% block title %}{{ text['title'] }}{{ branch }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ text['title'] }}{{ other }}</h1>
+<h1>{{ text['title'] }}{{ other }} (by @{{ get_branch_by_name(project, other).owner.username }})</h1>
 
 {% if modified %}
 <h2>{{ text['unseen'] }}</h2>

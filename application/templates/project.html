@@ -12,23 +12,22 @@
   <ul id="navigation">
 
   <p>
-    The main branch is:
     <a href="{{ url_for('.view', project=project, branch='master',
              filename='index.html') }}">master</a>,
-             (by {{ tree[0]['branch'].owner.username }})
+             (by @{{ tree[0]['branch'].owner.username }})
              {% if is_dirty(project, 'master') %}
              <b>(modified)</b>
              {% endif %}
              {% if has_requests(project, 'master') %}
              <b>(has requests)</b>
              {% endif %}
-             - {{ text['download'] }} <a href="{{ url_for('.pdf', project=project,
+             - <a href="{{ url_for('.pdf', project=project,
              branch='master') }}">pdf</a>
   </p>
 
   {% if tree[0].subtree != [] %}
     <p>
-      These are the sub-branches:
+      Sub-branches:
     </p>
 
     <ul>
@@ -36,15 +35,14 @@
         <li>
           <a href="{{ url_for('.view', project=project, branch=item['branch'].name,
                    filename='index.html') }}">{{ item['branch'].name }}</a>,
-          (by {{ item['branch'].owner.username }})
+          (by @{{ item['branch'].owner.username }})
           {% if is_dirty(project, item['branch'].name) %}
           <b>(modified)</b>
           {% endif %}
           {% if has_requests(project, item['branch'].name) %}
           <b>(has requests)</b>
           {% endif %}
-          - {{ text['download'] }}
-          <a href="{{ url_for('.pdf', project=project,
+          - <a href="{{ url_for('.pdf', project=project,
           branch=item['branch'].name) }}">pdf</a>
 
           {% if item['subtree'] != [] %}
