@@ -6,11 +6,20 @@
     python manage.py db migrate
     python manage.py db upgrade
 
-## Update translations
+## Init translations
 
-    pygettext -o /tmp/messages.pot  application/views.py
-    msgmerge locale/pt_BR/LC_MESSAGES/messages.po /tmp/messages.pot > /tmp/final.po
+In the applications folder
 
-edit the final file and put it in the right place (look for items marked fuzzy)
+    pybabel extract -F babel.cfg -o messages.pot .
 
-    msgfmt locale/pt_BR/LC_MESSAGES/messages.po -o locale/pt_BR/LC_MESSAGES/messages.mo
+    pybabel init -i messages.pot -d translations -l de
+
+    pybabel compile -d translations
+
+## Init translations
+
+    pybabel extract -F babel.cfg -o messages.pot .
+
+    pybabel update -i messages.pot -d translations
+
+    pybabel compile -d translations

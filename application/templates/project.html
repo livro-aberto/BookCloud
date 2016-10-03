@@ -1,14 +1,14 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ text['title'] }}{% endblock%}
+{% block title %}{{ _('List of branches') }}{% endblock%}
 
 {% macro contents() %}
 
   <p>
-    {{ text['instructions'] }}
+    {{ _('Here you can see the project: %(project)s...') | format(project=project) }}
   </p>
 
-  <h1>{{ text['title'] }}</h1>
+  <h1>{{ _('List of branches') }}</h1>
   <ul id="navigation">
 
   <p>

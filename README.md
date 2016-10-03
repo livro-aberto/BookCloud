@@ -20,6 +20,8 @@ These are some installation instructions (for Debian):
     virtualenv vir
     source vir/bin/activate
 
+when needed use `deactivate` to exite the virtualenv
+
     pip install -r requirements.txt
 
 Create config file

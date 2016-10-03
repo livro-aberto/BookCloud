@@ -2,14 +2,14 @@
 
 {% from "_formhelpers.html" import render_field %}
 
-{% block title %}{{ text['title'] }}{% endblock%}
+{% block title %}{{ _('Create your own branch of this project') }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ text['title'] }}</h1>
+<h1>{{ _('Create your own branch of this project') }}</h1>
 
 <ul id="navigation">
 
-  {{ text['name'] }}
+  {{ _('Choose branch name') }}
 
   <form method="POST">
     {{ render_field(form.name) }}

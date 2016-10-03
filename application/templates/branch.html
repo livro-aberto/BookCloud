@@ -1,18 +1,18 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ text['title'] }}{% endblock%}
+{% block title %}{{_('Project (%(project)s), branch (_%(branch)s)') | format(project=project, branch=branch) }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ text['title'] }}</h1>
+<h1>{{_('Project (%(project)s), branch (_%(branch)s)') | format(project=project, branch=branch) }}</h1>
 <ul id="navigation">
 
   <br>
 
-  <a href="{{ url_for('.view', project=project, branch=branch, filename='index.html') }}">{{ text['view'] }}</a>
+  <a href="{{ url_for('.view', project=project, branch=branch, filename='index.html') }}">{{ _('View the branch index') }}</a>
 
   <br>
 
-  <a href="{{ url_for('.newfile', project=project, branch=branch) }}">{{ text['newfile'] }}</a>
+  <a href="{{ url_for('.newfile', project=project, branch=branch) }}">{{ _('Create a new file') }}</a>
 
   <br>
 

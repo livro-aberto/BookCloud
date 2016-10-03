@@ -11,12 +11,14 @@ import pytest
 import shutil
 import os
 
+from flask_babel import Babel, gettext as _
+
 char_set = string.ascii_uppercase + string.digits
 
 def test_page_urls(client):
     # Visit home page
     response = client.get(url_for('bookcloud.home'))
-    assert b'Projects list' in response.data
+    assert _('Projects list') in response.data
 
     # Login
     response = client.get(url_for('user.login'))
@@ -31,7 +33,7 @@ def test_page_urls(client):
 
     # Get page for new()
     response = client.get(url_for('bookcloud.new'))
-    assert b'Create new project' in response.data
+    assert _('Create new project') in response.data
 
     # Create a new project
     new_project_name = ''.join(random.sample(char_set, 20))
@@ -60,7 +62,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   filename='index'))
-    assert 'Math mode' in response.data
+    assert 'math' in response.data
 
     # Save index page in master branch
     response = client.post(url_for('bookcloud.edit',
@@ -110,7 +112,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   filename='index'), follow_redirects=True)
-    assert 'You are not the owner of this branch' in response.data
+    assert _('You are not the owner of this branch').encode('utf8') in response.data
 
     # Clone project
     response = client.post(url_for('bookcloud.clone',
@@ -118,7 +120,7 @@ def test_page_urls(client):
                                    branch='master'),
                            follow_redirects=True,
                            data=dict(name='feature'))
-    assert b'Project cloned successfuly!' in response.data
+    assert _('Project cloned successfuly!').encode('utf8') in response.data
 
     # Save a change to index page in feature branch
     response = client.post(url_for('bookcloud.edit',
@@ -134,7 +136,7 @@ def test_page_urls(client):
                                    project=new_project_name,
                                    branch='feature'), follow_redirects=True,
                            data=dict(message="For you!!!"))
-    assert b'Page submitted to _master' in response.data
+    assert (_('Page submitted to _%s') % 'master').encode('utf8') in response.data
 
     # Log as project creator again
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -161,7 +163,7 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
                                   branch='master'), follow_redirects=True)
-    assert 'You have finished merging _feature' in response.data
+    assert (_('You have finished merging _%s') % 'feature').encode('utf8') in response.data
 
     # Check changes took place
     response = client.get(url_for('bookcloud.view',
@@ -185,7 +187,7 @@ def test_page_urls(client):
                                    branch='feature'),
                            follow_redirects=True,
                            data=dict(name='typo'))
-    assert b'Project cloned successfuly!' in response.data
+    assert _('Project cloned successfuly!').encode('utf8') in response.data
 
     # Create a new file
     response = client.post(url_for('bookcloud.newfile',
@@ -193,14 +195,14 @@ def test_page_urls(client):
                                    branch='typo'),
                            follow_redirects=True,
                            data=dict(name='another'))
-    assert b'File created successfuly!' in response.data
+    assert _('File created successfuly!').encode('utf8') in response.data
 
     # Commit change
     response = client.post(url_for('bookcloud.commit',
                                    project=new_project_name,
                                    branch='typo'), follow_redirects=True,
                            data=dict(message="For you!!!"))
-    assert b'Page submitted to _feature' in response.data
+    assert (_('Page submitted to _%s') % 'feature').encode('utf8') in response.data
 
     # Log as project creator again
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -228,7 +230,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='feature',
                                   other='typo'))
-    assert 'Merging from _feature' in response.data
+    assert 'Merging from _' in response.data
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='feature',
@@ -237,7 +239,7 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
                                   branch='feature'), follow_redirects=True)
-    assert 'You have finished merging _typo' in response.data
+    assert (_('You have finished merging _%s') % 'typo').encode('utf8') in response.data
     response = client.get(url_for('bookcloud.view',
                                   project=new_project_name,
                                   branch='feature',
@@ -266,7 +268,7 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
                                   branch='master'), follow_redirects=True)
-    assert 'You have finished merging _feature' in response.data
+    assert (_('You have finished merging _%s') % 'feature').encode('utf8') in response.data
     response = client.get(url_for('bookcloud.view',
                                   project=new_project_name,
                                   branch='master',

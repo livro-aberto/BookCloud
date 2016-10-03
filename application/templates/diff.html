@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ branch }} {{ text['title'] }} {{ filename }}{% endblock%}
+{% block title %}{{ _('_%(branch)s has suggested a change to the file: %(filename)s') | format(branch=branch, filename=filename) }}{% endblock%}
 
 {% block scripts %}
 <style>
@@ -27,10 +27,10 @@ margin: 0 0 0 20px;
 {% endblock %}
 
 {% macro contents() %}
-<h1>@{{ branch }} {{ text['title'] }} {{ filename }}</h1>
+<h1>{{ _('_%(branch)s has suggested a change to the file: %(filename)s') | format(branch=branch, filename=filename) }}</h1>
 
 <p>
-  {{ text['instructions'] }}
+  {{ _('The proposed (left), old (right).') }}
 </p>
 
 <br>

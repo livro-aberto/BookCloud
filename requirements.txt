@@ -10,6 +10,7 @@ flask-wtf>=0.12
 flask-pytest>=0.0.5
 pytest-flask>=0.10.0
 Flask-Migrate>=2.0.0
+Flask-Babel>=0.11.1
 gitpython>=2.0.8
 sphinxcontrib-tikz>=0.4.2
 mysql-python

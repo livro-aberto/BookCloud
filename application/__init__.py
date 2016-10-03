@@ -86,7 +86,6 @@ def create_app(extra_config_settings={}):
     # Setup Flask-Mail
     mail = Mail(app)
 
-
     # Create all database tables
     db.create_all()
 

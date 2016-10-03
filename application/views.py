@@ -12,17 +12,18 @@ import git
 from difflib import HtmlDiff
 import traceback
 
+from flask_babel import Babel, gettext as _
+
 from wtforms import Form, BooleanField, StringField, validators
 
 import codecs # deals with encoding better
 import sphinx
 
-import gettext
-
 config_path = 'conf'
 
 bookcloud = Blueprint('bookcloud', __name__, template_folder='templates',)
 
+babel = Babel(app)
 
 class IdentifierForm(Form):
     name = StringField('Identifier', [
@@ -37,12 +38,26 @@ class MessageForm(Form):
                           message="Messages must contain only a-zA-Z0-9_-,.!? and space"),
     ])
 
-@app.before_first_request
-def set_lang():
-    language = app.config['LANGUAGE']
-    lang = gettext.translation('messages', localedir='locale', languages=[language])
-    lang.install(True)
-    _ = lang.ugettext
+@babel.localeselector
+def get_locale():
+    # if a user is logged in, use the locale from the user settings
+    # user = getattr(g, 'user', None)
+    # if user is not None:
+    #     return user.locale
+    #print(request.accept_languages.best_match(app.config['LANGUAGES'].keys()))
+    #return request.accept_languages.best_match(app.config['LANGUAGES'].keys())
+    return 'en'
+
+#@app.before_first_request
+#def set_lang():
+#    #language = app.config['LANGUAGE']
+#    #lang = _.translation('messages', localedir='locale', languages=[language])
+#    #lang.install(True)
+#    #_ = lang.u_
+
+@app.before_request
+def before_request():
+    flask.g.locale = get_locale()
 
 def get_git(project, branch):
     repo_path = join('repos', project, branch, 'source')
@@ -118,6 +133,7 @@ def package():
         return len(get_requests(project, branch)) > 0
     sent_package['has_requests'] = has_requests
     sent_package['get_branch_by_name'] = get_branch_by_name
+    sent_package['_'] = _
     return sent_package
 
 def create_project(project, user):
@@ -249,11 +265,8 @@ def home():
               'error')
     projects = list(set(projects) - set(projects_without_folder))
     menu = menu_bar()
-    text = {'title': _('Projects list'), 'download': _('Download'),
-            'new': _('Create new project'),
-            'instructions': _('Here you can see all the projects...')}
     return render_template('home.html', projects=projects, menu=menu,
-                           text=text, copyright='CC-BY-SA-NC')
+                           copyright='CC-BY-SA-NC')
 
 @login_required
 @bookcloud.route('/profile')
@@ -268,10 +281,8 @@ def profile():
         if user_branches:
             collection.append({'project': p.name,
                                'branches': user_branches})
-    text = {'title': _('Projects list'),
-            'instructions': _('Here you can see all your branches')}
     return render_template('profile.html', username=current_user.username,
-                           text=text, collection=collection, menu=menu)
+                           collection=collection, menu=menu)
 
 @login_required
 @bookcloud.route('/new', methods = ['GET', 'POST'])
@@ -287,9 +298,7 @@ def new():
             flash(_('Project created successfuly!'), 'info')
             return redirect(url_for('.project',
                                     project=form.name.data))
-    text = {'title': _('Create new project'), 'submit': _('Submit'),
-            'allowed': _('Name should have...')}
-    return render_template('new.html', text=text, menu=menu, form=form)
+    return render_template('new.html', menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>')
@@ -297,12 +306,10 @@ def project(project):
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     menu = menu_bar(project)
-    text = {'title': _('List of branches'), 'download': _('Download '),
-            'instructions': _('Here you can see the project: %s...') % project}
     project_id = Project.query.filter_by(name=project).first().id
     master = Branch.query.filter_by(project_id=project_id, name='master').first()
     tree = [ get_sub_branches(master) ]
-    return render_template('project.html', tree=tree, text=text, menu=menu)
+    return render_template('project.html', tree=tree, menu=menu)
 
 @bookcloud.route('/<project>/pdf')
 @bookcloud.route('/<project>/<branch>/pdf')
@@ -321,10 +328,7 @@ def branch(project, branch):
             if pendencies:
                 return pendencies
     menu = menu_bar(project, branch)
-    text = {'title': _('Project (%s), branch (_%s)') % (project, branch),
-            'newfile': _('Create a new file'),
-            'view': _('View the branch index')}
-    return render_template('branch.html', text=text, menu=menu)
+    return render_template('branch.html', menu=menu)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
@@ -342,9 +346,7 @@ def clone(project, branch):
             flash(_('Project cloned successfuly!'), 'info')
             return redirect(url_for('.view', project=project, branch=new_branch,
                                     filename='index.html'))
-    text = {'title': _('Create your own branch of this project'), 'submit': 'Submit',
-            'allowed': _('Name should have...'), 'name': _('Choose branch name')}
-    return render_template('clone.html', text=text, menu=menu, form=form)
+    return render_template('clone.html', menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
@@ -374,9 +376,7 @@ def newfile(project, branch):
             build(project, branch)
             return redirect(url_for('.view', project=project,
                                     branch=branch, filename='index.html'))
-    text = {'title': _('Create new file'), 'submit': 'Submit',
-            'allowed': _('Name should have...')}
-    return render_template('newfile.html', text=text, menu=menu, form=form)
+    return render_template('newfile.html', menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/requests')
@@ -458,13 +458,10 @@ def edit(project, branch, filename):
     build(project, branch)
     rst = load_file(branch_source_path)
     doc = render_template_string(load_file(branch_html_path), barebones=True)
-    text = {'title': _('Edit:'), 'image': _('Image'), 'math': _('Math mode'),
-            'sections': _('Sections'), 'style': _('Style'),
-            'cancel': _('Exit'), 'preview': _('Save'), 'submit': _('Commit')}
     menu = {'right': [{'name': branch,
                        'url': url_for('.edit', project=project, branch=branch, filename=filename)}]}
     return render_template('edit.html', doc=doc, rst=rst, filename=filename,
-                           menu=menu, text=text, render_sidebar=False)
+                           menu=menu, render_sidebar=False)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
@@ -493,10 +490,8 @@ def commit(project, branch):
             flash(_('Page submitted to _%s') % origin, 'info')
         flash('Change commited', 'info')
         return redirect(url_for('.branch', project=project, branch=branch))
-    text = {'title': _('Commit your changes'), 'submit': 'Submit',
-            'allowed': _('Message should have...'), 'name': _('Choose message')}
     menu = menu_bar(project, branch)
-    return render_template('commit.html', menu=menu, text=text, form=form)
+    return render_template('commit.html', menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/merge/<other>')
@@ -508,15 +503,11 @@ def merge(project, branch, other):
         modified = string.split(git_api.diff('HEAD', '--name-only'))
         merging = {'branch': other, 'modified': modified, 'reviewed': []}
         write_file(join('repos', project, branch, 'merging.json'), json.dumps(merging))
-    text = {'title': _('Merging from _'), 'unseen': _('Modifications not yet reviewed'),
-            'review': _('Review file'), 'accept': _('Accept suggestions'), 'view': _('View differences'),
-            'reviewed': _('Changes reviewed'), 'finally': _('You have finished all the reviews'),
-            'finish': _('Finish merge')}
     menu = {'right': [{'name': branch,
                        'url': url_for('.merge', project=project, branch=branch, other=other)}]}
     return render_template('merge.html', modified=merging['modified'],
                            reviewed=merging['reviewed'], other=other,
-                           menu=menu, text=text)
+                           menu=menu)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/review/<path:filename>')
@@ -533,7 +524,7 @@ def diff(project, branch, filename):
     if not merging:
         flash(_('You are not merging'), 'error')
         redirect(url_for('.project', project=project))
-    menu = menu_bar(project, branch)
+    #menu = menu_bar(project, branch)
     differ = HtmlDiff()
     filename, file_extension = os.path.splitext(filename)
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
@@ -545,11 +536,8 @@ def diff(project, branch, filename):
         old = ''
     diff = differ.make_table(new, old)
     diff = string.replace(diff, 'nowrap="nowrap"', '')
-    text = {'title': _(' has suggested a change to the file: '),
-            'instructions': _('The proposed (left), old (right).')}
     return render_template('diff.html', other=merging['branch'],
-                           diff=diff, filename=filename + file_extension,
-                           text=text, menu=menu)
+                           diff=diff, filename=filename + file_extension)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/accept/<path:filename>')

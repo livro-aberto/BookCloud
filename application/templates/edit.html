@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ text['title'] }} {{ filename }} {% endblock%}
+{% block title %}{{ _('Edit: %(filename)s') | format(filename=filename) }} {% endblock%}
 
 {% block scripts %}
 <link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
@@ -65,13 +65,13 @@ div.bodywrapper {
       <div class="flex-item-rigid">
         <p style="line-height: 200%;">
           <nobr>
-            {{ text['sections'] }}
+            {{ _('sections') }}
             <button onclick="insertAround('\n********\nCap&#237;tulo\n********','')">Cap</button>
             <button onclick="insertAround('\nSe&#231;&#227;o\n=====','')">Sec</button>
             <button onclick="insertAround('\nSubse&#231;&#227;o\n---------','')">Sub</button>
           </nobr>
           <nobr>
-            {{ text['style'] }}
+            {{ _('style') }}
             <button onclick="insertAround('**','**')"><b>B</b></button>
             <button onclick="insertAround('*','*')" style="font-family:verdana;"><i>I</i></button>
             <button onclick="insertAround('\n* a\n* b','')">&#x2D57</button>
@@ -79,7 +79,7 @@ div.bodywrapper {
             <button onclick="insertAround('\n.. note::\n\n   something','')">!</button>
           </nobr>
           <nobr>
-            {{ text['image'] }}
+            {{ _('image') }}
             <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">: <font size="1">&#x263a</font></button>
             <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">&#x263a</button>
             <button onclick="insertAround('\n+---+---+\n| A | B |\n+===+===+\n| 0 | 1 |\n+---+---+\n| 2 | 3 |\n+---+---+','')">&#x25EB</button>
@@ -91,7 +91,7 @@ div.bodywrapper {
             <button onclick="insertAround('\n.. math::\n\n   a^2 = b','')">&#x1D4E7</button>
           </nobr>
           <nobr>
-            {{ text['math'] }}:
+            {{ _('math') }}:
             <button onclick="insertAround('\\frac{1}{2}','')">&#xBD</button>
             <button onclick="insertAround('\\sin(',')')">sin</button>
             <button onclick="insertAround('\\cos(',')')">cos</button>
@@ -109,9 +109,9 @@ div.bodywrapper {
           <textarea id="code" name="code">{{ rst }}</textarea>
           <br>
           <a href="{{ url_for('.view', project=project, branch=branch, filename=filename) }}" style="text-decoration:none">
-            <input type="button" value="{{ text['cancel'] }}"/>
+            <input type="button" value="exit"/>
           </a>
-          <input id="preview" name="preview" type="submit" formaction="{{ url_for('.edit', project=project, branch=branch, filename=filename) }}" value="{{ text['preview'] }}">
+          <input id="preview" name="preview" type="submit" formaction="{{ url_for('.edit', project=project, branch=branch, filename=filename) }}" value="save">
 
           {#
           <input id="submit" name="submit" type="submit" formaction="{{ url_for('.commit', project=project, branch=branch, filename=filename) }}" value="{{ text['submit'] }}">

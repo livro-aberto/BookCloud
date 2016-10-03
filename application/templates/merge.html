@@ -1,20 +1,20 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ text['title'] }}{{ branch }}{% endblock%}
+{% block title %}{{ _('Merging') }}{{ branch }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ text['title'] }}{{ other }} (by @{{ get_branch_by_name(project, other).owner.username }})</h1>
+<h1>{{ _('Merging from _%(other)s (by @%(owner)s)') | format(other=other, owner=get_branch_by_name(project, other).owner.username) }}</h1>
 
 {% if modified %}
-<h2>{{ text['unseen'] }}</h2>
+<h2>{{ _('Modifications not yet reviewed') }}</h2>
 <ul id="navigation">
   {% for f in modified %}
   <li>
     {{ f }}
     <ul>
-      <li><a href="{{ url_for('.review', project=project, branch=branch, filename=f) }}">{{ text['review'] }}</a></li>
-      <li><a href="{{ url_for('.diff', project=project, branch=branch, filename=f) }}">{{ text['view'] }}</a></li>
-      <li><a href="{{ url_for('.accept', project=project, branch=branch, filename=f) }}">{{ text['accept'] }}</a></li>
+      <li><a href="{{ url_for('.review', project=project, branch=branch, filename=f) }}">{{ _('Review file') }}</a></li>
+      <li><a href="{{ url_for('.diff', project=project, branch=branch, filename=f) }}">{{  _('View differences') }}</a></li>
+      <li><a href="{{ url_for('.accept', project=project, branch=branch, filename=f) }}">{{ _('Accept suggestions') }}</a></li>
       </li>
     </ul>
   </li>
@@ -23,7 +23,7 @@
 {% endif %}
 
 {% if reviewed %}
-<h2>{{ text['reviewed'] }}</h2>
+<h2>{{ _('Changes reviewed') }}</h2>
 <ul id="navigation">
   {% for f in reviewed %}
   <li>
@@ -34,8 +34,8 @@
 {% endif %}
 
 {% if not modified %}
-<h2>{{ text['finally'] }}</h2>
-<a href="{{ url_for('.finish', project=project, branch=branch) }}">{{ text['finish'] }}</a>
+<h2>{{ _('You have finished all the reviews') }}</h2>
+<a href="{{ url_for('.finish', project=project, branch=branch) }}">{{ _('Finish merge') }}</a>
 {% endif %}
 
 {% endmacro %}

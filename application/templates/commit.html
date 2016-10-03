@@ -2,13 +2,14 @@
 
 {% from "_formhelpers.html" import render_field %}
 
-{% block title %}{{ text['title'] }}{% endblock%}
+{% block title %}{{ _('Commit your changes') }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ text['title'] }}</h1>
+<h1>{{ _('Commit your changes') }}</h1>
 
 <ul id="navigation">
 
+  {{ _('Choose your commit message') }}
   <form method="POST">
     {{ render_field(form.message, size="50") }}
     <br>

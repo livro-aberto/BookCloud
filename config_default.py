@@ -36,3 +36,8 @@ MAIL_USE_SSL =        int(os.getenv('MAIL_USE_SSL',         True))
 
 # Flask-User settings
 USER_APP_NAME        = "BookCloud"                # Used by email templates
+
+LANGUAGES = {
+    'en': 'English',
+    'pt': 'Portugues'
+}
