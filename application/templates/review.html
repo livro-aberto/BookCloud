@@ -34,12 +34,8 @@
   }
 
   window.onload = function() {
-    var arr = JSON.parse('{{ old | safe }}');
-    value = arr.join('\n');
-    arr = JSON.parse('{{ new | safe }}');
-    orig1 = arr.join('\n');
-    //"A title\n\n" + value.replace("yellow", "orange");
-    orig2 = value.replace("white", "purple");
+    value = document.getElementById("new_file").value;
+    orig1 = document.getElementById("old_file").value;
     initUI();
   };
 
@@ -103,6 +99,10 @@ div.bodywrapper {
       <div class="flex-item-rigid">
 #}
         <p style="line-height: 200%;">
+
+          <textarea id="new_file" style="display:none">{{ new }}</textarea>
+          <textarea id="old_file" style="display:none">{{ old }}</textarea>
+
         <form method="post" id="myform" name="myform" action="{{ url_for('.commit', project=project, branch=branch, filename=filename) }}">
           <div id="view" name="view"></div>
 

@@ -530,17 +530,16 @@ def review(project, branch, filename):
         return redirect(url_for('.accept', project=project, branch=branch,
                                 filename=filename + file_extension))
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
-    new = string.split(load_file(branch_source_path), '\r\n')
+    new = load_file(branch_source_path)
     git_api = get_git(project, branch)
     if git_api.ls_tree('-r', '--name-only', branch, filename + file_extension) != '':
-        old = string.split(git_api.show(branch + ':' + filename + file_extension), '\r\n')
-        old = [d.replace('\r', '') for d in old]
+        old = git_api.show(branch + ':' + filename + file_extension)
     else:
         old = ''
     menu = {'right': [{'name': branch,
                        'url': url_for('.edit', project=project,
                                       branch=branch, filename=filename)}]}
-    return render_template('review.html', new=json.dumps(new), old=json.dumps(old),
+    return render_template('review.html', new=new, old=old,
                            filename=filename + file_extension,
                            menu=menu, other=merging['branch'], render_sidebar=False)
 
