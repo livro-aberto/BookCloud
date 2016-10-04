@@ -1,5 +1,4 @@
-  - think about what should come first: commit or merge requests
-  - propagate commits down the subtree
+  - propagate commits down the subtree and minimize updates
   - allow user to delete branch
   - add more presence of the database, such as when listing projects
 

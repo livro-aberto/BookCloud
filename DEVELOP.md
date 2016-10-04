@@ -6,6 +6,10 @@
 
 ## Init translations
 
+You may need:
+
+    source vir/bin/activate
+
 In the applications folder
 
     pybabel extract -F babel.cfg -o messages.pot .
@@ -14,11 +18,19 @@ In the applications folder
 
     pybabel compile -d translations
 
-## Init translations
+## Update translations
+
+You may need:
+
+    source vir/bin/activate
+
+Then
 
     pybabel extract -F babel.cfg -o messages.pot .
 
     pybabel update -i messages.pot -d translations
+
+Do the actual translation, then
 
     pybabel compile -d translations
 
