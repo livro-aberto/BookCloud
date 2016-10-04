@@ -486,4 +486,18 @@ only screen and (-webkit-min-device-pixel-ratio: 2),
 only screen and (min-device-pixel-ratio: 2) {
 }
 
+
+
+
+ol {
+  counter-reset: list;
+}
+ol > li {
+  list-style: none;
+}
+ol > li:before {
+  content: counter(list, lower-alpha) ") ";
+  counter-increment: list;
+}
+
 /* -- end ------------------------------------------------------------------- */
