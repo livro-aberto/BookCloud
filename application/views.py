@@ -371,9 +371,9 @@ def newfile(project, branch):
             flash(_('This file name name already exists'), 'error')
         else:
             #file = open(file_path, 'w+')
-            equals = '=' * len(filename) + '\n'
-            #file.write(equals + filename + '\n' + equals)
-            write_file(file_path, equals + filename + '\n' + equals)
+            stars = '*' * len(filename) + '\n'
+            #file.write(stars + filename + '\n' + stars)
+            write_file(file_path, stars + filename + '\n' + stars)
             repo = git.Repo(join('repos', project, branch, 'source'))
             repo.index.add([filename + file_extension])
             author = git.Actor(current_user.username, current_user.email)
