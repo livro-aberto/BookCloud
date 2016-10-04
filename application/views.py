@@ -85,7 +85,7 @@ def get_requests(project, branch):
     unmerged = [item for item in branches if item not in merged]
     return unmerged
 
-def get_pendencies(project, branch, username):
+def get_merge_pendencies(project, branch, username):
     # is the user the owner?
     if username != get_branch_owner(project, branch):
         return None
@@ -324,7 +324,7 @@ def pdf(project, branch='master'):
 def branch(project, branch):
     if (current_user.is_authenticated):
         if current_user.username == get_branch_owner(project, branch):
-            pendencies = get_pendencies(project, branch, current_user.username)
+            pendencies = get_merge_pendencies(project, branch, current_user.username)
             if pendencies:
                 return pendencies
     menu = menu_bar(project, branch)
@@ -335,6 +335,9 @@ def branch(project, branch):
 def clone(project, branch):
     menu = menu_bar(project, branch)
     form = IdentifierForm(request.form)
+    pendencies = get_merge_pendencies(project, branch, current_user.username)
+    if pendencies:
+        return pendencies
     if request.method == 'POST' and form.validate():
         new_repo_path = join('repos', project, form.name.data)
         if os.path.isdir(new_repo_path):
@@ -351,6 +354,9 @@ def clone(project, branch):
 @login_required
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
 def newfile(project, branch):
+    pendencies = get_merge_pendencies(project, branch, current_user.username)
+    if pendencies:
+        return pendencies
     menu = menu_bar(project, branch)
     form = IdentifierForm(request.form)
     if current_user.username != get_branch_owner(project, branch):
@@ -399,11 +405,11 @@ def finish(project, branch):
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
     if not merging:
-        flash(_('You are not merging!'), 'error')
+        flash(_('You are not merging'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     if len(merging['modified']):
         flash(_('You still have unreviewed files'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+        return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
     git_api = get_git(project, branch)
     git_api.commit('-m', 'Merge ' + merging['branch'])
     merge_file_path = join('repos', project, branch, 'merging.json')
@@ -427,7 +433,7 @@ def view(project, branch, filename):
     update_branch(project, branch)
     if (current_user.is_authenticated):
         if current_user.username == get_branch_owner(project, branch):
-            pendencies = get_pendencies(project, branch, current_user.username)
+            pendencies = get_merge_pendencies(project, branch, current_user.username)
             if pendencies:
                 return pendencies
             menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
@@ -445,7 +451,7 @@ def edit(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.clone', project=project, branch=branch))
-    pendencies = get_pendencies(project, branch, current_user.username)
+    pendencies = get_merge_pendencies(project, branch, current_user.username)
     if pendencies:
         return pendencies
     update_branch(project, branch)
@@ -498,7 +504,17 @@ def commit(project, branch):
 def merge(project, branch, other):
     merging = get_merging(project, branch)
     if not merging:
+        if is_dirty(project, branch):
+            flash(_('Commit your changes before reviewing requests'), 'error')
+            return redirect(url_for('.commit', project=project, branch=branch))
+        # Check if other has something to merge
         git_api = get_git(project, branch)
+        branches = string.split(git_api.branch())
+        merged = string.split(git_api.branch('--merged'))
+        if other in merged:
+            flash(_('Branch _%s has no requests now') % other, 'error')
+            return redirect(url_for('.view', project=project, branch=branch,
+                                    filename='index.html'))
         git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', other)
         modified = string.split(git_api.diff('HEAD', '--name-only'))
         merging = {'branch': other, 'modified': modified, 'reviewed': []}
@@ -518,7 +534,8 @@ def review(project, branch, filename):
     merging = get_merging(project, branch)
     if not merging:
         flash(_('You are not merging'), 'error')
-        redirect(url_for('.project', project=project))
+        return redirect(url_for('.view', project=project, branch=branch,
+                                filename='index.html'))
     update_branch(project, branch)
     filename, file_extension = os.path.splitext(filename)
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
@@ -548,11 +565,13 @@ def review(project, branch, filename):
 def diff(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
-        redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+        return redirect(url_for('.view', project=project, branch=branch,
+                                filename='index.html'))
     merging = get_merging(project, branch)
     if not merging:
         flash(_('You are not merging'), 'error')
-        redirect(url_for('.project', project=project))
+        return redirect(url_for('.view', project=project, branch=branch,
+                                filename='index.html'))
     #menu = menu_bar(project, branch)
     differ = HtmlDiff()
     filename, file_extension = os.path.splitext(filename)
@@ -576,7 +595,7 @@ def accept(project, branch, filename):
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
     if not merging:
-        flash(_('You are not merging a submission'), 'error')
+        flash(_('You are not merging'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     if not filename in merging['modified']:
         flash('File %s is not being reviewed' % filename, 'error')
