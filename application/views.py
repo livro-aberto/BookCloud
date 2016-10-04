@@ -510,9 +510,39 @@ def merge(project, branch, other):
                            menu=menu)
 
 @login_required
-@bookcloud.route('/<project>/<branch>/review/<path:filename>')
+@bookcloud.route('/<project>/<branch>/review/<path:filename>', methods = ['GET', 'POST'])
 def review(project, branch, filename):
-    return "Not implemented yet..."
+    if current_user.username != get_branch_owner(project, branch):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.clone', project=project, branch=branch))
+    merging = get_merging(project, branch)
+    if not merging:
+        flash(_('You are not merging'), 'error')
+        redirect(url_for('.project', project=project))
+    update_branch(project, branch)
+    filename, file_extension = os.path.splitext(filename)
+    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
+    branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
+    if request.method == 'POST':
+        write_file(branch_source_path, request.form['code'])
+        repo = git.Repo(join('repos', project, branch, 'source'))
+        repo.index.add([filename + '.rst'])
+        return redirect(url_for('.accept', project=project, branch=branch,
+                                filename=filename + file_extension))
+    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
+    new = string.split(load_file(branch_source_path), '\r\n')
+    git_api = get_git(project, branch)
+    if git_api.ls_tree('-r', '--name-only', branch, filename + file_extension) != '':
+        old = string.split(git_api.show(branch + ':' + filename + file_extension), '\r\n')
+        old = [d.replace('\r', '') for d in old]
+    else:
+        old = ''
+    menu = {'right': [{'name': branch,
+                       'url': url_for('.edit', project=project,
+                                      branch=branch, filename=filename)}]}
+    return render_template('review.html', new=json.dumps(new), old=json.dumps(old),
+                           filename=filename + file_extension,
+                           menu=menu, other=merging['branch'], render_sidebar=False)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/diff/<path:filename>')
