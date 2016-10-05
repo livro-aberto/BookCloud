@@ -1,51 +1,57 @@
+# Urgent:
+
   - propagate commits down the subtree and minimize updates
-  - allow user to delete branch
-  - add more presence of the database, such as when listing projects
+  - allow user to delete branch (setup expiration time for branches?)
+  - add more presence of the database, such as when listing projects?
+
+# Features:
+
+  (priority)
+  - commit text below commit message
+  - upload figures
+    - use safe_join to avoid malicious filenames
+  - implement comments and issues
+
+  (medium)
+  - ability to rename file (possibly with template for name)
+  - ability to remove file
+  - add template names for new files
+  - implement delete project
+  - make a timeout for sphinx-build: http://stackoverflow.com/a/4825933
+
+# Bugs:
 
   - bug in diff? see also https://github.com/lqc/google-diff-match-patch
-
-  - use safe_join to avoid malicious filenames
-
-
-  - is it possible to remove all the menu = menu_bar() calls, by using context processors?
-
-  - add master and parent branches to menu bar?
-
-  - replace all possible function calls using names to objects (user, project, branch...)
-  - upload figures
-
   - add logging: http://damyanon.net/flask-series-logging/
 
-  - create a function to fix file.extension handling
-  - add template names for new files
+# Interface:
 
-  - add user data to the context processor as well
+  (important)
+  - add branch options including:
+    modifications, diff with master, owner, subtree, requests, latest commits...
 
+  - add master and parent branches to menu bar?
   - split the branch tree into active and inactive branches.
     only show the smallest tree that contains all the active
     then below show the full tree
-
-  - implement delete project
-
-  - ability to rename file (possibly with template for name)
-  - ability to remove file
-
 
   - add user options, such as: language
   - add project options  (see sphinx's conf.py)
     - such as: url, language, title...
     - add project_properties to be passed to jinja files, including for instance copyright
     - fix conf path in sphinx (pointing to /home/gutosurrex...)
-  - add branch options
 
-  - implement comments and issues
+# Organization of code:
 
-  - make a timeout for sphinx-build: http://stackoverflow.com/a/4825933
+  - find patterns in functions, such as: pendencies, is merging...
+  - replace all possible function calls using names to objects (user, project, branch...)
+  - create a function to fix file.extension handling
+  - is it possible to remove all the menu = menu_bar() calls, by using context processors?
+  - add user data to the context processor as well
   - implement submodules for javascript code,
     - https://github.com/lqc/google-diff-match-patch
     - https://github.com/sphinx-doc/sphinx/tree/master/sphinx/themes/bizstyle/static
     - https://github.com/mathjax/MathJax
-
   - fix BookCloud.wsgi to use a configuration value as path
 
 
