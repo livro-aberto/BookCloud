@@ -18,7 +18,7 @@ char_set = string.ascii_uppercase + string.digits
 def test_page_urls(client):
     # Visit home page
     response = client.get(url_for('bookcloud.home'))
-    assert _('Projects list') in response.data
+    assert _('Projects list').encode('utf8') in response.data
 
     # Login
     response = client.get(url_for('user.login'))
@@ -150,14 +150,14 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   other='feature'))
-    assert 'Merging from _feature' in response.data
+    assert _('Consolidando').encode('utf8') in response.data
 
     # Accepting suggestions
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='master',
                                   filename='index.rst'), follow_redirects=True)
-    assert 'You have finished all the reviews' in response.data
+    assert _('You have finished all the reviews').encode('utf8') in response.data
 
     # Finishing merge
     response = client.get(url_for('bookcloud.finish',
@@ -230,12 +230,12 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='feature',
                                   other='typo'))
-    assert 'Merging from _' in response.data
+    assert 'Consolidando' in response.data
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='feature',
                                   filename='another.rst'), follow_redirects=True)
-    assert 'You have finished all the reviews' in response.data
+    assert _('You have finished all the reviews').encode('utf8') in response.data
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
                                   branch='feature'), follow_redirects=True)
@@ -258,13 +258,13 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   other='feature'))
-    assert 'Merging from _feature' in response.data
+    assert 'Consolidando' in response.data
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='master',
                                   filename='another.rst'), follow_redirects=True)
 
-    assert 'You have finished all the reviews' in response.data
+    assert _('You have finished all the reviews').encode('utf8') in response.data
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
                                   branch='master'), follow_redirects=True)
