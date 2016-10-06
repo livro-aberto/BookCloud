@@ -1,5 +1,6 @@
 application/migrations/*
 sphinx_edit/static/sphinx_static/*
+trash/*
 images/*
 repos/*
 *.sqlite
