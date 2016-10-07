@@ -263,7 +263,7 @@ def menu_bar(project=None, branch=None):
 def get_log(project, branch):
     git_api = get_git(project, branch)
     return git_api.log('-20', '--graph', '--abbrev-commit','--decorate',
-                       "--format=format:%h - %an (%ar): %s - %d", '--all')
+                       "--format=format:%an (%ar): %s - %d", '--all')
 
 @bookcloud.route('/')
 def home():
