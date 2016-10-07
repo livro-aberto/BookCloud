@@ -96,6 +96,16 @@ def get_merge_pendencies(project, branch, username):
         return redirect(url_for('.merge', project=project,
                                 branch=branch, other=merging['branch']))
 
+def update_subtree(project, branch):
+    if not is_dirty(project, branch):
+        update_branch(project, branch)
+        project_id = Project.query.filter_by(name=project).first().id
+        branch_id = Branch.query.filter_by(project_id=project_id, name=branch).first().id
+        children = Branch.query.filter_by(origin_id=branch_id)
+        for child in children:
+            if child.name != 'master':
+                update_subtree(project, child.name)
+
 def update_branch(project, branch):
     # update from reviewer (if not master)
     if branch != 'master' and not is_dirty(project, branch):
@@ -104,7 +114,7 @@ def update_branch(project, branch):
         git_api.fetch()
         git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
         git_api.push('origin', branch)
-        build(project, branch)
+    build(project, branch)
 
 def config_repo(repo, user_name, email):
     config = repo.config_writer()
@@ -376,8 +386,8 @@ def newfile(project, branch):
             write_file(file_path, stars + filename + '\n' + stars)
             repo = git.Repo(join('repos', project, branch, 'source'))
             repo.index.add([filename + file_extension])
-            author = git.Actor(current_user.username, current_user.email)
-            repo.index.commit(_('Adding file %s' % filename), author=author)
+            #author = git.Actor(current_user.username, current_user.email)
+            #repo.index.commit(_('Adding file %s' % filename), author=author)
             flash(_('File created successfuly!'), 'info')
             build(project, branch)
             return redirect(url_for('.view', project=project,
@@ -418,7 +428,7 @@ def finish(project, branch):
     if branch != origin:
         git_api.push('origin', branch)
         flash(_('Page submitted to _%s') % origin, 'info')
-    build(project, branch)
+    update_subtree(project, branch)
     flash(_('You have finished merging _%s') % merging['branch'], 'info')
     return redirect(url_for('.branch', project=project, branch=branch))
 
@@ -430,7 +440,7 @@ def view(project, branch, filename):
     user_repo_path = join('repos', project, branch,
                           'build/html', filename + file_extension)
     menu = menu_bar(project, branch)
-    update_branch(project, branch)
+    #update_branch(project, branch)
     if (current_user.is_authenticated):
         if current_user.username == get_branch_owner(project, branch):
             pendencies = get_merge_pendencies(project, branch, current_user.username)
@@ -441,7 +451,6 @@ def view(project, branch, filename):
         else:
             menu['right'].append({'url': url_for('.clone', project=project, branch=branch),
                                   'name': 'clone'})
-    build(project, branch)
     content = load_file(user_repo_path)
     return render_template_string(content, menu=menu, render_sidebar=True)
 
@@ -494,6 +503,7 @@ def commit(project, branch):
             git_api = repo.git
             git_api.push('origin', branch)
             flash(_('Page submitted to _%s') % origin, 'info')
+        update_subtree(project, branch)
         flash('Change commited', 'info')
         return redirect(url_for('.branch', project=project, branch=branch))
     menu = menu_bar(project, branch)

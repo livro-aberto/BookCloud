@@ -1,6 +1,5 @@
 # Urgent:
 
-  - propagate commits down the subtree and minimize updates
   - allow user to delete branch (setup expiration time for branches?)
   - add more presence of the database, such as when listing projects?
 
