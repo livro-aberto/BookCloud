@@ -344,7 +344,8 @@ def branch(project, branch):
             if pendencies:
                 return pendencies
     menu = menu_bar(project, branch)
-    return render_template('branch.html', menu=menu)
+    log = get_log(project, branch)
+    return render_template('branch.html', menu=menu, log=log)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
@@ -537,8 +538,9 @@ def merge(project, branch, other):
         write_file(join('repos', project, branch, 'merging.json'), json.dumps(merging))
     menu = {'right': [{'name': branch,
                        'url': url_for('.merge', project=project, branch=branch, other=other)}]}
+    log = get_log(project, other)
     return render_template('merge.html', modified=merging['modified'],
-                           reviewed=merging['reviewed'], other=other,
+                           reviewed=merging['reviewed'], other=other, log=log,
                            menu=menu)
 
 @login_required
