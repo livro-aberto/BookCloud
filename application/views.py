@@ -457,6 +457,8 @@ def view(project, branch, filename):
 @login_required
 @bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
 def edit(project, branch, filename):
+    html_scroll = 0
+    edit_scroll = 0
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.clone', project=project, branch=branch))
@@ -467,6 +469,8 @@ def edit(project, branch, filename):
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
     branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
     if request.method == 'POST':
+        html_scroll = request.form['html_scroll']
+        edit_scroll = request.form['edit_scroll']
         write_file(branch_source_path, request.form['code'])
         repo = git.Repo(join('repos', project, branch, 'source'))
         repo.index.add([filename + '.rst'])
@@ -476,7 +480,8 @@ def edit(project, branch, filename):
     menu = {'right': [{'name': branch,
                        'url': url_for('.edit', project=project, branch=branch, filename=filename)}]}
     return render_template('edit.html', doc=doc, rst=rst, filename=filename,
-                           menu=menu, render_sidebar=False)
+                           menu=menu, html_scroll=html_scroll,
+                           edit_scroll=edit_scroll, render_sidebar=False)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])

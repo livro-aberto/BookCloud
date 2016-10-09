@@ -24,7 +24,23 @@
     }
     editor.focus();
   }
+
+  function save() {
+      var height = document.getElementById("html_view").scrollTop;
+      document.getElementById("html_scroll").value = height;
+      var info = editor.getScrollInfo();
+      document.getElementById("edit_scroll").value = info.top;
+      document.getElementById("myform").submit();
+  }
+
+  function scrollWin() {
+  document.getElementById("html_view").scrollTo(0, {{ html_scroll }});
+  editor.scrollTo(0, {{ edit_scroll }});
+  }
+
+  window.onload = scrollWin;
 </script>
+
 
 <style>
 .flex-container {
@@ -80,10 +96,18 @@ div.bodywrapper {
           </nobr>
           <nobr>
             {{ _('image') }}
-            <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">: <font size="1">&#x263a</font></button>
-            <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">&#x263a</button>
-            <button onclick="insertAround('\n+---+---+\n| A | B |\n+===+===+\n| 0 | 1 |\n+---+---+\n| 2 | 3 |\n+---+---+','')">&#x25EB</button>
-            <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')">&#x25B3</button>
+            <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">
+              : <font size="1">&#x263a</font>
+            </button>
+            <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">
+              &#x263a
+            </button>
+            <button onclick="insertAround('\n+---+---+\n| A | B |\n+===+===+\n| 0 | 1 |\n+---+---+\n| 2 | 3 |\n+---+---+','')">
+              &#x25EB
+            </button>
+            <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')">
+              &#x25B3
+            </button>
           </nobr>
           <nobr>
             Eq.:
@@ -105,17 +129,18 @@ div.bodywrapper {
             <button onclick="insertAround('\\in','')">&#x2208</button>
             <button onclick="insertAround('\\subset','')">&#x2282</button>
           </nobr>
-        <form method="post">
+        <form id="myform" action="{{ url_for('.edit', project=project, branch=branch,
+                                  filename=filename) }}" method="post">
           <textarea id="code" name="code">{{ rst }}</textarea>
           <br>
-          <a href="{{ url_for('.view', project=project, branch=branch, filename=filename) }}" style="text-decoration:none">
+          <a href="{{ url_for('.view', project=project,
+                   branch=branch, filename=filename) }}" style="text-decoration:none">
             <input type="button" value="exit"/>
           </a>
-          <input id="preview" name="preview" type="submit" formaction="{{ url_for('.edit', project=project, branch=branch, filename=filename) }}" value="save">
+          <input id="preview" name="preview" type="button" value="save" onClick="save()" />
 
-          {#
-          <input id="submit" name="submit" type="submit" formaction="{{ url_for('.commit', project=project, branch=branch, filename=filename) }}" value="{{ text['submit'] }}">
-          #}
+          <input type="hidden" name="html_scroll" id="html_scroll" value="{{ html_scroll }}" />
+          <input type="hidden" name="edit_scroll" id="edit_scroll" value="{{ edit_scroll }}" />
 
         </form>
       </div>
@@ -127,7 +152,7 @@ div.bodywrapper {
         });
       </script>
 
-      <div class="flex-item">
+      <div id="html_view" class="flex-item" onload="document.getElementById('html_view').scrollTop = 200;">
         {{ doc | safe }}
       </div>
     </div>

@@ -6,6 +6,11 @@
 # Features:
 
   (priority)
+  - keep cursor position
+    - read scroll position in javascript: http://stackoverflow.com/a/2481370
+    - set scroll in javascript: http://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_win_scrollto
+    - codemirror set: http://stackoverflow.com/a/36804910
+    - codemirror get: http://stackoverflow.com/a/17735290
   - commit text below commit message
   - upload figures
     - use safe_join to avoid malicious filenames
