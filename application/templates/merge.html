@@ -38,5 +38,10 @@
 <a href="{{ url_for('.finish', project=project, branch=branch) }}">{{ _('Finish merge') }}</a>
 {% endif %}
 
+<h2>{{ _('Last commits in _%s:') % other }}
+
+  <pre><code><font size="1">{{ log }}</font></code></pre>
+
+
 {% endmacro %}
 

@@ -15,6 +15,9 @@
   - upload figures
     - use safe_join to avoid malicious filenames
   - implement comments and issues
+  - view commits in branch or project page:
+    - git log --pretty="format:%h %an" --graph
+    - http://ricostacruz.com/cheatsheets/git-log-format.html
 
   (medium)
   - ability to rename file (possibly with template for name)
@@ -57,6 +60,15 @@
     - https://github.com/sphinx-doc/sphinx/tree/master/sphinx/themes/bizstyle/static
     - https://github.com/mathjax/MathJax
   - fix BookCloud.wsgi to use a configuration value as path
+
+# Codemirror addons:
+
+  - dialog for latex/image help: https://codemirror.net/doc/manual.html#addon_dialog
+  - trailing whitespace: https://codemirror.net/demo/trailingspace.html
+  - code folding: https://codemirror.net/demo/folding.html
+  - marks and comments on text: https://codemirror.net/demo/lint.html
+  - mark the line where the cursor is: https://codemirror.net/demo/activeline.html
+  - full screen: https://codemirror.net/demo/fullscreen.html
 
 
 

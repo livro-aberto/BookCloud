@@ -260,6 +260,11 @@ def menu_bar(project=None, branch=None):
                                           'name': 'requests', 'style': 'attention'})
     return { 'left': left, 'right': right}
 
+def get_log(project, branch):
+    git_api = get_git(project, branch)
+    return git_api.log('-20', '--graph', '--abbrev-commit','--decorate',
+                       "--format=format:%an (%ar): %s - %d", '--all')
+
 @bookcloud.route('/')
 def home():
     path = 'repos'
@@ -319,7 +324,8 @@ def project(project):
     project_id = Project.query.filter_by(name=project).first().id
     master = Branch.query.filter_by(project_id=project_id, name='master').first()
     tree = [ get_sub_branches(master) ]
-    return render_template('project.html', tree=tree, menu=menu)
+    log = get_log(project, 'master')
+    return render_template('project.html', tree=tree, log=log, menu=menu)
 
 @bookcloud.route('/<project>/pdf')
 @bookcloud.route('/<project>/<branch>/pdf')
@@ -338,7 +344,8 @@ def branch(project, branch):
             if pendencies:
                 return pendencies
     menu = menu_bar(project, branch)
-    return render_template('branch.html', menu=menu)
+    log = get_log(project, branch)
+    return render_template('branch.html', menu=menu, log=log)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
@@ -536,8 +543,9 @@ def merge(project, branch, other):
         write_file(join('repos', project, branch, 'merging.json'), json.dumps(merging))
     menu = {'right': [{'name': branch,
                        'url': url_for('.merge', project=project, branch=branch, other=other)}]}
+    log = get_log(project, other)
     return render_template('merge.html', modified=merging['modified'],
-                           reviewed=merging['reviewed'], other=other,
+                           reviewed=merging['reviewed'], other=other, log=log,
                            menu=menu)
 
 @login_required
