@@ -257,6 +257,8 @@ texinfo_documents = [
    'Miscellaneous'),
 ]
 
+tikz_tikzlibraries = 'intersections'
+
 # Documents to append as an appendix to all manuals.
 #texinfo_appendices = []
 
