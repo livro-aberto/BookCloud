@@ -193,7 +193,12 @@ htmlhelp_basename = 'linuxdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
+tikz_tikzlibraries = 'intersections, arrows, arrows.meta, mathrsfs'
+tikz_latex_preamble = ''
+
 latex_elements = {
+    'preamble': '''\usepackage{tikz}''' + tikz_latex_preamble + '''
+    \usetikzlibrary{''' + tikz_tikzlibraries + '''}''',
 # The paper size ('letterpaper' or 'a4paper').
 #'papersize': 'letterpaper',
 
@@ -257,7 +262,7 @@ texinfo_documents = [
    'Miscellaneous'),
 ]
 
-tikz_tikzlibraries = 'intersections'
+
 
 # Documents to append as an appendix to all manuals.
 #texinfo_appendices = []
