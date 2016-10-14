@@ -16,6 +16,10 @@ from flask_babel import Babel, gettext as _
 
 from wtforms import Form, BooleanField, StringField, validators
 
+# for timeouts
+import subprocess, threading
+
+
 import codecs # deals with encoding better
 import sphinx
 
@@ -37,6 +41,26 @@ class MessageForm(Form):
         validators.Regexp('^[\w ,.?!-]+$',
                           message="Messages must contain only a-zA-Z0-9_-,.!? and space"),
     ])
+
+# to run a process with timeout
+class Command(object):
+    def __init__(self, cmd):
+        self.cmd = cmd
+        self.process = None
+
+    def run(self, timeout):
+        def target():
+            self.process = subprocess.Popen(self.cmd, shell=True)
+            self.process.communicate()
+
+        thread = threading.Thread(target=target)
+        thread.start()
+
+        thread.join(timeout)
+        if thread.is_alive():
+            flash(_('Process is taking too long and will be terminated!'), 'error')
+            self.process.terminate()
+            thread.join()
 
 @babel.localeselector
 def get_locale():
@@ -223,7 +247,10 @@ def build(project, branch):
     # os.chdir(previous_wd)
     # return True
     command = 'sphinx-build -c ' + config_path + ' ' + source_path + ' ' + build_path
-    os.system(command)
+
+    process = Command(command)
+    process.run(timeout=10)
+    #os.system(command)
     return True
 
 def build_latex(project, branch):
@@ -472,7 +499,7 @@ def edit(project, branch, filename):
     pendencies = get_merge_pendencies(project, branch, current_user.username)
     if pendencies:
         return pendencies
-    update_branch(project, branch)
+    # update_branch(project, branch)
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
     branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
     if request.method == 'POST':
