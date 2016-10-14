@@ -70,11 +70,13 @@ def test_page_urls(client):
                                    branch='master',
                                    filename='index'),
                            follow_redirects=True,
-                           data=dict(code='Title of test page\n=================='))
+                           data=dict(code='Title of test page\n==================',
+                                     html_scroll=0, edit_scroll=0))
     response = client.get(url_for('bookcloud.view',
                               project=new_project_name,
                               branch='master',
                               filename='index'))
+
     assert b'Title of test page' in response.data
 
     # Commit change
@@ -129,7 +131,8 @@ def test_page_urls(client):
                                    filename='index'),
                            follow_redirects=True,
                            data=dict(code=u'Title of test page\n==================\n\nSome contents\n'
-                                     + u'\u0420\u043e\u0441\u0441\u0438\u044f'))
+                                     + u'\u0420\u043e\u0441\u0441\u0438\u044f',
+                                     html_scroll=0, edit_scroll=0))
 
     # Commit change
     response = client.post(url_for('bookcloud.commit',
