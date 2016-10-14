@@ -9,7 +9,7 @@ import application
 
 app = application.create_app(dict(
     TESTING = True,
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///db.sqlite',
+    SQLALCHEMY_DATABASE_URI = 'mysql://gutosurrex:w084jwgjhhq2mcmcsw@localhost/bookcloud',
 ))
 
 db = application.db

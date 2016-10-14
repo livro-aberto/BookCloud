@@ -7,10 +7,11 @@ from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
 from application import app, db, User, Project, Branch
 import string
-from shutil import copyfile
+from shutil import copyfile, rmtree
 import git
 from difflib import HtmlDiff
 import traceback
+from datetime import datetime, timedelta
 
 from flask_babel import Babel, gettext as _
 
@@ -102,14 +103,35 @@ def update_subtree(project, branch):
         project_id = Project.query.filter_by(name=project).first().id
         branch_id = Branch.query.filter_by(project_id=project_id, name=branch).first().id
         children = Branch.query.filter_by(origin_id=branch_id)
+        branch_obj = get_branch_by_name(project, branch)
         for child in children:
             if child.name != 'master':
                 update_subtree(project, child.name)
+        origin = get_branch_origin(project, branch).name
+        origin_pendencies = get_requests(project, origin)
+        if (branch == 'master' or children.first()
+            or is_dirty(project, branch) or not branch_obj.expires
+            or branch in origin_pendencies):
+            branch_obj.expiration = None
+        else:
+            current_time = datetime.utcnow()
+            if branch_obj.expiration:
+                if current_time > branch_obj.expiration:
+                    # Delete branch
+                    Branch.query.filter_by(id=branch_obj.id).delete()
+                    db.session.commit()
+                    branch_folder = join('repos', project, branch)
+                    rmtree(branch_folder)
+                    flash(_('Branch %s has been killed') % branch, 'info')
+            else:
+                flash(_('Branch %s has been marked obsolete') % branch, 'info')
+                branch_obj.expiration = current_time + timedelta(days=2)
+                db.session.commit()
 
 def update_branch(project, branch):
     # update from reviewer (if not master)
     if branch != 'master' and not is_dirty(project, branch):
-        origin_branch = get_branch_origin(project, branch)
+        origin_branch = get_branch_origin(project, branch).name
         git_api = get_git(project, branch)
         git_api.fetch()
         git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
@@ -125,7 +147,6 @@ def is_dirty(project, branch):
     repo_path = join('repos', project, branch, 'source')
     return git.Repo(repo_path).is_dirty()
 
-
 def get_branch_by_name(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     return Branch.query.filter_by(project_id=project_id, name=branch).first()
@@ -136,6 +157,9 @@ def package():
     if 'project' in request.view_args:
         sent_package['project'] = request.view_args['project']
         if 'branch' in request.view_args:
+            branch_obj = get_branch_by_name(request.view_args['project'], request.view_args['branch'])
+            branch_obj.expiration = None
+            db.session.commit()
             sent_package['branch'] = request.view_args['branch']
     sent_package['is_dirty'] = is_dirty
     sent_package['get_requests'] = get_requests
@@ -190,7 +214,7 @@ def get_sub_branches(branch_obj):
 def get_branch_origin(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
-    return Branch.query.filter_by(id=origin_id).first().name
+    return Branch.query.filter_by(id=origin_id).first()
 
 def create_branch(project, origin, branch, user_name):
     # Clone repository from a certain origin branch
@@ -203,9 +227,10 @@ def create_branch(project, origin, branch, user_name):
     git_api.checkout('HEAD', b=branch)
 
     project_id = Project.query.filter_by(name=project).first().id
-    origin_id = Branch.query.filter_by(project_id=project_id, name=origin).first().id
+    origin_obj = Branch.query.filter_by(project_id=project_id, name=origin).first()
+    origin_obj.expiration = None
     owner_id = User.query.filter_by(username=user_name).first().id
-    new_branch = Branch(branch, project_id, origin_id, owner_id)
+    new_branch = Branch(branch, project_id, origin_obj.id, owner_id)
 
     db.session.add(new_branch)
     db.session.commit()
@@ -431,7 +456,7 @@ def finish(project, branch):
     git_api.commit('-m', 'Merge ' + merging['branch'])
     merge_file_path = join('repos', project, branch, 'merging.json')
     os.remove(merge_file_path)
-    origin = get_branch_origin(project, branch)
+    origin = get_branch_origin(project, branch).name
     if branch != origin:
         git_api.push('origin', branch)
         flash(_('Page submitted to _%s') % origin, 'info')
@@ -510,7 +535,7 @@ def commit(project, branch):
         else:
             message = _('Some changes')
         repo.index.commit(message, author=author)
-        origin = get_branch_origin(project, branch)
+        origin = get_branch_origin(project, branch).name
         if branch != origin:
             git_api = repo.git
             git_api.push('origin', branch)

@@ -44,7 +44,9 @@
           {% endif %}
           - <a href="{{ url_for('.pdf', project=project,
           branch=item['branch'].name) }}">pdf</a>
-
+          {% if item['branch'].expires %}
+            expires ({{ item['branch'].expiration }})
+          {% endif %}
           {% if item['subtree'] != [] %}
             <ul>
               {{ loop(item['subtree']) }}
