@@ -578,7 +578,8 @@ def commit(project, branch):
         flash('Change commited', 'info')
         return redirect(url_for('.branch', project=project, branch=branch))
     menu = menu_bar(project, branch)
-    return render_template('commit.html', menu=menu, form=form)
+    diff = repo.git.diff('--cached')
+    return render_template('commit.html', menu=menu, form=form, diff=diff)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/merge/<other>')
