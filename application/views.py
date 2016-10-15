@@ -190,6 +190,7 @@ def package():
     def has_requests(project, branch):
         return len(get_requests(project, branch)) > 0
     sent_package['has_requests'] = has_requests
+    sent_package['get_log_diff'] = get_log_diff
     sent_package['get_branch_by_name'] = get_branch_by_name
     sent_package['_'] = _
     return sent_package
@@ -316,6 +317,12 @@ def get_log(project, branch):
     git_api = get_git(project, branch)
     return git_api.log('-20', '--graph', '--abbrev-commit','--decorate',
                        "--format=format:%an (%ar): %s %d", '--all')
+
+def get_log_diff(project, origin, branch):
+    git_api = get_git(project, origin)
+    return git_api.log(origin + '..' + branch, '--graph',
+                       '--abbrev-commit','--decorate', '--right-only',
+                       "--format=format:%an (%ar): %s %d")
 
 @bookcloud.route('/')
 def home():

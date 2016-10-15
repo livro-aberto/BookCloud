@@ -5,6 +5,16 @@
 {% macro contents() %}
 <h1>{{ _('Merging from _%(other)s (by @%(owner)s)') | format(other=other, owner=get_branch_by_name(project, other).owner.username) }}</h1>
 
+
+<h2>{{ _('Description of contributions by _%s:') % other }}
+
+  <div class="code highlight-default">
+    <div class="highlight">
+      <pre><span class="n" style="font-size:small">{{ get_log_diff(project, branch, other) }}</span></pre>
+    </div>
+  </div>
+
+
 {% if modified %}
 <h2>{{ _('Modifications not yet reviewed') }}</h2>
 <ul id="navigation">
@@ -37,16 +47,6 @@
 <h2>{{ _('You have finished all the reviews') }}</h2>
 <a href="{{ url_for('.finish', project=project, branch=branch) }}">{{ _('Finish merge') }}</a>
 {% endif %}
-
-<h2>{{ _('Last commits in _%s:') % other }}
-
-  <div class="code highlight-default">
-    <div class="highlight">
-      <pre><span class="n" style="font-size:small">{{ log }}</span></pre>
-    </div>
-  </div>
-
-
 
 {% endmacro %}
 
