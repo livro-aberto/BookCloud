@@ -40,7 +40,12 @@
 
 <h2>{{ _('Last commits in _%s:') % other }}
 
-  <pre><code><font size="1">{{ log }}</font></code></pre>
+  <div class="code highlight-default">
+    <div class="highlight">
+      <pre><span class="n" style="font-size:small">{{ log }}</span></pre>
+    </div>
+  </div>
+
 
 
 {% endmacro %}

@@ -59,9 +59,13 @@
     It has no sub-branches.
   {% endif %}
 
-  <h2>{{ _('Last commits in _master:') }}
+    <h2>{{ _('Last commits in _master:') }}
+      <div class="code highlight-default">
+        <div class="highlight">
+          <pre><span class="n" style="font-size:small">{{ log }}</span></pre>
+        </div>
+      </div>
 
-    <pre><code><font size="1">{{ log }}</font></code></pre>
 </ul>
 {% endmacro %}
 
