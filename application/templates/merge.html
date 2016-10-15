@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ _('Merging') }}{{ branch }}{% endblock%}
+{% block title %}{{ _('Merging _%s') % branch }}{% endblock%}
 
 {% macro contents() %}
 <h1>{{ _('Merging from _%(other)s (by @%(owner)s)') | format(other=other, owner=get_branch_by_name(project, other).owner.username) }}</h1>

@@ -153,7 +153,8 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   other='feature'))
-    assert _('Consolidando').encode('utf8') in response.data
+    assert (_('Consolidando').encode('utf8') in response.data
+            or _('Merging').encode('utf8') in response.data)
 
     # Accepting suggestions
     response = client.get(url_for('bookcloud.accept',
@@ -233,7 +234,8 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='feature',
                                   other='typo'))
-    assert 'Consolidando' in response.data
+    assert ('Consolidando' in response.data
+            or 'Merging' in response.data)
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='feature',
@@ -261,7 +263,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   other='feature'))
-    assert 'Consolidando' in response.data
+    assert ('Consolidando' in response.data or 'Merging' in response.data)
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='master',
