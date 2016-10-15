@@ -149,7 +149,7 @@ def update_subtree(project, branch):
                     flash(_('Branch %s has been killed') % branch, 'info')
             else:
                 flash(_('Branch %s has been marked obsolete') % branch, 'info')
-                branch_obj.expiration = current_time + timedelta(days=2)
+                branch_obj.expiration = current_time + timedelta(days=1)
                 db.session.commit()
 
 def update_branch(project, branch):
