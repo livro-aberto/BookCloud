@@ -1,7 +1,8 @@
 # Urgent:
 
+  - implement "steal branch" from parent owner
+  - limit number of visits: https://flask-limiter.readthedocs.io/en/stable/
   - allow user to delete branch (setup expiration time for branches?)
-  - add more presence of the database, such as when listing projects?
 
 # Features:
 
@@ -10,16 +11,12 @@
   - upload figures
     - use safe_join to avoid malicious filenames
   - implement comments and issues
-  - view commits in branch or project page:
-    - git log --pretty="format:%h %an" --graph
-    - http://ricostacruz.com/cheatsheets/git-log-format.html
 
   (medium)
   - ability to rename file (possibly with template for name)
   - ability to remove file
   - add template names for new files
   - implement delete project
-  - make a timeout for sphinx-build: http://stackoverflow.com/a/4825933
 
 # Bugs:
 
@@ -29,13 +26,9 @@
 # Interface:
 
   (important)
+  - ability to view old commits (and branch from it?)
   - add branch options including:
     modifications, diff with master, owner, subtree, requests, latest commits...
-
-  - add master and parent branches to menu bar?
-  - split the branch tree into active and inactive branches.
-    only show the smallest tree that contains all the active
-    then below show the full tree
 
   - add user options, such as: language
   - add project options  (see sphinx's conf.py)
@@ -45,7 +38,6 @@
 
 # Organization of code:
 
-  - find patterns in functions, such as: pendencies, is merging...
   - replace all possible function calls using names to objects (user, project, branch...)
   - create a function to fix file.extension handling
   - is it possible to remove all the menu = menu_bar() calls, by using context processors?
