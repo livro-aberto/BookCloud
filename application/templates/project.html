@@ -44,7 +44,9 @@
           {% endif %}
           - <a href="{{ url_for('.pdf', project=project,
           branch=item['branch'].name) }}">pdf</a>
-
+          {% if item['branch'].expires %}
+            expires ({{ item['branch'].expiration }})
+          {% endif %}
           {% if item['subtree'] != [] %}
             <ul>
               {{ loop(item['subtree']) }}
@@ -57,9 +59,13 @@
     It has no sub-branches.
   {% endif %}
 
-  <h2>{{ _('Last commits in _master:') }}
+    <h2>{{ _('Last commits in _master:') }}
+      <div class="code highlight-default">
+        <div class="highlight">
+          <pre><span class="n" style="font-size:small">{{ log }}</span></pre>
+        </div>
+      </div>
 
-    <pre><code><font size="1">{{ log }}</font></code></pre>
 </ul>
 {% endmacro %}
 

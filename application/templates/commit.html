@@ -16,6 +16,16 @@
     <input type=submit value=Register>
   </form>
 
+<h2>{{ _('Changes that you are committing now') }}</h2>
+
+  <div class="code highlight-default">
+    <div class="highlight">
+      <pre><span class="n" style="font-size:small">{{ diff }}</span></pre>
+    </div>
+  </div>
+
+
+
 </ul>
 {% endmacro %}
 

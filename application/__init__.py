@@ -50,18 +50,20 @@ class Branch(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     origin_id = db.Column(db.Integer, db.ForeignKey('branch.id'))
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    expires = db.Column('expires', db.Boolean(), nullable=False)
+    expiration =  db.Column(db.DateTime)
+
     owner = relationship('User')
     origin = relationship('Branch', remote_side=id)
     collaborators = relationship('Branch')
     project = relationship('Project', back_populates='branches')
-
 
     def __init__(self, name, project_id, origin_id, owner_id):
         self.name = name
         self.owner_id = owner_id
         self.origin_id = origin_id
         self.project_id = project_id
-
+        self.expires = True
 
 def create_app(extra_config_settings={}):
     """

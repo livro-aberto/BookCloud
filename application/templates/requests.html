@@ -10,6 +10,12 @@
     <li>
       Request from <a href="{{ url_for('.merge', project=project, branch=branch, other=b) }}">{{ b }}</a>, by @{{ get_branch_by_name(project, b).owner.username }}
     </li>
+      <div class="code highlight-default">
+        <div class="highlight">
+          <pre><span class="n" style="font-size:small">{{ get_log_diff(project, branch, b) }}</span></pre>
+        </div>
+      </div>
+
     {% endfor %}
     </ul>
 
