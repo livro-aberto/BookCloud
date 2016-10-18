@@ -13,6 +13,7 @@
 
 /* -- page layout ----------------------------------------------------------- */
 
+
 body {
     font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva',
                  'Verdana', sans-serif;
@@ -406,6 +407,12 @@ table.docutils {
     padding: 0;
     border: 1px solid white;
     background-color: #f7f7f7;
+    margin-left: auto; 
+    margin-right: auto;
+}
+
+.figure {
+    text-align: center;
 }
 
 table.docutils td, table.docutils th {
@@ -501,3 +508,5 @@ ol > li:before {
 }
 
 /* -- end ------------------------------------------------------------------- */
+
+

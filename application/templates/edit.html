@@ -88,31 +88,44 @@ div.bodywrapper {
           </nobr>
           <nobr>
             {{ _('style') }}
-            <button onclick="insertAround('**','**')"><b>B</b></button>
-            <button onclick="insertAround('*','*')" style="font-family:verdana;"><i>I</i></button>
-            <button onclick="insertAround('\n* a\n* b','')">&#x2D57</button>
-            <button onclick="insertAround('\na) foo\nb) bar','')">1.</button>
-            <button onclick="insertAround('\n.. note::\n\n   something','')">!</button>
+            <button onclick="insertAround('**','**')"
+                    title="{{ _('Bold') }}"><b>B</b></button>
+            <button onclick="insertAround('*','*')" style="font-family:verdana;"
+                    title="{{ _('Italic') }}"><i>I</i></button>
+            <button onclick="insertAround('\n* a\n* b','')"
+                    title="{{ _('Itemize') }}">&#x2D57</button>
+            <button onclick="insertAround('\na) foo\nb) bar','')"
+                    title="{{ _('Enumerate') }}">a)</button>
+            <button onclick="insertAround('\n.. note::\n\n   something','')"
+                    title="{{ _('Note') }}">!</button>
           </nobr>
           <nobr>
             {{ _('image') }}
-            <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">
+
+            <button onclick="insertAround('\n.. figure:: <link da figura>\n\n   :width: 200px\n   :align: center\n\n   legenda', '')"
+                    title="{{ _('figure') }}">
               : <font size="1">&#x263a</font>
             </button>
+            {#
             <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">
               &#x263a
             </button>
-            <button onclick="insertAround('\n+---+---+\n| A | B |\n+===+===+\n| 0 | 1 |\n+---+---+\n| 2 | 3 |\n+---+---+','')">
+            #}
+            <button onclick="insertAround('.. table:: Legenda\n   :widths: 1 3\n   :column-alignment: left center\n\n   +---+---+\n   | A | B |\n   +===+===+\n   | 0 | 1 |\n   +---+---+\n   | 2 | 3 |\n   +---+---+\n','')"
+                    title="{{ _('Table') }}">
               &#x25EB
             </button>
-            <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')">
+            <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')"
+                    title="{{ _('Tikz figure') }}">
               &#x25B3
             </button>
           </nobr>
           <nobr>
             Eq.:
-            <button onclick="insertAround('`a`','')">: &#x1D4CD</button>
-            <button onclick="insertAround('\n.. math::\n\n   a^2 = b','')">&#x1D4E7</button>
+            <button onclick="insertAround('`a = b`','')"
+                    title="{{ _('Inline math') }}">: &#x1D4CD</button>
+            <button onclick="insertAround('\n.. math::\n\n   a^2 = b','')"
+                    title="{{ _('Displayed equation') }}">&#x1D4E7</button>
           </nobr>
           <nobr>
             {{ _('math') }}:
@@ -128,6 +141,7 @@ div.bodywrapper {
             <button onclick="insertAround('\\mathbb{N}','')">&#x2115</button>
             <button onclick="insertAround('\\in','')">&#x2208</button>
             <button onclick="insertAround('\\subset','')">&#x2282</button>
+            <button onclick="insertAround('\\overrightarrow{','}')">x&#8407</button>
           </nobr>
         <form id="myform" action="{{ url_for('.edit', project=project, branch=branch,
                                   filename=filename) }}" method="post">
