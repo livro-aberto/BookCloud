@@ -14,3 +14,4 @@ Flask-Babel>=0.11.1
 gitpython>=2.0.8
 sphinxcontrib-tikz>=0.4.2
 mysql-python
+cloud-sptheme>=1.7.1
