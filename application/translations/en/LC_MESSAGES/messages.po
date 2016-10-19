@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-04 19:46-0300\n"
+"POT-Creation-Date: 2016-10-18 22:14-0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -17,83 +17,92 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.3.4\n"
 
-#: views.py:150
+#: views.py:62
+msgid "Process is taking too long and will be terminated!"
+msgstr ""
+
+#: views.py:149
+#, python-format
+msgid "Branch %s has been killed"
+msgstr "Ramo %s foi eliminado"
+
+#: views.py:151
+#, python-format
+msgid "Branch %s has been marked obsolete"
+msgstr "Ramo %s foi marcado como obsoleto"
+
+#: views.py:209
 msgid "Initial commit"
 msgstr "Submissao inicial"
 
-#: views.py:243
+#: views.py:306
 msgid "You have uncommitted changes!!!"
 msgstr "Você tem mudanças não submetidas!!!"
 
-#: views.py:248
+#: views.py:311
 msgid "You have unreviewed requests!!!"
 msgstr "Você tem requerimentos não revisados!!!"
 
-#: views.py:295
+#: views.py:369
 msgid "This project name already exists"
 msgstr "Este nome de projeto já existe"
 
-#: views.py:298
+#: views.py:372
 msgid "Project created successfuly!"
 msgstr "Projeto criado com sucesso"
 
-#: views.py:344
+#: views.py:420
 msgid "This branch name already exists"
 msgstr "Esse nome de ramo já existe"
 
-#: views.py:349
+#: views.py:425
 msgid "Project cloned successfuly!"
 msgstr "Ramo criado com sucesso"
 
-#: views.py:363 views.py:391 views.py:404 views.py:452 views.py:476
-#: views.py:532 views.py:567 views.py:594
+#: views.py:439 views.py:467 views.py:480 views.py:529 views.py:556
+#: views.py:615 views.py:650 views.py:677
 msgid "You are not the owner of this branch"
 msgstr "Você não é o proprietário deste ramo"
 
-#: views.py:371
+#: views.py:447
 msgid "This file name name already exists"
 msgstr "Esse nome de arquivo já existe"
 
-#: views.py:380
-#, python-format
-msgid "Adding file %s"
-msgstr "Adicionando arquivo %s"
-
-#: views.py:381
+#: views.py:457
 msgid "File created successfuly!"
 msgstr "Arquivo criado com sucesso"
 
-#: views.py:394 views.py:508
+#: views.py:470 views.py:590
 msgid "Commit your changes before reviewing requests"
 msgstr "Submeta suas mudanças antes de revisar requerimentos"
 
-#: views.py:408 views.py:536 views.py:572 views.py:598
+#: views.py:484 views.py:619 views.py:655 views.py:681
 msgid "You are not merging"
 msgstr "Você não está consolidando uma submissão"
 
-#: views.py:411
+#: views.py:487
 msgid "You still have unreviewed files"
 msgstr "Você ainda tem arquivos não revisados"
 
-#: views.py:420 views.py:496
+#: views.py:496 views.py:576
 #, python-format
 msgid "Page submitted to _%s"
 msgstr "Submissão submetida para _%s"
 
-#: views.py:422
+#: views.py:498
 #, python-format
 msgid "You have finished merging _%s"
 msgstr "Você finalizou a consolidação do ramo _%s"
 
-#: views.py:480
+#: views.py:560
 msgid "You need to finish merging"
 msgstr "Você precisa de finalizar a consolidação"
 
-#: views.py:490
+#: views.py:570
 msgid "Some changes"
 msgstr "Algumas mudanças"
 
-#: views.py:515
+#: views.py:597
 #, python-format
 msgid "Branch _%s has no requests now"
 msgstr "Ramo _%s não possui requerimentos agora"
@@ -109,7 +118,12 @@ msgstr "Visitar ramo"
 
 #: templates/branch.html:15
 msgid "Create a new file"
-msgstr "Crear novo arquivo"
+msgstr "Criar novo arquivo"
+
+#: templates/branch.html:19
+#, python-format
+msgid "Last commits in _%s:"
+msgstr "Últimas submissões em _%s"
 
 #: templates/clone.html:5 templates/clone.html:8
 msgid "Create your own branch of this project"
@@ -127,6 +141,10 @@ msgstr "Submeta suas mudanças"
 msgid "Choose your commit message"
 msgstr "Escolha uma mensagem descrevendo a submissão"
 
+#: templates/commit.html:19
+msgid "Changes that you are committing now"
+msgstr "Mudanças que você está submetendo agora"
+
 #: templates/diff.html:3 templates/diff.html:30
 #, python-format
 msgid "_%(branch)s has suggested a change to the file: %(filename)s"
@@ -141,21 +159,21 @@ msgstr "O arquivo proposto (esquerda) e a versão antiga (direita)"
 msgid "Edit: %(filename)s"
 msgstr "Editar: %(filename)s"
 
-#: templates/edit.html:68
+#: templates/edit.html:84
 msgid "sections"
 msgstr "seções"
 
-#: templates/edit.html:74
+#: templates/edit.html:90
 msgid "style"
 msgstr "estilo"
 
-#: templates/edit.html:82
+#: templates/edit.html:98
 msgid "image"
 msgstr "imagem"
 
-#: templates/edit.html:94
+#: templates/edit.html:118
 msgid "math"
-msgstr "matemática"
+msgstr "mat"
 
 #: templates/home.html:3 templates/home.html:7
 msgid "Projects list"
@@ -170,8 +188,9 @@ msgid "Create new project"
 msgstr "Criar novo projeto"
 
 #: templates/merge.html:3
-msgid "Merging"
-msgstr "Consolidando"
+#, python-format
+msgid "Merging _%s"
+msgstr "Consolidando _%s"
 
 #: templates/merge.html:6
 #, python-format
@@ -179,30 +198,35 @@ msgid "Merging from _%(other)s (by @%(owner)s)"
 msgstr "Consolidando desde _%(other)s (por @%(owner)s)"
 
 #: templates/merge.html:9
+#, python-format
+msgid "Description of contributions by _%s:"
+msgstr "Descrições das contribuições de _%s"
+
+#: templates/merge.html:19
 msgid "Modifications not yet reviewed"
 msgstr "Modificações ainda não revisadas"
 
-#: templates/merge.html:15
+#: templates/merge.html:25
 msgid "Review file"
 msgstr "Revisar arquivo"
 
-#: templates/merge.html:16
+#: templates/merge.html:26
 msgid "View differences"
 msgstr "Ver diferenças"
 
-#: templates/merge.html:17
+#: templates/merge.html:27
 msgid "Accept suggestions"
 msgstr "Aceitar submissão"
 
-#: templates/merge.html:26
+#: templates/merge.html:36
 msgid "Changes reviewed"
 msgstr "Mudanças revisadas"
 
-#: templates/merge.html:37
+#: templates/merge.html:47
 msgid "You have finished all the reviews"
 msgstr "Você terminou todas as revisões"
 
-#: templates/merge.html:38
+#: templates/merge.html:48
 msgid "Finish merge"
 msgstr "Terminar consolidação"
 
@@ -225,7 +249,14 @@ msgstr "Lista de ramos"
 #: templates/project.html:8
 #, python-format
 msgid "Here you can see the project: %(project)s..."
-msgstr "Aqui você pode ver o projeto: %(project)s..."
+msgstr "Para visualizar a versão mais revisada do projeto, clique em 'master'. "
+"Se quiser editar o texto, clique no eixo que contém o texto que você pretende editar "
+"(eixos: Geometria, Grandezas e Medidas, Probabilidade e Estatística, "
+"Números e Operações, Álgebra e Funções) e lá clique em 'editar'."
+
+#: templates/project.html:62
+msgid "Last commits in _master:"
+msgstr "Últimas alterações"
 
 #~ msgid "Project branches"
 #~ msgstr "Ramos do projeto"
@@ -261,16 +292,16 @@ msgstr "Aqui você pode ver o projeto: %(project)s..."
 #~ msgstr "Submeter"
 
 #~ msgid "Name should have..."
-#~ msgstr ""
+#~ msgstr "Nomes devem ter..."
 
 #~ msgid "Download "
-#~ msgstr ""
+#~ msgstr "Baixar "
 
 #~ msgid "Here you can see the project: %s..."
-#~ msgstr ""
+#~ msgstr "Aqui você pode ver o projeto: %s..."
 
 #~ msgid "Project (%s), branch (_%s)"
-#~ msgstr ""
+#~ msgstr "Projeto (%s), romo (_%s)"
 
 #~ msgid "Edit:"
 #~ msgstr "Editar:"
@@ -288,19 +319,19 @@ msgstr "Aqui você pode ver o projeto: %(project)s..."
 #~ msgstr "Estilo"
 
 #~ msgid "Exit"
-#~ msgstr ""
+#~ msgstr "Sair"
 
 #~ msgid "Save"
-#~ msgstr ""
+#~ msgstr "Salvar"
 
 #~ msgid "Commit"
-#~ msgstr ""
+#~ msgstr "Submeter"
 
 #~ msgid "Message should have..."
-#~ msgstr ""
+#~ msgstr "Mensagem deve conter..."
 
 #~ msgid "Choose message"
-#~ msgstr ""
+#~ msgstr "Escolha a mensagem"
 
 #~ msgid "Merging from _"
 #~ msgstr "Consolidando do ramo _"
@@ -340,4 +371,10 @@ msgstr "Aqui você pode ver o projeto: %(project)s..."
 
 #~ msgid "View the branch index"
 #~ msgstr ""
+
+#~ msgid "Adding file %s"
+#~ msgstr "Adicionando arquivo %s"
+
+#~ msgid "Merging"
+#~ msgstr "Consolidando"
 

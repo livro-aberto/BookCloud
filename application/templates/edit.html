@@ -92,7 +92,15 @@ div.bodywrapper {
             <button onclick="insertAround('*','*')" style="font-family:verdana;"><i>I</i></button>
             <button onclick="insertAround('\n* a\n* b','')">&#x2D57</button>
             <button onclick="insertAround('\na) foo\nb) bar','')">1.</button>
-            <button onclick="insertAround('\n.. note::\n\n   something','')">!</button>
+          </nobr>
+          <nobr>
+            {{ _('boxes') }}
+            <button onclick="insertAround('\n.. admonition:: Para o professor\n\n   something','')">Pr</button>
+            <button onclick="insertAround('\n.. admonition:: Resposta \n\n   something','')">Re</button>
+            <button onclick="insertAround('\n.. admonition:: Definição \n\n   something','')">Def</button>
+            <button onclick="insertAround('\n.. admonition:: Teorema \n\n   something','')">Teo</button>
+            <button onclick="insertAround('\n.. admonition:: Exemplo \n\n   something','')">Ex</button>
+            <button onclick="insertAround('\n.. admonition:: Atividade \n\n   something','')">At</button>
           </nobr>
           <nobr>
             {{ _('image') }}
