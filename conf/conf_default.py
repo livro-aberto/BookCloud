@@ -198,7 +198,7 @@ tikz_latex_preamble = ''
 
 latex_elements = {
     'preamble': '''\usepackage{tikz}''' + tikz_latex_preamble + '''
-    \usetikzlibrary{''' + tikz_tikzlibraries + '''}''',
+    \usetikzlibrary{''' + tikz_tikzlibraries + '''}''' + '''\n\renewcommand{\labelenumi}{\alph{enumi})}''',
 # The paper size ('letterpaper' or 'a4paper').
 #'papersize': 'letterpaper',
 
