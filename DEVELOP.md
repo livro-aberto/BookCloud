@@ -24,7 +24,7 @@ You may need:
 
     source vir/bin/activate
 
-Then
+Then in folder `applications` type:
 
     pybabel extract -F babel.cfg -o messages.pot .
 

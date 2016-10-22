@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-18 22:14-0200\n"
+"POT-Creation-Date: 2016-10-21 22:15-0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: views.py:62
 msgid "Process is taking too long and will be terminated!"
-msgstr ""
+msgstr "O processo está demorando muito e será terminado!"
 
 #: views.py:149
 #, python-format
@@ -167,11 +167,75 @@ msgstr "seções"
 msgid "style"
 msgstr "estilo"
 
+#: templates/edit.html:92
+msgid "Bold"
+msgstr "Negrito"
+
+#: templates/edit.html:94
+msgid "Italic"
+msgstr "Itálico"
+
+#: templates/edit.html:96
+msgid "Itemize"
+msgstr "Ítens"
+
 #: templates/edit.html:98
+msgid "Enumerate"
+msgstr "Enumeração"
+
+#: templates/edit.html:101
+msgid "boxes"
+msgstr "caixas"
+
+#: templates/edit.html:103
+msgid "Para o professor"
+msgstr ""
+
+#: templates/edit.html:105
+msgid "Resposta"
+msgstr ""
+
+#: templates/edit.html:107
+msgid "Definição"
+msgstr ""
+
+#: templates/edit.html:109
+msgid "Teorema"
+msgstr ""
+
+#: templates/edit.html:111
+msgid "Exemplo"
+msgstr ""
+
+#: templates/edit.html:113
+msgid "Atividade"
+msgstr ""
+
+#: templates/edit.html:116
 msgid "image"
 msgstr "imagem"
 
 #: templates/edit.html:118
+msgid "figure"
+msgstr "figura"
+
+#: templates/edit.html:127
+msgid "Table"
+msgstr "Tabela"
+
+#: templates/edit.html:131
+msgid "Tikz figure"
+msgstr "Figura Tikz"
+
+#: templates/edit.html:138
+msgid "Inline math"
+msgstr "Matemática na mesma linha"
+
+#: templates/edit.html:140
+msgid "Displayed equation"
+msgstr "Equação"
+
+#: templates/edit.html:143
 msgid "math"
 msgstr "mat"
 
@@ -242,19 +306,19 @@ msgstr "Escolha um nome de arquivo"
 msgid "Here you can see all your branches"
 msgstr "Aqui você pode ver todos os seus ramos"
 
-#: templates/project.html:3 templates/project.html:11
+#: templates/project.html:3 templates/project.html:7
 msgid "List of branches"
 msgstr "Lista de ramos"
 
-#: templates/project.html:8
+#: templates/project.html:10
 #, python-format
 msgid "Here you can see the project: %(project)s..."
-msgstr "Para visualizar a versão mais revisada do projeto, clique em 'master'. "
-"Se quiser editar o texto, clique no eixo que contém o texto que você pretende editar "
-"(eixos: Geometria, Grandezas e Medidas, Probabilidade e Estatística, "
-"Números e Operações, Álgebra e Funções) e lá clique em 'editar'."
+msgstr ""
+"Para visualizar a versão mais revisada do projeto, clique em 'master'. Se "
+"quiser editar o texto, clique no eixo mais apropriado e depois clique em "
+"'editar'."
 
-#: templates/project.html:62
+#: templates/project.html:63
 msgid "Last commits in _master:"
 msgstr "Últimas alterações"
 
