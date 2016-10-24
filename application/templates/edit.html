@@ -7,8 +7,11 @@
 <script src="https://codemirror.net/lib/codemirror.js"></script>
 <script src="https://codemirror.net/addon/mode/overlay.js"></script>
 <script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
+<script type="text/javascript" src="/_static/jquery.are-you-sure.js"></script>
 
 <script>
+  var is_changed = 0;
+
   // inserts text around the cursor or selection
   function insertAround(start, end) {
     var doc = editor;
@@ -26,6 +29,7 @@
   }
 
   function save() {
+      is_changed = 0;
       var height = document.getElementById("html_view").scrollTop;
       document.getElementById("html_scroll").value = height;
       var info = editor.getScrollInfo();
@@ -39,6 +43,18 @@
   }
 
   window.onload = scrollWin;
+
+
+  //$('#form').data('serialize',$('#form').serialize()); // On load save form current state
+
+  $(window).bind('beforeunload', function(e){
+    if (is_changed == 1) return true;
+    else e=null; // i.e; if form state change show warning box, else don't show it.
+  });
+
+  //$(function() {
+  //  $('form').areYouSure();
+  //});
 </script>
 
 
@@ -176,6 +192,8 @@ div.bodywrapper {
           lineNumbers: false,
           lineWrapping: true,
         });
+
+        editor.on("change", function(){ is_changed = 1; }  );
       </script>
 
       <div id="html_view" class="flex-item" onload="document.getElementById('html_view').scrollTop = 200;">
