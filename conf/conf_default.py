@@ -39,6 +39,7 @@ html_theme_options = {'nosidebar': False}
 extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
+    'cloud_sptheme.ext.table_styling',
     'sphinxcontrib.tikz'
 ]
 
