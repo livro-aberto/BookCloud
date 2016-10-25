@@ -2,7 +2,10 @@ application/migrations/*
 sphinx_edit/static/sphinx_static/*
 trash/*
 images/*
+
 repos/*
+!repos/README.md 
+
 *.sqlite
 config.py
 vir/*
