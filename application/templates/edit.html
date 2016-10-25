@@ -7,8 +7,11 @@
 <script src="https://codemirror.net/lib/codemirror.js"></script>
 <script src="https://codemirror.net/addon/mode/overlay.js"></script>
 <script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
+<script type="text/javascript" src="/_static/jquery.are-you-sure.js"></script>
 
 <script>
+  var is_changed = 0;
+
   // inserts text around the cursor or selection
   function insertAround(start, end) {
     var doc = editor;
@@ -26,6 +29,7 @@
   }
 
   function save() {
+      is_changed = 0;
       var height = document.getElementById("html_view").scrollTop;
       document.getElementById("html_scroll").value = height;
       var info = editor.getScrollInfo();
@@ -39,6 +43,18 @@
   }
 
   window.onload = scrollWin;
+
+
+  //$('#form').data('serialize',$('#form').serialize()); // On load save form current state
+
+  $(window).bind('beforeunload', function(e){
+    if (is_changed == 1) return true;
+    else e=null; // i.e; if form state change show warning box, else don't show it.
+  });
+
+  //$(function() {
+  //  $('form').areYouSure();
+  //});
 </script>
 
 
@@ -96,12 +112,24 @@ div.bodywrapper {
                     title="{{ _('Itemize') }}">&#x2D57</button>
             <button onclick="insertAround('\na) foo\nb) bar','')"
                     title="{{ _('Enumerate') }}">a)</button>
-            <button onclick="insertAround('\n.. note::\n\n   something','')"
-                    title="{{ _('Note') }}">!</button>
+          </nobr>
+          <nobr>
+            {{ _('boxes') }}
+            <button onclick="insertAround('\n.. admonition:: Para o professor\n\n   texto','')"
+                    title="{{ _('Para o professor') }}">Pr</button>
+            <button onclick="insertAround('\n.. admonition:: Resposta \n\n   texto','')"
+                    title="{{ _('Resposta') }}">Re</button>
+            <button onclick="insertAround('\n.. admonition:: Definição \n\n   texto','')"
+                    title="{{ _('Definição') }}">Def</button>
+            <button onclick="insertAround('\n.. admonition:: Teorema \n\n   texto','')"
+                    title="{{ _('Teorema') }}">Teo</button>
+            <button onclick="insertAround('\n.. admonition:: Exemplo \n\n   texto','')"
+                    title="{{ _('Exemplo') }}">Ex</button>
+            <button onclick="insertAround('\n.. admonition:: Atividade \n\n   texto','')"
+                    title="{{ _('Atividade') }}">At</button>
           </nobr>
           <nobr>
             {{ _('image') }}
-
             <button onclick="insertAround('\n.. figure:: <link da figura>\n\n   :width: 200px\n   :align: center\n\n   legenda', '')"
                     title="{{ _('figure') }}">
               : <font size="1">&#x263a</font>
@@ -164,6 +192,8 @@ div.bodywrapper {
           lineNumbers: false,
           lineWrapping: true,
         });
+
+        editor.on("change", function(){ is_changed = 1; }  );
       </script>
 
       <div id="html_view" class="flex-item" onload="document.getElementById('html_view').scrollTop = 200;">

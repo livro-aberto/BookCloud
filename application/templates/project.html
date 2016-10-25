@@ -4,11 +4,12 @@
 
 {% macro contents() %}
 
+  <h1>{{ _('List of branches') }}</h1>
+
   <p>
     {{ _('Here you can see the project: %(project)s...') | format(project=project) }}
   </p>
 
-  <h1>{{ _('List of branches') }}</h1>
   <ul id="navigation">
 
   <p>
