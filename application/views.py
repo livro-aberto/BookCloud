@@ -179,12 +179,17 @@ def get_branch_by_name(project, branch):
 def package():
     sent_package = {}
     if 'project' in request.view_args:
-        sent_package['project'] = request.view_args['project']
+        project = request.view_args['project']
+        sent_package['project'] = project
         if 'branch' in request.view_args:
-            branch_obj = get_branch_by_name(request.view_args['project'], request.view_args['branch'])
-            branch_obj.expiration = None
+            branch = request.view_args['branch']
+            if current_user.is_authenticated:
+                if current_user.username == get_branch_owner(project, branch):
+                    branch_obj = get_branch_by_name(request.view_args['project'],
+                                                    request.view_args['branch'])
+                    branch_obj.expiration = None
+            sent_package['branch'] = branch
             db.session.commit()
-            sent_package['branch'] = request.view_args['branch']
     sent_package['is_dirty'] = is_dirty
     sent_package['get_requests'] = get_requests
     def has_requests(project, branch):

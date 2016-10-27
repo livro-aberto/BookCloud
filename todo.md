@@ -26,10 +26,12 @@
 # Interface:
 
   (important)
-  - ability to view old commits (and branch from it?)
-  - add branch options including:
+  - make all the links translatable (such as commit, requests...) and translate to Portuguese.
+  - add branch visualizations including:
     modifications, diff with master, owner, subtree, requests, latest commits...
 
+  (useful)
+  - ability to view old commits and branch from it. Now can only be done in GitHub.
   - add user options, such as: language
   - add project options  (see sphinx's conf.py)
     - such as: url, language, title...
