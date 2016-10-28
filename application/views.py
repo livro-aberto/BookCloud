@@ -321,7 +321,7 @@ def menu_bar(project=None, branch=None):
 def get_log(project, branch):
     git_api = get_git(project, branch)
     return git_api.log('-40', '--graph', '--abbrev-commit','--decorate', '--full-history',
-                       "--format=format:%an (%ar): %s %d", '--all')
+                       "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
 
 def get_log_diff(project, origin, branch):
     git_api = get_git(project, origin)
@@ -409,7 +409,7 @@ def branch(project, branch):
                 return pendencies
     menu = menu_bar(project, branch)
     log = get_log(project, branch)
-    return render_template('branch.html', menu=menu, log=log)
+    return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
