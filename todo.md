@@ -11,6 +11,12 @@
   - upload figures
     - use safe_join to avoid malicious filenames
   - implement comments and issues
+    - I would use something like an integer id for the thread and then
+      each comment has its thread and an id of the form:
+      6d8db9:b8237d:c23d79:cd0079:a29822:233a13
+      (6 digits for each sublevel: 16^6 = 16.7 x 10^6)
+    - preserving order with hexadecimals:
+      (a < b) == (format(a, '08X') < format(b, '08X'))
 
   (medium)
   - ability to rename file (possibly with template for name)
@@ -38,6 +44,7 @@
 
 # Organization of code:
 
+  - put helper functions to a separate file and import it in view.py
   - replace all possible function calls using names to objects (user, project, branch...)
   - create a function to fix file.extension handling
   - is it possible to remove all the menu = menu_bar() calls, by using context processors?

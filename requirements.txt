@@ -15,3 +15,4 @@ gitpython>=2.0.8
 sphinxcontrib-tikz>=0.4.2
 mysql-python
 cloud-sptheme>=1.7.1
+docutils-tinyhtmlwriter>=1.2.0

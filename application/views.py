@@ -20,6 +20,9 @@ from wtforms import Form, BooleanField, StringField, validators
 # for timeouts
 import subprocess, threading
 
+# for rst2html
+from docutils.core import publish_string, publish_parts
+from docutils_tinyhtml import Writer
 
 import codecs # deals with encoding better
 import sphinx
@@ -29,6 +32,24 @@ config_path = 'conf'
 bookcloud = Blueprint('bookcloud', __name__, template_folder='templates',)
 
 babel = Babel(app)
+
+def rst2html(rst):
+    writer = Writer()
+    # store full html output to html variable
+    html = publish_string(source=rst,
+                          writer=writer,
+                          writer_name='html',
+                          settings_overrides={'link': 'link', 'top': 'top'})
+    # disable system message in html, no in stderr
+    parts = publish_parts(source=rst,
+                          writer=writer,
+                          writer_name='html',
+                          settings_overrides={'no_system_messages': True})
+    # store only html body
+    body = parts['html_title'] + parts['body'] + parts['html_line'] + \
+        parts['html_footnotes'] + parts['html_citations'] + \
+        parts['html_hyperlinks']
+    return body
 
 class IdentifierForm(Form):
     name = StringField('Identifier', [
