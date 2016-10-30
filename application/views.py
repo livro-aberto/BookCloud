@@ -5,7 +5,7 @@ import flask
 from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
-from application import app, db, User, Project, Branch
+from application import app, db, User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag
 import string
 from shutil import copyfile, rmtree
 import git
@@ -29,7 +29,7 @@ import sphinx
 
 config_path = 'conf'
 
-bookcloud = Blueprint('bookcloud', __name__, template_folder='templates',)
+bookcloud = Blueprint('bookcloud', __name__, template_folder='templates')
 
 babel = Babel(app)
 
@@ -83,6 +83,30 @@ class Command(object):
             flash(_('Process is taking too long and will be terminated!'), 'error')
             self.process.terminate()
             thread.join()
+
+def display_thread(query):
+    #***
+    if not query:
+        return None
+    response = []
+    for q in query:
+        current_thread = {}
+        current_thread['title'] = q.title
+        current_thread['author'] = User.query.filter_by(id=q.owner_id).first().username
+        current_thread['flag'] = q.flag
+        current_thread['posted_at'] = q.posted_at
+        current_thread['comments'] = []
+        get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage)
+        for c in get_comments:
+            current_comment = {}
+            current_comment['title'] = c.title
+            current_comment['author'] = User.query.filter_by(id=c.owner_id).first().username
+            current_comment['content'] = c.content
+            current_comment['posted_at'] = c.posted_at
+            current_comment['indent'] = 6 * len(c.lineage)
+            current_thread['comments'].append(current_comment)
+        response.append(current_thread)
+    return response
 
 @babel.localeselector
 def get_locale():
@@ -410,7 +434,8 @@ def project(project):
     master = Branch.query.filter_by(project_id=project_id, name='master').first()
     tree = [ get_sub_branches(master) ]
     log = get_log(project, 'master')
-    return render_template('project.html', tree=tree, log=log, menu=menu)
+    threads = display_thread(Thread.query.filter_by(project_id=project_id))
+    return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads)
 
 @bookcloud.route('/<project>/pdf')
 @bookcloud.route('/<project>/<branch>/pdf')

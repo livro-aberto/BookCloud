@@ -65,6 +65,124 @@ class Branch(db.Model):
         self.project_id = project_id
         self.expires = True
 
+# Classes for comments
+
+class Thread(db.Model):
+    # One thread holds several comments and is associated to a project
+    __tablename__ = 'thread'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.Unicode(80), nullable=False, unique=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = relationship('User')
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    project = relationship('Project')
+    flag = db.Column(db.String(10), nullable=False)
+    posted_at = db.Column(db.DateTime(), nullable=False)
+
+    def __init__(self, title, owner_id, project_id, flag):
+        self.title = title
+        self.owner_id = owner_id
+        self.project_id = project_id
+        self.flag = flag
+
+class Comment(db.Model):
+    # Comments have a father thread and a lineage inside that thread.
+    # The lineage encodes where in the thread tree that command appears
+    __tablename__ = 'comment'
+    id = db.Column(db.Integer, primary_key=True)
+    lineage = db.Column(db.String(200))
+    title = db.Column(db.Unicode(80), nullable=False, unique=False)
+    thread_id = db.Column(db.Integer, db.ForeignKey('thread.id'))
+    thread = relationship('Thread')
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = relationship('User')
+    content = db.Column(db.Unicode(400), nullable=False, unique=False)
+    posted_at = db.Column(db.DateTime(), nullable=False)
+
+    def __init__(self, lineage, title, thread_id, owner_id):
+        self.lineage = lineage
+        self.title = title
+        self.thread_id = thread_id
+        self.owner_id = owner_id
+
+class Likes(db.Model):
+    # Associates a like to a comment
+    __tablename__ = 'likes'
+    id = db.Column(db.Integer, primary_key=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'))
+    comment = relationship('Comment')
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = relationship('User')
+
+    def __init__(self, comment_id, owner_id):
+        self.comment_id = comment_id
+        self.owner_id = owner_id
+
+class User_Tag(db.Model):
+    # Associates a user to a thread
+    __tablename__ = 'user_tag'
+    id = db.Column(db.Integer, primary_key=True)
+    thread_id = db.Column(db.Integer, db.ForeignKey('thread.id'))
+    thread = relationship('Thread')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = relationship('User')
+
+    def __init__(self, thread_id, user_id):
+        self.thread_id = thread_id
+        self.user_id = user_id
+
+class File_Tag(db.Model):
+    # Associates a file to a thread
+    __tablename__ = 'file_tag'
+    id = db.Column(db.Integer, primary_key=True)
+    thread_id = db.Column(db.Integer, db.ForeignKey('thread.id'))
+    thread = relationship('Thread')
+    filename = db.Column(db.String(50), nullable=False, unique=False)
+
+    def __init__(self, thread_id, filename):
+        self.thread_id = thread_id
+        self.filename = filename
+
+class Named_Tag(db.Model):
+    # Tags that are created by moderators
+    __tablename__ = 'named_tag'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False, unique=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    project = relationship('Project')
+
+    def __init__(self, name, project_id):
+        self.name = name
+        self.project_id = project_id
+
+class Custom_Tag(db.Model):
+    # Associates a named_tag to a thread
+    __tablename__ = 'custom_tag'
+    id = db.Column(db.Integer, primary_key=True)
+    thread_id = db.Column(db.Integer, db.ForeignKey('thread.id'))
+    thread = relationship('Thread')
+    named_tag_id = db.Column(db.Integer, db.ForeignKey('named_tag.id'))
+    named_tag = relationship('Named_Tag')
+
+    def __init__(self, thread_id, named_tag_id):
+        self.thread_id = thread_id
+        self.named_tag_id = named_tag_id
+
+class Free_Tag(db.Model):
+    # Associates a free-named tag to a thread
+    __tablename__ = 'free_tag'
+    id = db.Column(db.Integer, primary_key=True)
+    thread_id = db.Column(db.Integer, db.ForeignKey('thread.id'))
+    thread = relationship('Thread')
+    name = db.Column(db.String(20), nullable=False)
+
+    def __init__(self, thread_id, name):
+        self.thread_id = thread_id
+        self.name = name
+
+
+
+
 def create_app(extra_config_settings={}):
     """
     Initialize Flask applicaton

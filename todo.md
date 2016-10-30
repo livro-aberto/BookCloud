@@ -18,6 +18,18 @@
     - preserving order with hexadecimals:
       (a < b) == (format(a, '08X') < format(b, '08X'))
 
+SQL Comment structure
+
+    thread: id, title, owner_id, project
+    comment: id, title, thread, owner_id, content
+    like: id, comment_id, owner_id
+    branch_tag: id, thread_id, branch_id
+    user_tag: id, thread_id, user_id
+    file_tag: id, thread_id, filename
+    customized_tag: id, project, name
+    custom_tag: id, thread_id, customized_tag_id
+    free_tag: id, thread_id, name
+
   (medium)
   - ability to rename file (possibly with template for name)
   - ability to remove file

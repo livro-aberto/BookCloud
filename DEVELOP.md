@@ -1,8 +1,14 @@
 
 ## Update database
 
-    python manage.py db migrate
+You may need:
+
+    source vir/bin/activate
+
+Then:
+
     python manage.py db upgrade
+    python manage.py db migrate
 
 ## Init translations
 

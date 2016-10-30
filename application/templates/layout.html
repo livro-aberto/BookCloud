@@ -84,6 +84,29 @@
       .attention{
         background-color: #ea9b92;
       }
+
+      .comment {
+      padding-left: 7px;
+      padding-bottom: 7px;
+      padding-top: 12px;
+      border-left: solid #d5e3f1 16px;
+      border-bottom: solid #d5e3f1 1px;
+      }
+
+      .thread {
+      top: 30px;
+      }
+
+      .thread-head {
+      background-color: #d5e3f1;
+      padding-left: 22px;
+      padding-bottom: 10px;
+      padding-top: 7px;
+      }
+
+      .comment-content {
+      padding:10px;
+      }
     </style>
 
   </head>
@@ -129,8 +152,33 @@
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
+
+            {% if threads %}
+              {% for t in threads %}
+                <div class="thread">
+                  <div class="thread-head">
+                    {{ t.author }}
+                    ({{ t.flag }}):
+                    <b> {{ t.title }} </b>
+                    ({{ t.posted_at }})
+                  </div>
+                  {% for c in t.comments %}
+                    <div class="comment" style="margin-left: {{ c.indent }}px;">
+                      {{ c.author }}:
+                      <b> {{ c.title }} </b>
+                      ({{ c.posted_at }})
+                      <div class="comment-content">
+                        {{ c.content }}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endfor %}
+            {% endif %}
+
             {{ flash() | safe }}
             {{ contents() | safe }}
+
           </div>
         </div>
       </div>
