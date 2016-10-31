@@ -84,28 +84,85 @@ class Command(object):
             self.process.terminate()
             thread.join()
 
-def display_thread(query):
+#def display_comments(query):
+#    #***
+#    if not query:
+#        return None
+#    response = []
+#    query = list(query)
+#    for comment in query:
+#        current_thread_id = comment.thread_id
+#        if not current_thread_id in [t['id'] for t in response]:
+#            q = Thread.query.filter_by(id=comment.thread_id).first()
+#            current_thread = {}
+#            current_thread['id'] = q.id
+#            current_thread['title'] = q.title
+#            current_thread['author'] = User.query.filter_by(id=q.owner_id).first().username
+#            current_thread['flag'] = q.flag
+#            current_thread['posted_at'] = q.posted_at
+#            current_thread['comments'] = []
+#            for further_comment in query:
+#                if further_comment.thread_id == current_thread_id:
+#                    current_thread['comments'].append(further_comment)
+#            response.append(current_thread)
+#
+#    while query:
+#        comment = query.pop(0)
+#        q = Thread.query.filter_by(id=comment.thread_id).first()
+#        current_thread = {}
+#        current_thread['title'] = q.title
+#        current_thread['author'] = User.query.filter_by(id=q.owner_id).first().username
+#        current_thread['flag'] = q.flag
+#        current_thread['posted_at'] = q.posted_at
+#        current_thread['comments'] = []
+#
+#        #get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage)
+#        current_comment = {}
+#        current_comment['title'] = comment.title
+#        current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
+#        current_comment['content'] = comment.content
+#        current_comment['posted_at'] = comment.posted_at
+#        current_comment['indent'] = 6 * len(comment.lineage)
+#        current_thread['comments'].append(current_comment)
+#        response.append(current_thread)
+#    return response
+
+def display_threads(threads):
     #***
-    if not query:
+    if not threads:
         return None
     response = []
+    query = list(threads)
     for q in query:
         current_thread = {}
+        current_thread['id'] = q.id
         current_thread['title'] = q.title
         current_thread['author'] = User.query.filter_by(id=q.owner_id).first().username
         current_thread['flag'] = q.flag
         current_thread['posted_at'] = q.posted_at
+        current_thread['number'] = Comment.query.filter_by(thread_id=q.id).count()
+        user_tags = User_Tag.query.filter_by(thread_id=q.id)
+        current_thread['user_tags'] = [u.user.username for u in user_tags]
+        file_tags = File_Tag.query.filter_by(thread_id=q.id)
+        current_thread['file_tags'] = [f.filename for f in file_tags]
+        custom_tags = Custom_Tag.query.filter_by(thread_id=q.id)
+        current_thread['custom_tags'] = [c.named_tag.name for c in custom_tags]
+        free_tags = Free_Tag.query.filter_by(thread_id=q.id)
+        current_thread['free_tags'] = [f.name for f in free_tags]
         current_thread['comments'] = []
-        get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage)
-        for c in get_comments:
+
+        get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage).limit(10)
+        for comment in get_comments:
             current_comment = {}
-            current_comment['title'] = c.title
-            current_comment['author'] = User.query.filter_by(id=c.owner_id).first().username
-            current_comment['content'] = c.content
-            current_comment['posted_at'] = c.posted_at
-            current_comment['indent'] = 6 * len(c.lineage)
+            current_comment['title'] = comment.title
+            current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
+            current_comment['content'] = rst2html(comment.content)
+            current_comment['posted_at'] = comment.posted_at
+            current_comment['indent'] = 6 * len(comment.lineage)
+            current_comment['likes'] = Likes.query.filter_by(comment_id=comment.id).count()
             current_thread['comments'].append(current_comment)
         response.append(current_thread)
+
     return response
 
 @babel.localeselector
@@ -388,9 +445,10 @@ def home():
         flash('Some folders have no project (%s)' % ', '.join(folders_without_project),
               'error')
     projects = list(set(projects) - set(projects_without_folder))
+    threads = display_threads(Thread.query.limit(10))
     menu = menu_bar()
     return render_template('home.html', projects=projects, menu=menu,
-                           copyright='CC-BY-SA-NC')
+                           copyright='CC-BY-SA-NC', threads=threads)
 
 @login_required
 @bookcloud.route('/profile')
@@ -398,15 +456,16 @@ def profile():
     menu = menu_bar()
     projects = [d for d in Project.query.all()]
     collection = []
+    user_id = User.query.filter_by(username=current_user.username).first().id
     for p in projects:
-        user_id = User.query.filter_by(username=current_user.username).first().id
         user_branches = [b for b in Branch.query.filter_by(project_id=p.id,
-                                                                owner_id=user_id)]
+                                                           owner_id=user_id)]
         if user_branches:
             collection.append({'project': p.name,
                                'branches': user_branches})
+    threads = display_threads(Thread.query.join(User_Tag).filter(User_Tag.user_id==user_id))
     return render_template('profile.html', username=current_user.username,
-                           collection=collection, menu=menu)
+                           collection=collection, menu=menu, threads=threads)
 
 @login_required
 @bookcloud.route('/new', methods = ['GET', 'POST'])
@@ -434,7 +493,7 @@ def project(project):
     master = Branch.query.filter_by(project_id=project_id, name='master').first()
     tree = [ get_sub_branches(master) ]
     log = get_log(project, 'master')
-    threads = display_thread(Thread.query.filter_by(project_id=project_id))
+    threads = display_threads(Thread.query.filter_by(project_id=project_id))
     return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads)
 
 @bookcloud.route('/<project>/pdf')
@@ -455,6 +514,8 @@ def branch(project, branch):
                 return pendencies
     menu = menu_bar(project, branch)
     log = get_log(project, branch)
+    project_id = Project.query.filter_by(name=project).first().id
+    threads = display_threads(Thread.query.filter_by(project_id=project_id))
     return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
 
 @login_required
@@ -569,7 +630,9 @@ def view(project, branch, filename):
             menu['right'].append({'url': url_for('.clone', project=project, branch=branch),
                                   'name': 'clone'})
     content = load_file(user_repo_path)
-    return render_template_string(content, menu=menu, render_sidebar=True)
+    threads = display_threads(Thread.query.join(File_Tag).\
+                              filter(File_Tag.filename==filename))
+    return render_template_string(content, menu=menu, render_sidebar=True, threads=threads)
 
 @login_required
 @bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
@@ -746,9 +809,9 @@ def genindex(project, branch):
 
 # Static stuff
 
-@bookcloud.route('/<project>/comment_summary/<path:filename>')
-def comment_summary(project, filename):
-    return 'Comments from ' + filename
+#@bookcloud.route('/<project>/comment_summary/<path:filename>')
+#def comment_summary(project, filename):
+#    return 'Comments from ' + filename
 
 @bookcloud.route('/<project>/<branch>/<action>/_images/<path:filename>')
 #@bookcloud.route('/edit/<project>/<branch>/images/<path:filename>', methods = ['GET'])
