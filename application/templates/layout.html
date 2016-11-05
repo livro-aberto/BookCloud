@@ -113,6 +113,17 @@
       .comment-content {
       padding:5px;
       }
+
+      .tag {
+      font-size: .9em;
+      border-radius: 10px;
+      background: white;
+      color: #336699;
+      padding: 3px;
+      padding-left: 10px;
+      padding-right: 10px;
+      display: inline-block;
+      }
     </style>
 
   </head>
@@ -179,17 +190,16 @@
                                 style="vertical-align: baseline;"></canvas>
                       </div>
                       <div style="display: table-cell; vertical-align: top; padding-left: 10px;">
-                        {{ t.author }} ({{ t.flag }}) - {{ t.posted_at }}:
+                        {{ t.author }} ({{ t.flag }}) - {{ t.posted_at }} - ({{ t.number }} {{ _('comments') }}):
                         <br>
                           <b style="color: #336699; font-size: 1.2em;"> {{ t.title }} </b> 
-                          ({{ t.number }} {{ _('comments') }})
                       </div>
                     </div>
                     <p>
-                      {{ _('Users:') }} {% for user in t.user_tags %}{{ user }}{% endfor %} |
-                      {{ _('Files:') }} {% for file in t.file_tags %}{{ file }}{% endfor %} |
-                      {{ _('Tags:') }} {% for custom in t.custom_tags %}{{ custom }}{% endfor %} |
-                      {{ _('Free:') }} {% for free in t.free_tags %}{{ free }}{% endfor %} |
+                      {{ _('Users:') }} {% for user in t.user_tags %}<span class="tag">{{ user }}</span>{% endfor %} &emsp;
+                      {{ _('Files:') }} {% for file in t.file_tags %}<span class="tag">{{ file }}</span>{% endfor %} &emsp;
+                      {{ _('Tags:') }} {% for custom in t.custom_tags %}<span class="tag">{{ custom }}</span>{% endfor %} &emsp;
+                      {{ _('Others:') }} {% for free in t.free_tags %}<span class="tag">{{ free }}</span>{% endfor %}
                     </p>
                   </div>
                 </div>
@@ -199,10 +209,12 @@
                       <canvas width="40" height="40" data-jdenticon-hash="{{ hash(c.author) }}"></canvas>
                     </div>
                     <div style="display: table-cell; vertical-align: top; padding-left: 10px;">
-                      {{ c.author }} - {{ c.posted_at }},
+                      <font style="color: #336699; font-size: 1em;"> {{ c.author }} </font>
+                      <font style="color: #888888; font-size: .9em;">
+                        - {{ c.posted_at }} - ({{ c.likes }} {{ _('likes') }}),
+                      </font>
                       <br>
                       <b style="color: #336699; font-size: 1em;"> {{ c.title }} </b>
-                      ({{ c.likes }} {{ _('likes') }})
                     </div>
                     <div class="comment-content">
                       {{ c.content | safe }}
