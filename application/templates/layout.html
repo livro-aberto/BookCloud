@@ -181,7 +181,7 @@
                       <div style="display: table-cell; vertical-align: top; padding-left: 10px;">
                         {{ t.author }} ({{ t.flag }}) - {{ t.posted_at }}:
                         <br>
-                          <b> {{ t.title }} </b> 
+                          <b style="color: #336699; font-size: 1.2em;"> {{ t.title }} </b> 
                           ({{ t.number }} {{ _('comments') }})
                       </div>
                     </div>
@@ -201,7 +201,8 @@
                     <div style="display: table-cell; vertical-align: top; padding-left: 10px;">
                       {{ c.author }} - {{ c.posted_at }},
                       <br>
-                      <b> {{ c.title }} </b> ({{ c.likes }} {{ _('likes') }})
+                      <b style="color: #336699; font-size: 1em;"> {{ c.title }} </b>
+                      ({{ c.likes }} {{ _('likes') }})
                     </div>
                     <div class="comment-content">
                       {{ c.content | safe }}
