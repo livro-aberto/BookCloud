@@ -24,6 +24,9 @@ import subprocess, threading
 from docutils.core import publish_string, publish_parts
 from docutils_tinyhtml import Writer
 
+# for identicon hashs
+import hashlib
+
 import codecs # deals with encoding better
 import sphinx
 
@@ -299,6 +302,7 @@ def package():
     sent_package['has_requests'] = has_requests
     sent_package['get_log_diff'] = get_log_diff
     sent_package['get_branch_by_name'] = get_branch_by_name
+    sent_package['hash'] = lambda x: hashlib.sha256(x).hexdigest()
     sent_package['_'] = _
     return sent_package
 
@@ -445,10 +449,10 @@ def home():
         flash('Some folders have no project (%s)' % ', '.join(folders_without_project),
               'error')
     projects = list(set(projects) - set(projects_without_folder))
-    threads = display_threads(Thread.query.limit(10))
+    #threads = display_threads(Thread.query.limit(10))
     menu = menu_bar()
     return render_template('home.html', projects=projects, menu=menu,
-                           copyright='CC-BY-SA-NC', threads=threads)
+                           copyright='CC-BY-SA-NC')
 
 @login_required
 @bookcloud.route('/profile')
