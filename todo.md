@@ -66,5 +66,16 @@
   - mark the line where the cursor is: https://codemirror.net/demo/activeline.html
   - full screen: https://codemirror.net/demo/fullscreen.html
 
+# Sphinx extensions
 
+A big list is found in:
+https://sphinxext-survey.readthedocs.io/en/latest/
+
+  - gnuplot: produces images using gnuplot_ language
+  - issuetracker: link to different issue trackers
+  - A generic “todo like” nodes: https://pypi.python.org/pypi/sphinxcontrib-gen_node
+  - tags: https://github.com/spinus/sphinxcontrib-taglist
+  - sphinxcontrib-fulltoc
+    Include a full table of contents in your sidebarhttps:
+    https://sphinxcontrib-fulltoc.readthedocs.io/en/latest/
 
