@@ -55,6 +55,32 @@
     - such as: url, language, title...
     - add project_properties to be passed to jinja files, including for instance copyright
     - fix conf path in sphinx (pointing to /home/gutosurrex...)
+  - to build an sql query in javascript, it may be useful to use:
+    - a ready solution: http://querybuilder.js.org/
+    - a recursive json schema:
+      - http://jeremydorn.com/json-editor/
+        ```
+        { "$schema": "http://json-schema.org/draft-04/schema#",
+          "definitions": {
+            "batch": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "anyOf": [
+                     { "type": "string" },
+                     { "$ref": "#/definitions/batch" }
+                  ]
+                }
+              }
+            }
+          },
+          "type": "object",
+          "properties": {
+            "billing_address": { "$ref": "#/definitions/batch" },
+            "shipping_address": { "$ref": "#/definitions/batch" }
+          }
+        }
+        ```
 
 # Organization of code:
 
