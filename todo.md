@@ -1,7 +1,6 @@
 # Urgent:
 
   - implement "steal branch" from parent owner
-  - limit number of visits: https://flask-limiter.readthedocs.io/en/stable/
   - allow user to delete branch (setup expiration time for branches?)
   - make security improvements on sphinx:
     - disallow raw html
