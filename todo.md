@@ -20,6 +20,9 @@
       (6 digits for each sublevel: 16^6 = 16.7 x 10^6)
     - preserving order with hexadecimals:
       (a < b) == (format(a, '08X') < format(b, '08X'))
+    - more object types: discussion, issue, room,...
+    - column for access rights? private (only owner), moderators of project, logged, public...
+    - column for arbitrary data: json structure that is specific of the object type
 
   (medium)
   - ability to rename file (possibly with template for name)

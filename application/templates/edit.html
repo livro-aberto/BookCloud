@@ -9,6 +9,17 @@
 <script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
 <script type="text/javascript" src="/_static/jquery.are-you-sure.js"></script>
 
+<link rel="stylesheet" href="https://codemirror.net/addon/dialog/dialog.css">
+<link rel="stylesheet" href="https://codemirror.net/addon/search/matchesonscrollbar.css">
+
+<script src="https://codemirror.net/mode/xml/xml.js"></script>
+<script src="https://codemirror.net/addon/dialog/dialog.js"></script>
+<script src="https://codemirror.net/addon/search/searchcursor.js"></script>
+<script src="https://codemirror.net/addon/search/search.js"></script>
+<script src="https://codemirror.net/addon/scroll/annotatescrollbar.js"></script>
+<script src="https://codemirror.net/addon/search/matchesonscrollbar.js"></script>
+<script src="https://codemirror.net/addon/search/jump-to-line.js"></script>
+
 <script>
   var is_changed = 0;
 
@@ -189,6 +200,8 @@ div.bodywrapper {
 
       <script>
         var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+          extraKeys: {"Alt-F": "findPersistent"},
+          extraKeys: {"Ctrl-F": "findPersistent"},
           lineNumbers: false,
           lineWrapping: true,
         });
