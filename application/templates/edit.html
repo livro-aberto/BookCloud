@@ -141,7 +141,7 @@ div.bodywrapper {
           </nobr>
           <nobr>
             {{ _('image') }}
-            <button onclick="insertAround('\n.. figure:: <link da figura>\n   :width: 200px\n   :align: center\n\n   legenda', '')"
+            <button onclick="insertAround('\n.. _fig-coloque-aqui-o-nome:\n\n.. figure:: <link da figura>\n   :width: 200px\n   :align: center\n\n   legenda', '')"
                     title="{{ _('figure') }}">
               : <font size="1">&#x263a</font>
             </button>
@@ -157,6 +157,12 @@ div.bodywrapper {
             <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')"
                     title="{{ _('Tikz figure') }}">
               &#x25B3
+            </button>
+          </nobr>
+          <nobr>
+            {{ _('ref') }}
+            <button onclick="insertAround(':ref:`nome-da-referencia`', '')"
+                    title="{{ _('ref') }}">!
             </button>
           </nobr>
           <nobr>
