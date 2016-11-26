@@ -1,10 +1,11 @@
 import os
 import json
-from os.path import isdir, isfile, join
+from os.path import isdir, isfile, join, splitext
 import flask
 from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
+from sqlalchemy import or_
 from application import app, db, User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag
 import string
 from shutil import copyfile, rmtree
@@ -15,7 +16,10 @@ from datetime import datetime, timedelta
 
 from flask_babel import Babel, gettext as _
 
-from wtforms import Form, BooleanField, StringField, validators
+from wtforms import Form, BooleanField, StringField, validators,\
+    RadioField, SelectMultipleField, TextAreaField, SelectField
+
+from wtforms.widgets import html_params
 
 # for timeouts
 import subprocess, threading
@@ -66,6 +70,38 @@ class MessageForm(Form):
         validators.Regexp('^[\w ,.?!-]+$',
                           message="Messages must contain only a-zA-Z0-9_-,.!? and space"),
     ])
+
+class CommentSearchForm(Form):
+    search = StringField('Search', [ validators.Length(min=3, max=60)])
+
+def select_multi_checkbox(field, ul_class='', **kwargs):
+    kwargs.setdefault('type', 'checkbox')
+    field_id = kwargs.pop('id', field.id)
+    html = [u'<ul style="list-style-type: none; padding-left: 0px;" %s>' % html_params(id=field_id, class_=ul_class)]
+    for value, label, checked in field.iter_choices():
+        choice_id = u'%s-%s' % (field_id, value)
+        options = dict(kwargs, name=field.name, value=value, id=choice_id)
+        if checked:
+            options['checked'] = 'checked'
+        html.append(u'<li><input style="margin-left: 0px;" %s /> ' % html_params(**options))
+        html.append(u'<label for="%s">%s</label></li>' % (field_id, label))
+    html.append(u'</ul>')
+    return u''.join(html)
+
+class NewThreadForm(Form):
+    title = StringField('Title', [ validators.Length(min=5, max=80)])
+    flag = RadioField('Flag', choices = [('discussion', 'disucussion'),
+                                         ('issue', 'issue')])
+    usertags = SelectMultipleField('Users', widget=select_multi_checkbox)
+    filetags = SelectMultipleField('Files', widget=select_multi_checkbox)
+    namedtags = SelectMultipleField('Tags', widget=select_multi_checkbox)
+    freetags = StringField('Hash Tags')
+    #StringField('Free tags', [
+    #    validators.Length(min=4, max=60),
+    #    validators.Regexp('^[\w ,.?!-]+$',
+    #    message="Messages must contain only a-zA-Z0-9_-,.!? and space")
+    #])
+    firstcomment = TextAreaField('Content', [ validators.Length(min=3, max=400)])
 
 # to run a process with timeout
 class Command(object):
@@ -304,6 +340,7 @@ def package():
     sent_package['get_branch_by_name'] = get_branch_by_name
     sent_package['hash'] = lambda x: hashlib.sha256(x).hexdigest()
     sent_package['_'] = _
+    sent_package['current_user'] = current_user
     return sent_package
 
 def create_project(project, user):
@@ -508,6 +545,106 @@ def pdf(project, branch='master'):
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
+
+@bookcloud.route('/<project>/comments', methods = ['GET', 'POST'])
+def comments(project):
+    menu = menu_bar(project)
+    project_id = Project.query.filter_by(name=project).first().id
+    form = CommentSearchForm(request.form)
+    if request.method == 'POST' and form.validate():
+        if not form.search.data:
+            form.search.data = ""
+        #thread_query = (Thread.query.filter(Thread.project_id==project_id).
+        #                filter(Thread.title.like('%' + form.search.data + '%')))
+        thread_query = (Thread.query.filter(Thread.project_id==project_id).
+                        join(Comment).
+                        filter(Comment.thread_id==Thread.id).
+                        filter(or_(Comment.content.like('%' + form.search.data + '%'),
+                                   Comment.title.like('%' + form.search.data + '%'),
+                                   Thread.title.like('%' + form.search.data + '%'))).
+                        limit(20))
+        threads = display_threads(thread_query)
+    else:
+        threads = display_threads(Thread.query.filter_by(project_id=project_id))
+    return render_template('comments.html', menu=menu, threads=threads, form=form)
+
+@login_required
+@bookcloud.route('/<project>/newthread', methods = ['GET', 'POST'])
+def newthread(project):
+    menu = menu_bar(project)
+    form = NewThreadForm(request.form)
+    form.flag.default = 'discussion'
+    form.usertags.choices = [(u.username, u.username) for u in User.query.all()]
+    if (current_user.is_authenticated):
+        form.usertags.default = [current_user.username]
+    master_path = join('repos', project, 'master', 'source')
+    form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
+                             for f in os.listdir(master_path)
+                             if isfile(join(master_path, f)) and f[0] != '.']
+    if request.args.get('filetags', ''):
+        form.filetags.default = [request.args.get('filetags', '')]
+    form.namedtags.choices = [(t.name, t.name) for t in Named_Tag.query.all()]
+    form.freetags.default = ''
+
+    if request.method == 'POST':
+        if form.validate():
+            project_id = Project.query.filter_by(name=project).first().id
+            owner_id = User.query.filter_by(username=current_user.username).first().id
+            # add thread
+            new_thread = Thread(request.form['title'],
+                                owner_id,
+                                project_id,
+                                request.form['flag'],
+                                datetime.utcnow())
+            db.session.add(new_thread)
+            db.session.commit()
+            # add first comment
+            new_comment = Comment('000000:',
+                                  request.form['title'],
+                                  new_thread.id,
+                                  owner_id,
+                                  request.form['firstcomment'],
+                                  datetime.utcnow())
+            db.session.add(new_comment)
+            # add user tags
+            for user in request.form.getlist('usertags'):
+                db.session.flush()
+                user_id = User.query.filter_by(username=user).first().id
+                new_usertag = User_Tag(new_thread.id, user_id)
+                db.session.add(new_usertag)
+            # add file tags
+            for file in request.form.getlist('filetags'):
+                new_filetag = File_Tag(new_thread.id, file)
+                db.session.add(new_filetag)
+            # add named tags
+            for tag in request.form.getlist('namedtags'):
+                db.session.flush()
+                namedtag_id = Named_Tag.query.filter_by(project_id=project_id, name=tag).first().id
+                new_namedtag = Custom_Tag(new_thread.id, namedtag_id)
+                db.session.add(new_namedtag)
+            # add free tags
+            for freetag in request.form['freetags'].split(','):
+                new_freetag = Free_Tag(new_thread.id, freetag)
+                db.session.add(new_freetag)
+
+            db.session.commit()
+            flash(_('New thread successfully created'), 'info')
+        else:
+            form.firstcomment.default = request.form['firstcomment']
+            form.title.default = request.form['title']
+            form.freetags.default = request.form['freetags']
+
+    form.process()
+    return render_template('newthread.html', menu=menu, form=form, old=request.form)
+
+
+@login_required
+@bookcloud.route('/<project>/deletethread')
+def deletethread(project):
+    menu = menu_bar(project)
+    print(request.args['thread_id'])
+    return str(request)
+
 
 @bookcloud.route('/<project>/<branch>', methods = ['GET', 'POST'])
 def branch(project, branch):

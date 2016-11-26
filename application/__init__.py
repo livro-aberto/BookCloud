@@ -79,10 +79,12 @@ class Thread(db.Model):
     flag = db.Column(db.String(10), nullable=False)
     posted_at = db.Column(db.DateTime(), nullable=False)
 
-    def __init__(self, title, owner_id, project_id, flag):
+    def __init__(self, title, owner_id, project_id, flag, posted_at):
         self.title = title
         self.owner_id = owner_id
         self.project_id = project_id
+        print(posted_at)
+        self.posted_at = posted_at
         self.flag = flag
 
 class Comment(db.Model):
@@ -99,11 +101,13 @@ class Comment(db.Model):
     content = db.Column(db.Unicode(400), nullable=False, unique=False)
     posted_at = db.Column(db.DateTime(), nullable=False)
 
-    def __init__(self, lineage, title, thread_id, owner_id):
+    def __init__(self, lineage, title, thread_id, owner_id, content, posted_at):
         self.lineage = lineage
         self.title = title
         self.thread_id = thread_id
         self.owner_id = owner_id
+        self.content = content
+        self.posted_at = posted_at
 
 class Likes(db.Model):
     # Associates a like to a comment
