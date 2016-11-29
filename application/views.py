@@ -483,7 +483,7 @@ def menu_bar(project=None, branch=None):
 
 def get_log(project, branch):
     git_api = get_git(project, branch)
-    return git_api.log('-40', '--graph', '--abbrev-commit','--decorate', '--full-history',
+    return git_api.log('-15', '--no-merges', '--abbrev-commit','--decorate', '--full-history',
                        "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
 
 def get_log_diff(project, origin, branch):
