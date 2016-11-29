@@ -9,6 +9,17 @@
 <script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
 <script type="text/javascript" src="/_static/jquery.are-you-sure.js"></script>
 
+<link rel="stylesheet" href="https://codemirror.net/addon/dialog/dialog.css">
+<link rel="stylesheet" href="https://codemirror.net/addon/search/matchesonscrollbar.css">
+
+<script src="https://codemirror.net/mode/xml/xml.js"></script>
+<script src="https://codemirror.net/addon/dialog/dialog.js"></script>
+<script src="https://codemirror.net/addon/search/searchcursor.js"></script>
+<script src="https://codemirror.net/addon/search/search.js"></script>
+<script src="https://codemirror.net/addon/scroll/annotatescrollbar.js"></script>
+<script src="https://codemirror.net/addon/search/matchesonscrollbar.js"></script>
+<script src="https://codemirror.net/addon/search/jump-to-line.js"></script>
+
 <script>
   var is_changed = 0;
 
@@ -98,9 +109,9 @@ div.bodywrapper {
         <p style="line-height: 200%;">
           <nobr>
             {{ _('sections') }}
-            <button onclick="insertAround('\n********\nCap&#237;tulo\n********','')">Cap</button>
-            <button onclick="insertAround('\nSe&#231;&#227;o\n=====','')">Sec</button>
-            <button onclick="insertAround('\nSubse&#231;&#227;o\n---------','')">Sub</button>
+            <button onclick="insertAround('\n.. _cap-coloque-aqui-o-nome:\n\n********\nCap&#237;tulo\n********','')">Cap</button>
+            <button onclick="insertAround('\n.. _sec-coloque-aqui-o-nome:\n\nSe&#231;&#227;o\n=====','')">Sec</button>
+            <button onclick="insertAround('\n.. _sub-coloque-aqui-o-nome:\n\nSubse&#231;&#227;o\n---------','')">Sub</button>
           </nobr>
           <nobr>
             {{ _('style') }}
@@ -125,12 +136,12 @@ div.bodywrapper {
                     title="{{ _('Teorema') }}">Teo</button>
             <button onclick="insertAround('\n.. admonition:: Exemplo \n\n   texto','')"
                     title="{{ _('Exemplo') }}">Ex</button>
-            <button onclick="insertAround('\n.. admonition:: Atividade \n\n   texto','')"
+            <button onclick="insertAround('\n.. _ativ-titulo-da-atividade:\n\nAtividade: título da atividade\n------------------------------\n\n','')"
                     title="{{ _('Atividade') }}">At</button>
           </nobr>
           <nobr>
             {{ _('image') }}
-            <button onclick="insertAround('\n.. figure:: <link da figura>\n\n   :width: 200px\n   :align: center\n\n   legenda', '')"
+            <button onclick="insertAround('\n.. _fig-coloque-aqui-o-nome:\n\n.. figure:: <link da figura>\n   :width: 200px\n   :align: center\n\n   legenda', '')"
                     title="{{ _('figure') }}">
               : <font size="1">&#x263a</font>
             </button>
@@ -146,6 +157,12 @@ div.bodywrapper {
             <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')"
                     title="{{ _('Tikz figure') }}">
               &#x25B3
+            </button>
+          </nobr>
+          <nobr>
+            {{ _('ref') }}
+            <button onclick="insertAround(':ref:`nome-da-referencia`', '')"
+                    title="{{ _('ref') }}">!
             </button>
           </nobr>
           <nobr>
@@ -189,6 +206,8 @@ div.bodywrapper {
 
       <script>
         var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+          extraKeys: {"Alt-F": "findPersistent"},
+          extraKeys: {"Ctrl-F": "findPersistent"},
           lineNumbers: false,
           lineWrapping: true,
         });

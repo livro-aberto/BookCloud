@@ -5,10 +5,26 @@ from sqlalchemy.orm import relationship
 from flask_migrate import Migrate
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 
+# limit number of visits
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 import os
+
+from flask_user import current_user
+
+def get_identifier():
+    if current_user.is_authenticated:
+        return current_user.username
+    return get_remote_address()
 
 # Setup Flask app and app.config
 app = Flask(__name__)
+limiter = Limiter(
+    app,
+    key_func=get_identifier,
+    global_limits=["200 per day", "50 per hour"]
+)
 
 # Initialize Flask-SQLAlchemy
 db = SQLAlchemy(app)

@@ -8,7 +8,7 @@ from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
 from sqlalchemy import or_
-from application import app, db, User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag
+from application import app, db, User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag, limiter
 import string
 from shutil import copyfile, rmtree
 import git
@@ -492,6 +492,7 @@ def get_log_diff(project, origin, branch):
                        '--abbrev-commit','--decorate', '--right-only',
                        "--format=format:%an (%ar): %s %d")
 
+@limiter.exempt
 @bookcloud.route('/')
 def home():
     path = 'repos'
@@ -512,6 +513,7 @@ def home():
                            copyright='CC-BY-SA-NC')
 
 @login_required
+@limiter.exempt
 @bookcloud.route('/profile')
 def profile():
     menu = menu_bar()
@@ -529,6 +531,7 @@ def profile():
                            collection=collection, menu=menu, threads=threads)
 
 @login_required
+@limiter.limit("4 per day")
 @bookcloud.route('/new', methods = ['GET', 'POST'])
 def new():
     menu = menu_bar()
@@ -545,6 +548,7 @@ def new():
     return render_template('new.html', menu=menu, form=form)
 
 @login_required
+@limiter.exempt
 @bookcloud.route('/<project>')
 def project(project):
     path = join('repos', project)
@@ -753,6 +757,7 @@ def branch(project, branch):
     return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
 
 @login_required
+@limiter.limit("7 per day")
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
 def clone(project, branch):
     menu = menu_bar(project, branch)
@@ -774,6 +779,7 @@ def clone(project, branch):
     return render_template('clone.html', menu=menu, form=form)
 
 @login_required
+@limiter.limit("7 per day")
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
 def newfile(project, branch):
     pendencies = get_merge_pendencies(project, branch, current_user.username)
@@ -844,6 +850,7 @@ def finish(project, branch):
     flash(_('You have finished merging _%s') % merging['branch'], 'info')
     return redirect(url_for('.branch', project=project, branch=branch))
 
+@limiter.exempt
 @bookcloud.route('/<project>/<branch>/view/<path:filename>')
 def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
@@ -869,6 +876,7 @@ def view(project, branch, filename):
     return render_template_string(content, menu=menu, render_sidebar=True, threads=threads)
 
 @login_required
+@limiter.exempt
 @bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
 def edit(project, branch, filename):
     html_scroll = 0
@@ -1047,12 +1055,14 @@ def genindex(project, branch):
 #def comment_summary(project, filename):
 #    return 'Comments from ' + filename
 
+@limiter.exempt
 @bookcloud.route('/<project>/<branch>/<action>/_images/<path:filename>')
 #@bookcloud.route('/edit/<project>/<branch>/images/<path:filename>', methods = ['GET'])
 def get_tikz(project, branch, action, filename):
     images_path = join('repos', project, branch, 'build/html/_images')
     return flask.send_from_directory(os.path.abspath(images_path), filename)
 
+@limiter.exempt
 @bookcloud.route('/<project>/<action>/_static/<path:filename>')
 def get_static(project, action, filename):
     if (current_user.is_authenticated):
@@ -1061,6 +1071,7 @@ def get_static(project, action, filename):
         user_repo_path = join('repos', project, get_creator(project))
     return flask.send_from_directory(os.path.abspath(join(user_repo_path, 'build/html/_static/')), filename)
 
+@limiter.exempt
 @bookcloud.route('/_static/<path:filename>')
 def get_global_static(filename):
     return flask.send_from_directory(os.path.abspath('conf/biz/static/'), filename)
@@ -1071,6 +1082,7 @@ def show_source(project, branch, filename):
     content = load_file(sources_path)
     return Response(content, mimetype='text/txt')
 
+@limiter.exempt
 @bookcloud.route('/<project>/images/<path:filename>')
 def get_image(project, filename):
     return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
@@ -1083,11 +1095,13 @@ def login():
 def logout():
     return redirect(url_for('user.logout'))
 
+@limiter.exempt
 @bookcloud.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
 
 #@bookcloud.errorhandler(500)
+@limiter.exempt
 @bookcloud.errorhandler(Exception)
 def internal_server_error(e):
     print(">>>" + repr(e))
