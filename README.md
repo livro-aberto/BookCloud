@@ -30,6 +30,8 @@ Create config file
 
     cp conf/conf_default.py conf/conf.py
 
+    cp manage_default.py manage.py
+
 edit the `conf.py` file. Specially:
 
   1. Change your secret key
