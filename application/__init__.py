@@ -114,7 +114,7 @@ class Comment(db.Model):
     thread = relationship('Thread')
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     owner = relationship('User')
-    content = db.Column(db.Unicode(400), nullable=False, unique=False)
+    content = db.Column(db.Unicode(2000), nullable=False, unique=False)
     posted_at = db.Column(db.DateTime(), nullable=False)
 
     def __init__(self, lineage, title, thread_id, owner_id, content, posted_at):
