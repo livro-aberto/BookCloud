@@ -1,277 +1,293 @@
 {% macro flash() %}
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-<ui class="flashes">
-  {% for category, message in messages %}
-  <li class="{{ category }}">{{ message }}</li>
-  {% endfor %}
-</ui>
-{% endif %}
-{% endwith %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ui class="flashes">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ui>
+    {% endif %}
+  {% endwith %}
 {% endmacro %}
 
 {% if barebones %}
 
-<div class="document">
-  <div class="body" role="main">
-    {{ flash() | safe }}
-    {{ contents() | safe }}
+  <div class="document">
+    <div class="body" role="main">
+      {{ flash() | safe }}
+      {{ contents() | safe }}
+    </div>
+    <div class="clearer"></div>
   </div>
-  <div class="clearer"></div>
-</div>
 
 {% else %}
 
-<!doctype html>
+  <!doctype html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+  <html xmlns="http://www.w3.org/1999/xhtml">
 
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-    <title>{% block title %}{% endblock %}</title>
+      <title>{% block title %}{% endblock %}</title>
 
-    <link rel="stylesheet" href="{{ url_for('.get_global_static', filename='bizstyle.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ url_for('.get_global_static', filename='cloud.css') }}" type="text/css" />
+      <link rel="stylesheet" href="{{ url_for('.get_global_static', filename='bizstyle.css') }}" type="text/css" />
+      <link rel="stylesheet" href="{{ url_for('.get_global_static', filename='cloud.css') }}" type="text/css" />
 
-    <!--<link rel="stylesheet" href="/_static/basic.css" type="text/css" />
-    <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />-->
+      <!--<link rel="stylesheet" href="/_static/basic.css" type="text/css" />
+          <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />-->
 
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-    <script src="//cdn.jsdelivr.net/jdenticon/1.3.2/jdenticon.min.js" async></script>
+      <script src="//cdn.jsdelivr.net/jdenticon/1.3.2/jdenticon.min.js" async></script>
 
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-      URL_ROOT:    './',
-      VERSION:     '',
-      COLLAPSE_INDEX: false,
-      FILE_SUFFIX: '.html',
-      HAS_SOURCE:  true
-      };
-    </script>
+      <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+        };
+      </script>
 
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <!--
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    -->
+      <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+      <!--
+          <script type="text/javascript" src="_static/underscore.js"></script>
+          <script type="text/javascript" src="_static/doctools.js"></script>
+          -->
 
-    <script>
-      $(document).ready(function() {
-        $("a[href^='http']").attr('target','_blank');
-      });
-    </script>
-
-
-    <link rel="top" title="Livro Aberto de Matematica" href="#" />
-
-    {% block scripts %}{% endblock %}
-
-    <style>
-      ol li p {
-        display: inline;
-      }
-
-      .bar {
-      display: inline;
-      list-style: none;
-      font-size: 1em;
-      margin: 0;
-      padding: 0;
-      height: 2em;
-      float: left;
-      }
-
-      .info {
-        padding: 20px;
-        background-color: #1abc9c;
-        color: white;
-        margin-bottom: 15px;
-      }
-
-      .error {
-        padding: 20px;
-        background-color: #ea9b92;
-        color: white;
-        margin-bottom: 15px;
-      }
-
-      .attention{
-        background-color: #ea9b92;
-      }
-
-      .comment {
-      padding-left: 15px;
-      padding-bottom: 7px;
-      padding-top: 12px;
-      border-left: solid #d5e3f1 16px;
-      border-bottom: solid #d5e3f1 1px;
-      }
-
-      .thread {
-      top: 30px;
-      }
-
-      .thread-head {
-      background-color: #d5e3f1;
-      padding-left: 22px;
-      padding-bottom: 10px;
-      padding-top: 7px;
-      }
-
-      .comment-content {
-      padding:5px;
-      }
-
-      .tag {
-      font-size: .9em;
-      border-radius: 10px;
-      background: white;
-      color: #336699;
-      padding: 3px;
-      padding-left: 10px;
-      padding-right: 10px;
-      display: inline-block;
-      }
-    </style>
-
-  </head>
-
-  <body role="document">
-
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      {% block bar %}
-      <ul>
-        {% if menu %}
-          {% for t in menu.left %}
-          <li class="left" style="margin-right: 10px">
-            <a href="{{ t.url }}">{{ t.name }}</a>
-          </li>
-          {% endfor %}
-
-          {% for t in menu.right %}
-          <li class="right" style="margin-right: 10px">
-            <a href="{{ t.url }}"
-               {%- if t.style == 'attention' %}
-               class="attention"
-               {%- endif %}>{{ t.name }}</a>
-          </li>
-          {% endfor %}
-          {% if threads %}
-            <li>
-              || <a href="#discussion">{{ _('discussion') }} ({{ threads | length }}) </a>
-            </li>
-          {% endif %}
-
-          <li class="right" style="margin-right: 10px">
-            <a href="https://github.com/gutosurrex/BookCloud/issues" target="_blank">issues</a>
-            <a href="https://www.umlivroaberto.com/BookCloud/sintaxe/master/view/index.html" target="_blank">syntax</a>
-            <a href="https://www.umlivroaberto.com/wiki/" target="_blank">staff</a>
-            ||
-          </li>
+          <script>
+            $(document).ready(function() {
+            $("a[href^='http']").attr('target','_blank');
+            });
+          </script>
 
 
+          <link rel="top" title="Livro Aberto de Matematica" href="#" />
 
-        {% endif %}
-      </ul>
-      {% endblock %}
-    </div>
+          {% block scripts %}{% endblock %}
 
-    {% block sidebar %}{% endblock %}
+          <style>
+            ol li p {
+            display: inline;
+            }
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+            .bar {
+            display: inline;
+            list-style: none;
+            font-size: 1em;
+            margin: 0;
+            padding: 0;
+            height: 2em;
+            float: left;
+            }
 
-            {{ flash() | safe }}
-            {{ contents() | safe }}
+            .info {
+            padding: 20px;
+            background-color: #1abc9c;
+            color: white;
+            margin-bottom: 15px;
+            }
 
-            {% if threads %}
-              <h2 id="discussion">Discussions</h2>
-              {% for t in threads %}
-                <div class="thread">
-                  <div class="thread-head" style="padding: 10px;">
-                    <div style="display: table-row">
-                      <div style="display: table-cell;">
-                        <canvas width="40" height="40" data-jdenticon-hash="{{ hash(t.author) }}"
-                                style="vertical-align: baseline;"></canvas>
+            .error {
+            padding: 20px;
+            background-color: #ea9b92;
+            color: white;
+            margin-bottom: 15px;
+            }
+
+            .attention{
+            background-color: #ea9b92;
+            }
+
+            .comment {
+            padding-left: 15px;
+            padding-bottom: 7px;
+            padding-top: 12px;
+            border-left: solid #d5e3f1 16px;
+            border-bottom: solid #d5e3f1 1px;
+            }
+
+            .thread {
+            top: 30px;
+            }
+
+            .thread-head {
+            background-color: #d5e3f1;
+            padding-left: 22px;
+            padding-bottom: 10px;
+            padding-top: 7px;
+            }
+
+            .comment-content {
+            padding:5px;
+            }
+
+            .tag {
+            font-size: .9em;
+            border-radius: 10px;
+            background: white;
+            color: #336699;
+            padding: 3px;
+            padding-left: 10px;
+            padding-right: 10px;
+            display: inline-block;
+            }
+          </style>
+
+    </head>
+
+    <body role="document">
+
+      <div class="related" role="navigation" aria-label="related navigation">
+        <h3>Navigation</h3>
+        {% block bar %}
+          <ul>
+            {% if menu %}
+              {% for t in menu.left %}
+                <li class="left" style="margin-right: 10px">
+                  <a href="{{ t.url }}">{{ t.name }}</a>
+                </li>
+              {% endfor %}
+
+              {% for t in menu.right %}
+                <li class="right" style="margin-right: 10px">
+                  <a href="{{ t.url }}"
+                     {%- if t.style == 'attention' %}
+                       class="attention"
+                     {%- endif %}>{{ t.name }}</a>
+                </li>
+              {% endfor %}
+              {% if threads %}
+                <li>
+                  || <a href="#discussion">{{ _('discussion') }} ({{ threads | length }}) </a>
+                </li>
+              {% endif %}
+
+              <li class="right" style="margin-right: 10px">
+                <a href="https://github.com/gutosurrex/BookCloud/issues" target="_blank">issues</a>
+                <a href="https://www.umlivroaberto.com/BookCloud/sintaxe/master/view/index.html" target="_blank">syntax</a>
+                <a href="https://www.umlivroaberto.com/wiki/" target="_blank">staff</a>
+                ||
+              </li>
+            {% endif %}
+          </ul>
+        {% endblock %}
+      </div>
+
+      {% block sidebar %}{% endblock %}
+
+      <div class="document">
+        <div class="documentwrapper">
+          <div class="bodywrapper">
+            <div class="body" role="main">
+
+              {{ flash() | safe }}
+              {{ contents() | safe }}
+
+
+                <h2 id="discussion">
+                  Discussions
+                  (<a href={{ url_for('bookcloud.newthread', project=project, return_url=url_encode(request.base_url)) }}><text style="color: #336699;">new thread</text></a>)
+                </h2>
+                {% if threads %}
+                {% for t in threads %}
+                  <div class="thread">
+                    <div class="thread-head" style="padding: 10px;">
+                      <div style="display: table-row">
+                        <div style="display: table-cell;">
+                          <canvas width="40" height="40" data-jdenticon-hash="{{ hash(t.author) }}"
+                                  style="vertical-align: baseline;"></canvas>
+                        </div>
+                        <div style="display: table-cell; vertical-align: top; width: 100%; padding-left: 10px;" role="navigation">
+                          <ul class="bar" style="display: inline; width: 100%;">
+                            <li class="left" style="margin-right: 10px; float: left;">
+                              {{ t.author }} ({{ t.flag }}) - {{ t.posted_at }} - ({{ t.number }} {{ _('comments') }}):
+                            </li>
+                            <li class="right" style="margin-right: 10px; float: right;">
+                              <a href="{{ url_for('bookcloud.newcomment', project=project, thread_id = t.id, return_url=url_encode(request.base_url)) }}">comment</a>
+                            </li>
+                            <li class="right" style="margin-right: 10px; float: right;">
+                              {% if not t.comments and (current_user.username == t.author or current_user.username == project_owner) %}
+                                <a href="{{ url_for('bookcloud.deletethread', project=project, thread_id=t.id, return_url=url_encode(request.base_url)) }}" onclick="return confirm('Are you sure?')">delete</a>
+                              {% endif %}
+                            </li>
+                          </ul>
+
+                          <br>
+                          <b style="color: #336699; font-size: 1.2em;"> {{ t.title }} </b> 
+                        </div>
                       </div>
-                      <div style="display: table-cell; vertical-align: top; width: 100%; padding-left: 10px;" role="navigation">
+                      <p>
+                        <nobr>
+                          {{ _('Users:') }}
+                          {% for user in t.user_tags %}<span class="tag">{{ user }}</span>{% endfor %} &emsp;
+                        </nobr>
+                        <nobr>
+                          {{ _('Files:') }}
+                          {% for file in t.file_tags %}<span class="tag">{{ file }}</span>{% endfor %} &emsp;
+                        </nobr>
+                        <nobr>
+                          {{ _('Tags:') }}
+                          {% for custom in t.custom_tags %}<span class="tag">{{ custom }}</span>{% endfor %} &emsp;
+                        </nobr>
+                        <nobr>
+                          {{ _('Others:') }}
+                          {% for free in t.free_tags %}<span class="tag">{{ free }}</span>{% endfor %}
+                        </nobr>
+                      </p>
+                    </div>
+                  </div>
+                  {% for c in t.comments %}
+                    <div class="comment" class="table-row" style="margin-left: {{ c.indent }}px;">
+                      <div style="display: table-cell;">
+                        <canvas width="40" height="40" data-jdenticon-hash="{{ hash(c.author) }}"></canvas>
+                      </div>
+                      <div style="display: table-cell; vertical-align: top; padding-left: 10px; width: 100%">
                         <ul class="bar" style="display: inline; width: 100%;">
                           <li class="left" style="margin-right: 10px; float: left;">
-                            {{ t.author }} ({{ t.flag }}) - {{ t.posted_at }} - ({{ t.number }} {{ _('comments') }}):
+                            <font style="color: #336699; font-size: 1em;"> {{ c.author }} </font>
+                            <font style="color: #888888; font-size: .9em;">
+                              - {{ c.posted_at }} - ({{ c.likes }} {{ _('likes') }}),
+                            </font>
                           </li>
                           <li class="right" style="margin-right: 10px; float: right;">
-                            {% if current_user.username == t.author %}
-                              <a href="{{ url_for('bookcloud.deletethread', project=project, thread_id=t.id) }}">delete</a>
+                            <a href="{{ url_for('bookcloud.newcomment', project=project, thread_id = t.id, parent_lineage=c.lineage, return_url=url_encode(request.base_url)) }}">reply</a>
+                          </li>
+                          <li class="right" style="margin-right: 10px; float: right;">
+                            {% if not c.father and (current_user.username == c.author or current_user.username == project_owner) %}
+                              <a href="{{ url_for('bookcloud.deletecomment', project=project, comment_id=c.id, return_url=url_encode(request.base_url)) }}" onclick="return confirm('Are you sure?')">delete</a>
                             {% endif %}
                           </li>
-                        </ul>
 
+                        </ul>
                         <br>
-                        <b style="color: #336699; font-size: 1.2em;"> {{ t.title }} </b> 
+                        <b style="color: #336699; font-size: 1em;"> {{ c.title }} </b>
+                      </div>
+                      <div class="comment-content">
+                        {{ c.content | safe }}
                       </div>
                     </div>
-                    <p>
-                      <nobr>
-                        {{ _('Users:') }}
-                        {% for user in t.user_tags %}<span class="tag">{{ user }}</span>{% endfor %} &emsp;
-                      </nobr>
-                      <nobr>
-                        {{ _('Files:') }}
-                        {% for file in t.file_tags %}<span class="tag">{{ file }}</span>{% endfor %} &emsp;
-                      </nobr>
-                      <nobr>
-                        {{ _('Tags:') }}
-                        {% for custom in t.custom_tags %}<span class="tag">{{ custom }}</span>{% endfor %} &emsp;
-                      </nobr>
-                      <nobr>
-                        {{ _('Others:') }}
-                        {% for free in t.free_tags %}<span class="tag">{{ free }}</span>{% endfor %}
-                      </nobr>
-                    </p>
-                  </div>
-                </div>
-                {% for c in t.comments %}
-                  <div class="comment" class="table-row" style="margin-left: {{ c.indent }}px;">
-                    <div style="display: table-cell;">
-                      <canvas width="40" height="40" data-jdenticon-hash="{{ hash(c.author) }}"></canvas>
-                    </div>
-                    <div style="display: table-cell; vertical-align: top; padding-left: 10px;">
-                      <font style="color: #336699; font-size: 1em;"> {{ c.author }} </font>
-                      <font style="color: #888888; font-size: .9em;">
-                        - {{ c.posted_at }} - ({{ c.likes }} {{ _('likes') }}),
-                      </font>
-                      <br>
-                      <b style="color: #336699; font-size: 1em;"> {{ c.title }} </b>
-                    </div>
-                    <div class="comment-content">
-                      {{ c.content | safe }}
-                    </div>
-                  </div>
+                  {% endfor %}
                 {% endfor %}
-              {% endfor %}
-          </div>
-      {% endif %}
-
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
       <div class="clearer"></div>
     </div>
 
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      {{ self.bar() | safe }}
-    </div>
+<div class="related" role="navigation" aria-label="related navigation">
+  <h3>Navigation</h3>
+  {{ self.bar() | safe }}
+</div>
 
-    <div class="footer" role="contentinfo">
-      &copy; {{ copyright }}.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
-    </div>
-  </body>
+<div class="footer" role="contentinfo">
+  &copy; {{ copyright }}.
+  Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+</div>
+</body>
 </html>
 {% endif %}

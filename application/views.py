@@ -1,7 +1,9 @@
 import os
+import re
 import json
 from os.path import isdir, isfile, join, splitext
 import flask
+import urllib
 from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
@@ -33,6 +35,19 @@ import hashlib
 
 import codecs # deals with encoding better
 import sphinx
+
+
+def window(iterable):
+    # Turns an iterable into a moving window
+    # [0, ..., 10] -> [(None, 0, 1), (0, 1, 2), ..., (8, 9, None), (9, None, None)]
+    iterator = iter(iterable)
+    prev_item = None
+    current_item = next(iterator)  # throws StopIteration if empty.
+    for next_item in iterator:
+        yield (prev_item, current_item, next_item)
+        prev_item = current_item
+        current_item = next_item
+    yield (prev_item, current_item, None)
 
 config_path = 'conf'
 
@@ -96,12 +111,11 @@ class NewThreadForm(Form):
     filetags = SelectMultipleField('Files', widget=select_multi_checkbox)
     namedtags = SelectMultipleField('Tags', widget=select_multi_checkbox)
     freetags = StringField('Hash Tags')
-    #StringField('Free tags', [
-    #    validators.Length(min=4, max=60),
-    #    validators.Regexp('^[\w ,.?!-]+$',
-    #    message="Messages must contain only a-zA-Z0-9_-,.!? and space")
-    #])
     firstcomment = TextAreaField('Content', [ validators.Length(min=3, max=400)])
+
+class NewCommentForm(Form):
+    title = StringField('Title', [ validators.Length(min=5, max=80)])
+    comment = TextAreaField('Content', [ validators.Length(min=3, max=400)])
 
 # to run a process with timeout
 class Command(object):
@@ -191,14 +205,18 @@ def display_threads(threads):
         current_thread['comments'] = []
 
         get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage).limit(10)
-        for comment in get_comments:
+        for prev_comment, comment, next_comment  in window(get_comments):
             current_comment = {}
+            current_comment['id'] = comment.id
             current_comment['title'] = comment.title
             current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
             current_comment['content'] = rst2html(comment.content)
             current_comment['posted_at'] = comment.posted_at
+            current_comment['lineage'] = comment.lineage
             current_comment['indent'] = 6 * len(comment.lineage)
             current_comment['likes'] = Likes.query.filter_by(comment_id=comment.id).count()
+            if next_comment:
+                current_comment['father'] = (next_comment.lineage.startswith(comment.lineage))
             current_thread['comments'].append(current_comment)
         response.append(current_thread)
 
@@ -322,6 +340,7 @@ def package():
     if 'project' in request.view_args:
         project = request.view_args['project']
         sent_package['project'] = project
+        sent_package['project_owner'] = get_branch_owner(project, 'master')
         if 'branch' in request.view_args:
             branch = request.view_args['branch']
             if current_user.is_authenticated:
@@ -340,6 +359,7 @@ def package():
     sent_package['get_branch_by_name'] = get_branch_by_name
     sent_package['hash'] = lambda x: hashlib.sha256(x).hexdigest()
     sent_package['_'] = _
+    sent_package['url_encode'] = lambda x: urllib.quote(x, safe='')
     sent_package['current_user'] = current_user
     return sent_package
 
@@ -572,6 +592,7 @@ def comments(project):
 @bookcloud.route('/<project>/newthread', methods = ['GET', 'POST'])
 def newthread(project):
     menu = menu_bar(project)
+    project_id = Project.query.filter_by(name=project).first().id
     form = NewThreadForm(request.form)
     form.flag.default = 'discussion'
     form.usertags.choices = [(u.username, u.username) for u in User.query.all()]
@@ -583,12 +604,11 @@ def newthread(project):
                              if isfile(join(master_path, f)) and f[0] != '.']
     if request.args.get('filetags', ''):
         form.filetags.default = [request.args.get('filetags', '')]
-    form.namedtags.choices = [(t.name, t.name) for t in Named_Tag.query.all()]
+    form.namedtags.choices = [(t.name, t.name) for t in Named_Tag.query.filter_by(project_id=project_id).all()]
     form.freetags.default = ''
 
     if request.method == 'POST':
         if form.validate():
-            project_id = Project.query.filter_by(name=project).first().id
             owner_id = User.query.filter_by(username=current_user.username).first().id
             # add thread
             new_thread = Thread(request.form['title'],
@@ -623,28 +643,101 @@ def newthread(project):
                 new_namedtag = Custom_Tag(new_thread.id, namedtag_id)
                 db.session.add(new_namedtag)
             # add free tags
-            for freetag in request.form['freetags'].split(','):
+            for freetag in filter(None, re.findall(r"[\w']+", request.form['freetags'])):
                 new_freetag = Free_Tag(new_thread.id, freetag)
                 db.session.add(new_freetag)
 
             db.session.commit()
             flash(_('New thread successfully created'), 'info')
+            if 'return_url' in request.args:
+                return redirect(urllib.unquote(request.args['return_url']))
         else:
             form.firstcomment.default = request.form['firstcomment']
             form.title.default = request.form['title']
             form.freetags.default = request.form['freetags']
 
     form.process()
-    return render_template('newthread.html', menu=menu, form=form, old=request.form)
+    return render_template('newthread.html', menu=menu, form=form)
 
+@login_required
+@bookcloud.route('/<project>/newcomment/<thread_id>', methods = ['GET', 'POST'])
+@bookcloud.route('/<project>/newcomment/<thread_id>/<parent_lineage>', methods = ['GET', 'POST'])
+def newcomment(project, thread_id, parent_lineage=''):
+    menu = menu_bar(project)
+    form = NewCommentForm(request.form)
+
+    if request.method == 'POST':
+        if form.validate():
+            project_id = Project.query.filter_by(name=project).first().id
+            owner_id = User.query.filter_by(username=current_user.username).first().id
+            siblings_pattern = parent_lineage + '%'
+            decend_comments = (Comment.query.filter(Comment.thread_id==thread_id)
+                               .filter(Comment.lineage.like(siblings_pattern)).all())
+            number_siblings = len(decend_comments)
+            new_comment = Comment(parent_lineage + format(number_siblings, '06X') + ':',
+                                  request.form['title'],
+                                  thread_id,
+                                  owner_id,
+                                  request.form['comment'],
+                                  datetime.utcnow())
+            db.session.add(new_comment)
+            db.session.commit()
+            flash(_('New comment successfully created'), 'info')
+            if 'return_url' in request.args:
+                return redirect(urllib.unquote(request.args['return_url']))
+        else:
+            form.title.default = request.form['title']
+            form.comment.default = request.form['comment']
+
+    form.process()
+    return render_template('newcomment.html', menu=menu, form=form)
 
 @login_required
 @bookcloud.route('/<project>/deletethread')
 def deletethread(project):
-    menu = menu_bar(project)
-    print(request.args['thread_id'])
-    return str(request)
+    thread_id = request.args['thread_id']
+    if Comment.query.filter_by(thread_id=thread_id).first():
+        flash(_('Thread is not empty'), 'error')
+    else:
+        thread = Thread.query.filter_by(id=thread_id).first()
+        ownername = User.query.filter_by(id=thread.owner_id).first().username
+        if not current_user.is_authenticated:
+            flash(_('You must be logged in to delete a thread'), 'error')
+        else:
+            if current_user.username == ownername or current_user.username == get_branch_owner(project, 'master'):
+                User_Tag.query.filter_by(thread_id=thread_id).delete()
+                File_Tag.query.filter_by(thread_id=thread_id).delete()
+                Custom_Tag.query.filter_by(thread_id=thread_id).delete()
+                Free_Tag.query.filter_by(thread_id=thread_id).delete()
+                Thread.query.filter_by(id=thread_id).delete()
+                db.session.commit()
+                flash(_('Thread successfully deleted'), 'info')
+            else:
+                flash(_('You are not allowed to delete this thread'), 'error')
+    return redirect(urllib.unquote(request.args['return_url']))
 
+@login_required
+@bookcloud.route('/<project>/deletecomment')
+def deletecomment(project):
+    comment = Comment.query.filter_by(id=request.args['comment_id']).first()
+    decendants = comment.lineage + '%'
+    decend_comments = (Comment.query.filter(Comment.thread_id==comment.thread_id)
+                       .filter(Comment.lineage.like(decendants)).all())
+    if len(decend_comments) > 1:
+        flash(_('This comment has replies and cannot be deleted'), 'error')
+    else:
+        if not current_user.is_authenticated:
+            flash(_('You must be logged in to delete a comment'), 'error')
+        else:
+            ownername = User.query.filter_by(id=comment.owner_id).first().username
+            if current_user.username == ownername or current_user.username == get_branch_owner(project, 'master'):
+                Likes.query.filter_by(comment_id=comment.id).delete()
+                Comment.query.filter_by(id=comment.id).delete()
+                db.session.commit()
+                flash(_('Comment successfully deleted'), 'info')
+            else:
+                flash(_('You are not allowed to delete this thread'), 'error')
+    return redirect(urllib.unquote(request.args['return_url']))
 
 @bookcloud.route('/<project>/<branch>', methods = ['GET', 'POST'])
 def branch(project, branch):
