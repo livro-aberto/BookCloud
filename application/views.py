@@ -111,11 +111,11 @@ class NewThreadForm(Form):
     filetags = SelectMultipleField('Files', widget=select_multi_checkbox)
     namedtags = SelectMultipleField('Tags', widget=select_multi_checkbox)
     freetags = StringField('Hash Tags')
-    firstcomment = TextAreaField('Content', [ validators.Length(min=3, max=400)])
+    firstcomment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
 
 class NewCommentForm(Form):
     title = StringField('Title', [ validators.Length(min=5, max=80)])
-    comment = TextAreaField('Content', [ validators.Length(min=3, max=400)])
+    comment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
 
 # to run a process with timeout
 class Command(object):
