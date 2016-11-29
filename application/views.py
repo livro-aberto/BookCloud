@@ -549,7 +549,6 @@ def new():
 
 @limiter.exempt
 @bookcloud.route('/<project>')
-@login_required
 def project(project):
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
