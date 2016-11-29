@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% from "_formhelpers.html" import render_field %}
+
+{% block title %}{{ _('List of comments') }}{% endblock%}
+
+{% macro contents() %}
+
+  <h1>
+    {{ _('Search comments in: %(project)s') | format(project=project) }}
+  </h1>
+
+  <ul id="navigation">
+
+  <p>
+    <form method="POST">
+      {{ render_field(form.search) }}
+      <br>
+      <input type=submit value=Register>
+    </form>
+  </p>
+
+  <p>
+    {% if not threads %}
+    {{ _('No results found') }}
+    {% endif %}
+  </p>
+  </ul>
+{% endmacro %}
+

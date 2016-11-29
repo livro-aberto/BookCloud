@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% from "_formhelpers.html" import render_field %}
+
+{% block title %}{{ _('Create new comment') }}{% endblock%}
+
+{% macro contents() %}
+<h1>{{ _('Create new comment') }}</h1>
+
+<ul id="navigation">
+
+  <p>
+    <form method="POST">
+      <dt>
+        {{ render_field(form.title, size='50') }}
+      </dt>
+      {{ render_field(form.comment, rows='20', cols='80') }}
+      <br>
+      <input type=submit value=Register>
+    </form>
+  </p>
+</ul>
+{% endmacro %}
+

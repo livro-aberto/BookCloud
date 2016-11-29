@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% from "_formhelpers.html" import render_field %}
+
+{% block title %}{{ _('Create new thread') }}{% endblock%}
+
+{% macro contents() %}
+<h1>{{ _('Create new thread') }}</h1>
+
+<ul id="navigation">
+
+  <p>
+    <form method="POST">
+      <dt>
+        {{ render_field(form.title, size='50') }}
+      </dt>
+      <div style="display: table-row">
+        <div style="display: table-cell; padding-right: 40px;">
+          {{ render_field(form.usertags) }}
+        </div>
+        <div style="display: table-cell; padding-right: 40px;">
+          {{ render_field(form.filetags) }}
+        </div>
+        <div style="display: table-cell; padding-right: 40px;">
+          {{ render_field(form.flag, style="padding-left: 0px; list-style-type: none;") }}
+          {{ render_field(form.namedtags) }}
+          {{ render_field(form.freetags) }}
+        </div>
+      </div>
+      {{ render_field(form.firstcomment, rows='20', cols='80') }}
+      <br>
+      <input type=submit value=Register>
+    </form>
+  </p>
+</ul>
+{% endmacro %}
+
