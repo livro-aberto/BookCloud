@@ -139,4 +139,6 @@ Do the actual translation, then
   - commit (send request to origin, propagate changes to subtree)
   - finish merge (send request to origin, propagate changes to subtree)
 
+## Code style
 
+  - indent always by 2 spaces.

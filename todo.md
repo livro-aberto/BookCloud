@@ -1,43 +1,27 @@
 # Urgent:
 
   - implement "steal branch" from parent owner
-  - allow user to delete branch (setup expiration time for branches?)
   - make security improvements on sphinx:
     - disallow raw html
     - read the documentation for more
+      http://docutils.sourceforge.net/docs/ref/rst/directives.html#raw-data-pass-through
 
 # Features:
 
   (priority)
   - commit text below commit message view
-  - radio button with commit author in commit view (add external authors to database?)
   - upload figures
     - use safe_join to avoid malicious filenames
-  - implement comments and issues
-    - I would use something like an integer id for the thread and then
-      each comment has its thread and an id of the form:
-      6d8db9:b8237d:c23d79:cd0079:a29822:233a13
-      (6 digits for each sublevel: 16^6 = 16.7 x 10^6)
-    - preserving order with hexadecimals:
-      (a < b) == (format(a, '08X') < format(b, '08X'))
-    - more object types: discussion, issue, room,...
-    - column for access rights? private (only owner), moderators of project, logged, public...
-    - column for arbitrary data: json structure that is specific of the object type
+    - size of figures (thumbnail for html, hd for pdf...)
+  - more object types: discussion, issue, room,...
+  - column for access rights? private (only owner), moderators of project, logged, public...
+  - column for arbitrary data: json structure that is specific of the object type
 
-SQL Comment structure
-
-    thread: id, title, owner_id, project
-    comment: id, title, thread, owner_id, content
-    like: id, comment_id, owner_id
-    branch_tag: id, thread_id, branch_id
-    user_tag: id, thread_id, user_id
-    file_tag: id, thread_id, filename
-    customized_tag: id, project, name
-    custom_tag: id, thread_id, customized_tag_id
-    free_tag: id, thread_id, name
+  - remove title from comments (or let it be optional)
 
   (medium)
-  - ability to rename file (possibly with template for name)
+  - radio button with commit author in commit view (add external authors to database?)
+  - ability to rename file (using git mv) (possibly with template for name)
   - ability to remove file
   - add template names for new files
   - implement delete project
@@ -63,6 +47,7 @@ SQL Comment structure
     modifications, diff with master, owner, subtree, requests, latest commits...
 
   (useful)
+  - allow user to delete branch
   - ability to view old commits and branch from it. Now can only be done in GitHub.
   - add user options, such as: language
   - add project options  (see sphinx's conf.py)
@@ -98,11 +83,12 @@ SQL Comment structure
 
 # Organization of code:
 
+  - increase base test to include: commenting
+  - organize view.py into different files: git functions...
   - put helper functions to a separate file and import it in view.py
   - replace all possible function calls using names to objects (user, project, branch...)
   - create a function to fix file.extension handling
   - is it possible to remove all the menu = menu_bar() calls, by using context processors?
-  - add user data to the context processor as well
   - implement submodules for javascript code,
     - https://github.com/lqc/google-diff-match-patch
     - https://github.com/sphinx-doc/sphinx/tree/master/sphinx/themes/bizstyle/static

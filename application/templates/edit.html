@@ -40,17 +40,17 @@
   }
 
   function save() {
-      is_changed = 0;
-      var height = document.getElementById("html_view").scrollTop;
-      document.getElementById("html_scroll").value = height;
-      var info = editor.getScrollInfo();
-      document.getElementById("edit_scroll").value = info.top;
-      document.getElementById("myform").submit();
+    is_changed = 0;
+    var height = document.getElementById("html_view").scrollTop;
+    document.getElementById("html_scroll").value = height;
+    var info = editor.getScrollInfo();
+    document.getElementById("edit_scroll").value = info.top;
+    document.getElementById("myform").submit();
   }
 
   function scrollWin() {
-  document.getElementById("html_view").scrollTo(0, {{ html_scroll }});
-  editor.scrollTo(0, {{ edit_scroll }});
+    document.getElementById("html_view").scrollTo(0, {{ html_scroll }});
+    editor.scrollTo(0, {{ edit_scroll }});
   }
 
   window.onload = scrollWin;

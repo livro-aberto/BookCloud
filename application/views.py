@@ -868,6 +868,8 @@ def view(project, branch, filename):
             merge_pendencies = get_merge_pendencies(project, branch, current_user.username)
             if merge_pendencies:
                 return merge_pendencies
+            menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
+                                                 filename=filename), 'name': 'edit'})
         else:
             menu['right'].append({'url': url_for('.clone', project=project, branch=branch),
                                   'name': 'edit'})
@@ -886,10 +888,9 @@ def edit(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.clone', project=project, branch=branch))
-    pendencies = get_merge_pendencies(project, branch, current_user.username)
-    if pendencies:
+    merge_pendencies = get_merge_pendencies(project, branch, current_user.username)
+    if merge_pendencies:
         return pendencies
-    # update_branch(project, branch)
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
     branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
     if request.method == 'POST':
