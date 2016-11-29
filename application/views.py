@@ -860,16 +860,17 @@ def view(project, branch, filename):
                           'build/html', filename + file_extension)
     menu = menu_bar(project, branch)
     #update_branch(project, branch)
-    if (current_user.is_authenticated):
+    if not current_user.is_authenticated:
+        menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
+                                             filename=filename), 'name': 'edit'})
+    else:
         if current_user.username == get_branch_owner(project, branch):
-            pendencies = get_merge_pendencies(project, branch, current_user.username)
-            if pendencies:
-                return pendencies
-            menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
-                                                 filename=filename), 'name': 'edit'})
+            merge_pendencies = get_merge_pendencies(project, branch, current_user.username)
+            if merge_pendencies:
+                return merge_pendencies
         else:
             menu['right'].append({'url': url_for('.clone', project=project, branch=branch),
-                                  'name': 'clone'})
+                                  'name': 'edit'})
     content = load_file(user_repo_path)
     threads = (display_threads(Thread.query.join(File_Tag)
                                .filter(File_Tag.filename==filename)
