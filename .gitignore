@@ -8,6 +8,7 @@ repos/*
 
 *.sqlite
 config.py
+manage.py
 vir/*
 conf/conf.py
 
