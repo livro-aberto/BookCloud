@@ -512,9 +512,9 @@ def home():
     return render_template('home.html', projects=projects, menu=menu,
                            copyright='CC-BY-SA-NC')
 
-@login_required
 @limiter.exempt
 @bookcloud.route('/profile')
+@login_required
 def profile():
     menu = menu_bar()
     projects = [d for d in Project.query.all()]
@@ -530,9 +530,9 @@ def profile():
     return render_template('profile.html', username=current_user.username,
                            collection=collection, menu=menu, threads=threads)
 
-@login_required
 @limiter.limit("4 per day")
 @bookcloud.route('/new', methods = ['GET', 'POST'])
+@login_required
 def new():
     menu = menu_bar()
     form = IdentifierForm(request.form)
@@ -547,9 +547,9 @@ def new():
                                     project=form.name.data))
     return render_template('new.html', menu=menu, form=form)
 
-@login_required
 @limiter.exempt
 @bookcloud.route('/<project>')
+@login_required
 def project(project):
     path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
@@ -592,8 +592,8 @@ def comments(project):
         threads = display_threads(Thread.query.filter_by(project_id=project_id))
     return render_template('comments.html', menu=menu, threads=threads, form=form)
 
-@login_required
 @bookcloud.route('/<project>/newthread', methods = ['GET', 'POST'])
+@login_required
 def newthread(project):
     menu = menu_bar(project)
     project_id = Project.query.filter_by(name=project).first().id
@@ -663,9 +663,9 @@ def newthread(project):
     form.process()
     return render_template('newthread.html', menu=menu, form=form)
 
-@login_required
 @bookcloud.route('/<project>/newcomment/<thread_id>', methods = ['GET', 'POST'])
 @bookcloud.route('/<project>/newcomment/<thread_id>/<parent_lineage>', methods = ['GET', 'POST'])
+@login_required
 def newcomment(project, thread_id, parent_lineage=''):
     menu = menu_bar(project)
     form = NewCommentForm(request.form)
@@ -696,8 +696,8 @@ def newcomment(project, thread_id, parent_lineage=''):
     form.process()
     return render_template('newcomment.html', menu=menu, form=form)
 
-@login_required
 @bookcloud.route('/<project>/deletethread')
+@login_required
 def deletethread(project):
     thread_id = request.args['thread_id']
     if Comment.query.filter_by(thread_id=thread_id).first():
@@ -720,8 +720,8 @@ def deletethread(project):
                 flash(_('You are not allowed to delete this thread'), 'error')
     return redirect(urllib.unquote(request.args['return_url']))
 
-@login_required
 @bookcloud.route('/<project>/deletecomment')
+@login_required
 def deletecomment(project):
     comment = Comment.query.filter_by(id=request.args['comment_id']).first()
     decendants = comment.lineage + '%'
@@ -756,9 +756,9 @@ def branch(project, branch):
     threads = display_threads(Thread.query.filter_by(project_id=project_id))
     return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
 
-@login_required
 @limiter.limit("7 per day")
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
+@login_required
 def clone(project, branch):
     menu = menu_bar(project, branch)
     form = IdentifierForm(request.form)
@@ -778,9 +778,9 @@ def clone(project, branch):
                                     filename='index.html'))
     return render_template('clone.html', menu=menu, form=form)
 
-@login_required
 @limiter.limit("7 per day")
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
+@login_required
 def newfile(project, branch):
     pendencies = get_merge_pendencies(project, branch, current_user.username)
     if pendencies:
@@ -812,8 +812,8 @@ def newfile(project, branch):
                                     branch=branch, filename='index.html'))
     return render_template('newfile.html', menu=menu, form=form)
 
-@login_required
 @bookcloud.route('/<project>/<branch>/requests')
+@login_required
 def requests(project, branch):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
@@ -825,8 +825,8 @@ def requests(project, branch):
     menu = menu_bar(project, branch)
     return render_template('requests.html', unmerged=requests, menu=menu)
 
-@login_required
 @bookcloud.route('/<project>/<branch>/finish')
+@login_required
 def finish(project, branch):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
@@ -875,9 +875,9 @@ def view(project, branch, filename):
                               filter(File_Tag.filename==filename))
     return render_template_string(content, menu=menu, render_sidebar=True, threads=threads)
 
-@login_required
 @limiter.exempt
 @bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
+@login_required
 def edit(project, branch, filename):
     html_scroll = 0
     edit_scroll = 0
@@ -905,8 +905,8 @@ def edit(project, branch, filename):
                            menu=menu, html_scroll=html_scroll,
                            edit_scroll=edit_scroll, render_sidebar=False)
 
-@login_required
 @bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
+@login_required
 def commit(project, branch):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
@@ -937,8 +937,8 @@ def commit(project, branch):
     diff = repo.git.diff('--cached')
     return render_template('commit.html', menu=menu, form=form, diff=diff)
 
-@login_required
 @bookcloud.route('/<project>/<branch>/merge/<other>')
+@login_required
 def merge(project, branch, other):
     merging = get_merging(project, branch)
     if not merging:
@@ -964,8 +964,8 @@ def merge(project, branch, other):
                            reviewed=merging['reviewed'], other=other, log=log,
                            menu=menu)
 
-@login_required
 @bookcloud.route('/<project>/<branch>/review/<path:filename>', methods = ['GET', 'POST'])
+@login_required
 def review(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
@@ -999,8 +999,8 @@ def review(project, branch, filename):
                            filename=filename + file_extension,
                            menu=menu, other=merging['branch'], render_sidebar=False)
 
-@login_required
 @bookcloud.route('/<project>/<branch>/diff/<path:filename>')
+@login_required
 def diff(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
@@ -1026,8 +1026,8 @@ def diff(project, branch, filename):
     return render_template('diff.html', other=merging['branch'],
                            diff=diff, filename=filename + file_extension)
 
-@login_required
 @bookcloud.route('/<project>/<branch>/accept/<path:filename>')
+@login_required
 def accept(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
