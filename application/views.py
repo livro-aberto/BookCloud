@@ -853,6 +853,7 @@ def finish(project, branch):
 @bookcloud.route('/<project>/<branch>/view/<path:filename>')
 def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
+    project_id = Project.query.filter_by(name=project).first().id
     if file_extension == '':
         file_extension = '.html'
     user_repo_path = join('repos', project, branch,
@@ -870,8 +871,9 @@ def view(project, branch, filename):
             menu['right'].append({'url': url_for('.clone', project=project, branch=branch),
                                   'name': 'clone'})
     content = load_file(user_repo_path)
-    threads = display_threads(Thread.query.join(File_Tag).\
-                              filter(File_Tag.filename==filename))
+    threads = (display_threads(Thread.query.join(File_Tag)
+                               .filter(File_Tag.filename==filename)
+                               .filter(Thread.project_id==project_id)))
     return render_template_string(content, menu=menu, render_sidebar=True, threads=threads)
 
 @limiter.exempt
