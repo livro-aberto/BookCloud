@@ -204,7 +204,7 @@ def display_threads(threads):
         current_thread['free_tags'] = [f.name for f in free_tags]
         current_thread['comments'] = []
 
-        get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage).limit(10)
+        get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage).limit(100)
         for prev_comment, comment, next_comment  in window(get_comments):
             current_comment = {}
             current_comment['id'] = comment.id
@@ -586,7 +586,7 @@ def comments(project):
                         filter(or_(Comment.content.like('%' + form.search.data + '%'),
                                    Comment.title.like('%' + form.search.data + '%'),
                                    Thread.title.like('%' + form.search.data + '%'))).
-                        limit(20))
+                        limit(100))
         threads = display_threads(thread_query)
     else:
         threads = display_threads(Thread.query.filter_by(project_id=project_id))
