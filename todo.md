@@ -3,7 +3,7 @@
   - implement "steal branch" from parent owner
   - make security improvements on sphinx:
     - disallow raw html
-    - read the documentation for more
+      read the documentation for more
       http://docutils.sourceforge.net/docs/ref/rst/directives.html#raw-data-pass-through
 
 # Features:
@@ -14,8 +14,8 @@
     - use safe_join to avoid malicious filenames
     - size of figures (thumbnail for html, hd for pdf...)
   - more object types: discussion, issue, room,...
-  - column for access rights? private (only owner), moderators of project, logged, public...
-  - column for arbitrary data: json structure that is specific of the object type
+    - column for access rights? private (only owner), moderators of project, logged, public...
+    - column for arbitrary data: json structure that is specific of the object type
 
   - remove title from comments (or let it be optional)
 
@@ -85,7 +85,7 @@
 
   - increase base test to include: commenting
   - organize view.py into different files: git functions...
-  - put helper functions to a separate file and import it in view.py
+    put helper functions to a separate file and import it in view.py
   - replace all possible function calls using names to objects (user, project, branch...)
   - create a function to fix file.extension handling
   - is it possible to remove all the menu = menu_bar() calls, by using context processors?
