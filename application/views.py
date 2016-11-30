@@ -692,8 +692,9 @@ def newcomment(project, thread_id, parent_lineage=''):
             form.title.default = request.form['title']
             form.comment.default = request.form['comment']
 
+    threads = display_threads(Thread.query.filter_by(id=thread_id).all())
     form.process()
-    return render_template('newcomment.html', menu=menu, form=form)
+    return render_template('newcomment.html', menu=menu, form=form, threads=threads)
 
 @bookcloud.route('/<project>/deletethread')
 @login_required
