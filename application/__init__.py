@@ -116,9 +116,8 @@ class Comment(db.Model):
     content = db.Column(db.Unicode(2000), nullable=False, unique=False)
     posted_at = db.Column(db.DateTime(), nullable=False)
 
-    def __init__(self, lineage, title, thread_id, owner_id, content, posted_at):
+    def __init__(self, lineage, thread_id, owner_id, content, posted_at):
         self.lineage = lineage
-        self.title = title
         self.thread_id = thread_id
         self.owner_id = owner_id
         self.content = content

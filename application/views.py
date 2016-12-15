@@ -460,7 +460,6 @@ def newthread(project):
             db.session.commit()
             # add first comment
             new_comment = Comment('000000:',
-                                  request.form['title'],
                                   new_thread.id,
                                   owner_id,
                                   request.form['firstcomment'],
