@@ -23,55 +23,21 @@ from wtforms import Form, BooleanField, StringField, validators,\
 
 from wtforms.widgets import html_params
 
-# for timeouts
-import subprocess, threading
-
-# for rst2html
-from docutils.core import publish_string, publish_parts
-from docutils_tinyhtml import Writer
-
 # for identicon hashs
 import hashlib
 
-import codecs # deals with encoding better
 import sphinx
 
-
-def window(iterable):
-    # Turns an iterable into a moving window
-    # [0, ..., 10] -> [(None, 0, 1), (0, 1, 2), ..., (8, 9, None), (9, None, None)]
-    iterator = iter(iterable)
-    prev_item = None
-    current_item = next(iterator)  # throws StopIteration if empty.
-    for next_item in iterator:
-        yield (prev_item, current_item, next_item)
-        prev_item = current_item
-        current_item = next_item
-    yield (prev_item, current_item, None)
+# import special tools for this platform
+from tools import window, rst2html, Command, get_git, load_file,\
+    write_file, get_merging, get_requests, get_merge_pendencies,\
+    config_repo, is_dirty, get_log, get_log_diff
 
 config_path = 'conf'
 
 bookcloud = Blueprint('bookcloud', __name__, template_folder='templates')
 
 babel = Babel(app)
-
-def rst2html(rst):
-    writer = Writer()
-    # store full html output to html variable
-    html = publish_string(source=rst,
-                          writer=writer,
-                          writer_name='html',
-                          settings_overrides={'link': 'link', 'top': 'top'})
-    # disable system message in html, no in stderr
-    parts = publish_parts(source=rst,
-                          writer=writer,
-                          writer_name='html',
-                          settings_overrides={'no_system_messages': True})
-    # store only html body
-    body = parts['html_title'] + parts['body'] + parts['html_line'] + \
-        parts['html_footnotes'] + parts['html_citations'] + \
-        parts['html_hyperlinks']
-    return body
 
 class IdentifierForm(Form):
     name = StringField('Identifier', [
@@ -114,71 +80,7 @@ class NewThreadForm(Form):
     firstcomment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
 
 class NewCommentForm(Form):
-    title = StringField('Title', [ validators.Length(min=5, max=80)])
     comment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
-
-# to run a process with timeout
-class Command(object):
-    def __init__(self, cmd):
-        self.cmd = cmd
-        self.process = None
-
-    def run(self, timeout):
-        def target():
-            self.process = subprocess.Popen(self.cmd, shell=True)
-            self.process.communicate()
-
-        thread = threading.Thread(target=target)
-        thread.start()
-
-        thread.join(timeout)
-        if thread.is_alive():
-            flash(_('Process is taking too long and will be terminated!'), 'error')
-            self.process.terminate()
-            thread.join()
-
-#def display_comments(query):
-#    #***
-#    if not query:
-#        return None
-#    response = []
-#    query = list(query)
-#    for comment in query:
-#        current_thread_id = comment.thread_id
-#        if not current_thread_id in [t['id'] for t in response]:
-#            q = Thread.query.filter_by(id=comment.thread_id).first()
-#            current_thread = {}
-#            current_thread['id'] = q.id
-#            current_thread['title'] = q.title
-#            current_thread['author'] = User.query.filter_by(id=q.owner_id).first().username
-#            current_thread['flag'] = q.flag
-#            current_thread['posted_at'] = q.posted_at
-#            current_thread['comments'] = []
-#            for further_comment in query:
-#                if further_comment.thread_id == current_thread_id:
-#                    current_thread['comments'].append(further_comment)
-#            response.append(current_thread)
-#
-#    while query:
-#        comment = query.pop(0)
-#        q = Thread.query.filter_by(id=comment.thread_id).first()
-#        current_thread = {}
-#        current_thread['title'] = q.title
-#        current_thread['author'] = User.query.filter_by(id=q.owner_id).first().username
-#        current_thread['flag'] = q.flag
-#        current_thread['posted_at'] = q.posted_at
-#        current_thread['comments'] = []
-#
-#        #get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage)
-#        current_comment = {}
-#        current_comment['title'] = comment.title
-#        current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
-#        current_comment['content'] = comment.content
-#        current_comment['posted_at'] = comment.posted_at
-#        current_comment['indent'] = 6 * len(comment.lineage)
-#        current_thread['comments'].append(current_comment)
-#        response.append(current_thread)
-#    return response
 
 def display_threads(threads):
     #***
@@ -208,7 +110,6 @@ def display_threads(threads):
         for prev_comment, comment, next_comment  in window(get_comments):
             current_comment = {}
             current_comment['id'] = comment.id
-            current_comment['title'] = comment.title
             current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
             current_comment['content'] = rst2html(comment.content)
             current_comment['posted_at'] = comment.posted_at
@@ -232,53 +133,15 @@ def get_locale():
     #return request.accept_languages.best_match(app.config['LANGUAGES'].keys())
     return 'en'
 
-#@app.before_first_request
-#def set_lang():
-#    #language = app.config['LANGUAGE']
-#    #lang = _.translation('messages', localedir='locale', languages=[language])
-#    #lang.install(True)
-#    #_ = lang.u_
-
-@app.before_request
-def before_request():
-    flask.g.locale = get_locale()
-
-def get_git(project, branch):
-    repo_path = join('repos', project, branch, 'source')
-    repo = git.Repo(repo_path)
-    return repo.git
-
-def load_file(path):
-    with codecs.open(path, 'r', 'utf-8') as content_file:
-        return content_file.read()
-
-def write_file(path, contents):
-    UTF8Writer = codecs.getwriter('utf8')
-    with open(path, 'w') as dest_file:
-        dest_file.write(contents.encode('utf8'))
-
-def get_merging(project, branch):
-    merge_file_path = join('repos', project, branch, 'merging.json')
-    if isfile(merge_file_path):
-        return json.loads(load_file(merge_file_path))
-
-def get_requests(project, branch):
-    git_api = get_git(project, branch)
-    branches = string.split(git_api.branch())
-    merged = string.split(git_api.branch('--merged'))
-    unmerged = [item for item in branches if item not in merged]
-    return unmerged
-
-def get_merge_pendencies(project, branch, username):
-    # is the user the owner?
-    if username != get_branch_owner(project, branch):
-        return None
-    branch_repo_path = join('repos', project, branch)
-    # user is merging?
-    merging = get_merging(project, branch)
-    if merging:
-        return redirect(url_for('.merge', project=project,
-                                branch=branch, other=merging['branch']))
+def update_branch(project, branch):
+    # update from reviewer (if not master)
+    if branch != 'master' and not is_dirty(project, branch):
+        origin_branch = get_branch_origin(project, branch).name
+        git_api = get_git(project, branch)
+        git_api.fetch()
+        git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
+        git_api.push('origin', branch)
+    build(project, branch)
 
 def update_subtree(project, branch):
     if not is_dirty(project, branch):
@@ -311,24 +174,9 @@ def update_subtree(project, branch):
                 branch_obj.expiration = current_time + timedelta(days=1)
                 db.session.commit()
 
-def update_branch(project, branch):
-    # update from reviewer (if not master)
-    if branch != 'master' and not is_dirty(project, branch):
-        origin_branch = get_branch_origin(project, branch).name
-        git_api = get_git(project, branch)
-        git_api.fetch()
-        git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
-        git_api.push('origin', branch)
-    build(project, branch)
-
-def config_repo(repo, user_name, email):
-    config = repo.config_writer()
-    config.set_value('user', 'email', email)
-    config.set_value('user', 'name', user_name)
-
-def is_dirty(project, branch):
-    repo_path = join('repos', project, branch, 'source')
-    return git.Repo(repo_path).is_dirty()
+@app.before_request
+def before_request():
+    flask.g.locale = get_locale()
 
 def get_branch_by_name(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
@@ -480,17 +328,6 @@ def menu_bar(project=None, branch=None):
                             right.append({'url': url_for('.requests', project=project, branch=branch),
                                           'name': 'requests', 'style': 'attention'})
     return { 'left': left, 'right': right}
-
-def get_log(project, branch):
-    git_api = get_git(project, branch)
-    return git_api.log('-15', '--no-merges', '--abbrev-commit','--decorate', '--full-history',
-                       "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
-
-def get_log_diff(project, origin, branch):
-    git_api = get_git(project, origin)
-    return git_api.log(origin + '..' + branch, '--graph',
-                       '--abbrev-commit','--decorate', '--right-only',
-                       "--format=format:%an (%ar): %s %d")
 
 @limiter.exempt
 @bookcloud.route('/')
@@ -747,9 +584,9 @@ def deletecomment(project):
 def branch(project, branch):
     if (current_user.is_authenticated):
         if current_user.username == get_branch_owner(project, branch):
-            pendencies = get_merge_pendencies(project, branch, current_user.username)
-            if pendencies:
-                return pendencies
+            merge_pendencies = get_merge_pendencies(project, branch)
+            if merge_pendencies:
+                return merge_pendencies
     menu = menu_bar(project, branch)
     log = get_log(project, branch)
     project_id = Project.query.filter_by(name=project).first().id
@@ -762,9 +599,10 @@ def branch(project, branch):
 def clone(project, branch):
     menu = menu_bar(project, branch)
     form = IdentifierForm(request.form)
-    pendencies = get_merge_pendencies(project, branch, current_user.username)
-    if pendencies:
-        return pendencies
+    merge_pendencies = get_merge_pendencies(project, branch)
+    if merge_pendencies:
+        flash('???', 'error')
+        return render_template('clone.html', menu=menu, form=form)
     if request.method == 'POST' and form.validate():
         new_repo_path = join('repos', project, form.name.data)
         if os.path.isdir(new_repo_path):
@@ -782,15 +620,15 @@ def clone(project, branch):
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
 @login_required
 def newfile(project, branch):
-    pendencies = get_merge_pendencies(project, branch, current_user.username)
-    if pendencies:
-        return pendencies
     menu = menu_bar(project, branch)
     form = IdentifierForm(request.form)
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'))
         return redirect(url_for('.view', project=project,
                                 branch=branch, filename='index.html'))
+    merge_pendencies = get_merge_pendencies(project, branch)
+    if merge_pendencies:
+        return merge_pendencies
     if request.method == 'POST' and form.validate():
         filename = form.name.data
         file_extension = '.rst'
@@ -866,7 +704,7 @@ def view(project, branch, filename):
                                              filename=filename), 'name': 'edit'})
     else:
         if current_user.username == get_branch_owner(project, branch):
-            merge_pendencies = get_merge_pendencies(project, branch, current_user.username)
+            merge_pendencies = get_merge_pendencies(project, branch)
             if merge_pendencies:
                 return merge_pendencies
             menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
@@ -889,7 +727,7 @@ def edit(project, branch, filename):
     if current_user.username != get_branch_owner(project, branch):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.clone', project=project, branch=branch))
-    merge_pendencies = get_merge_pendencies(project, branch, current_user.username)
+    merge_pendencies = get_merge_pendencies(project, branch)
     if merge_pendencies:
         return pendencies
     branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
@@ -1052,12 +890,6 @@ def accept(project, branch, filename):
 @bookcloud.route('/<project>/<branch>/view/genindex.html')
 def genindex(project, branch):
     return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-
-# Static stuff
-
-#@bookcloud.route('/<project>/comment_summary/<path:filename>')
-#def comment_summary(project, filename):
-#    return 'Comments from ' + filename
 
 @limiter.exempt
 @bookcloud.route('/<project>/<branch>/<action>/_images/<path:filename>')

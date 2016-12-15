@@ -9,6 +9,8 @@
 # Features:
 
   (priority)
+  - add time of last modification when writing "(modified)" in the branch
+    something like (modified 4 days ago).
   - commit text below commit message view
   - upload figures
     - use safe_join to avoid malicious filenames
@@ -16,7 +18,7 @@
   - more object types: discussion, issue, room,...
     - column for access rights? private (only owner), moderators of project, logged, public...
     - column for arbitrary data: json structure that is specific of the object type
-
+  - add view that allows owner of master to edit thread.
   - remove title from comments (or let it be optional)
 
   (medium)
@@ -84,8 +86,14 @@
 # Organization of code:
 
   - increase base test to include: commenting
-  - organize view.py into different files: git functions...
-    put helper functions to a separate file and import it in view.py
+  - organize view.py into different files:
+    - git functions
+    - helper functions
+    - organize views:
+      - user: profile (delete login and logout views)
+      - main: home, new, project, branch, clone, newfile, requests, finish, commit, review, diff, accept
+      - extension specific: pdf, view, edit, merge
+      - comments: comments, newthread, newcomment, deletethread, deletecomment
   - replace all possible function calls using names to objects (user, project, branch...)
   - create a function to fix file.extension handling
   - is it possible to remove all the menu = menu_bar() calls, by using context processors?

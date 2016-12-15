@@ -109,7 +109,6 @@ class Comment(db.Model):
     __tablename__ = 'comment'
     id = db.Column(db.Integer, primary_key=True)
     lineage = db.Column(db.String(200))
-    title = db.Column(db.Unicode(80), nullable=False, unique=False)
     thread_id = db.Column(db.Integer, db.ForeignKey('thread.id'))
     thread = relationship('Thread')
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
