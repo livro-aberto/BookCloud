@@ -16,3 +16,4 @@ mysql-python
 cloud-sptheme>=1.7.1
 docutils-tinyhtmlwriter>=1.2.0
 Flask-Limiter>=0.9.3
+arrow>=0.10.0

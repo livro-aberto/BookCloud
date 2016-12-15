@@ -17,7 +17,7 @@
              filename='index.html') }}">master</a>,
              (by @{{ tree[0]['branch'].owner.username }})
              {% if is_dirty(project, 'master') %}
-             <b>(modified)</b>
+             <b>(modified {{ last_modified(project, 'master') }})</b>
              {% endif %}
              {% if has_requests(project, 'master') %}
              <b>(has requests)</b>
@@ -38,7 +38,7 @@
                    filename='index.html') }}">{{ item['branch'].name }}</a>,
           (by @{{ item['branch'].owner.username }})
           {% if is_dirty(project, item['branch'].name) %}
-          <b>(modified)</b>
+          <b>(modified {{ last_modified(project, item['branch'].name) }})</b>
           {% endif %}
           {% if has_requests(project, item['branch'].name) %}
           <b>(has requests)</b>

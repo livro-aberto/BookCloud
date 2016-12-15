@@ -9,8 +9,6 @@
 # Features:
 
   (priority)
-  - add time of last modification when writing "(modified)" in the branch
-    something like (modified 4 days ago).
   - commit text below commit message view
   - upload figures
     - use safe_join to avoid malicious filenames

@@ -56,7 +56,6 @@ class Command(object):
             self.process.terminate()
             thread.join()
 
-
 # git related tools
 import git
 import string

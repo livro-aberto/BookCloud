@@ -182,6 +182,16 @@ def get_branch_by_name(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     return Branch.query.filter_by(project_id=project_id, name=branch).first()
 
+
+import subprocess
+import arrow
+
+def last_modified(project, branch):
+    branch_source_path = os.path.abspath(join('repos', project, branch, 'source'))
+    command = 'find ' + branch_source_path + ' -printf "%TY-%Tm-%Td %TT\n" | sort -nr | head -n 1'
+    timestamp = arrow.get(subprocess.check_output(command, shell=True))
+    return(timestamp.humanize())
+
 @app.context_processor
 def package():
     sent_package = {}
@@ -204,6 +214,7 @@ def package():
         return len(get_requests(project, branch)) > 0
     sent_package['has_requests'] = has_requests
     sent_package['get_log_diff'] = get_log_diff
+    sent_package['last_modified'] = last_modified
     sent_package['get_branch_by_name'] = get_branch_by_name
     sent_package['hash'] = lambda x: hashlib.sha256(x).hexdigest()
     sent_package['_'] = _
