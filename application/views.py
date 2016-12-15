@@ -514,7 +514,6 @@ def newcomment(project, thread_id, parent_lineage=''):
                                .filter(Comment.lineage.like(siblings_pattern)).all())
             number_siblings = len(decend_comments)
             new_comment = Comment(parent_lineage + format(number_siblings, '06X') + ':',
-                                  request.form['title'],
                                   thread_id,
                                   owner_id,
                                   request.form['comment'],
@@ -525,7 +524,6 @@ def newcomment(project, thread_id, parent_lineage=''):
             if 'return_url' in request.args:
                 return redirect(urllib.unquote(request.args['return_url']))
         else:
-            form.title.default = request.form['title']
             form.comment.default = request.form['comment']
 
     threads = display_threads(Thread.query.filter_by(id=thread_id).all())
