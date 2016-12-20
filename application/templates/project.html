@@ -10,63 +10,78 @@
     {{ _('Here you can see the project: %(project)s...') | format(project=project) }}
   </p>
 
-  <ul id="navigation">
-
-  <p>
-    <a href="{{ url_for('.view', project=project, branch='master',
-             filename='index.html') }}">master</a>,
-             (by @{{ tree[0]['branch'].owner.username }})
-             {% if is_dirty(project, 'master') %}
-             <b>(modified {{ last_modified(project, 'master') }})</b>
-             {% endif %}
-             {% if has_requests(project, 'master') %}
-             <b>(has requests)</b>
-             {% endif %}
-             - <a href="{{ url_for('.pdf', project=project,
-             branch='master') }}">pdf</a>
-  </p>
-
-  {% if tree[0].subtree != [] %}
     <p>
-      Sub-branches:
+      <a href="{{ url_for('.view', project=project, branch='master',
+               filename='index.html') }}">master</a>,
+               (by @{{ tree[0]['branch'].owner.username }})
+               {% if is_dirty(project, 'master') %}
+                 <b>(modified {{ last_modified(project, 'master') }})</b>
+               {% endif %}
+               {% if has_requests(project, 'master') %}
+                 <b>(has requests)</b>
+               {% endif %}
+               - <a href="{{ url_for('.pdf', project=project,
+               branch='master') }}">pdf</a>
     </p>
 
+    {% if tree[0].subtree != [] %}
+      <p>
+        Sub-branches:
+      </p>
+
+      <ul>
+        {% for item in tree[0].subtree recursive %}
+          <li>
+            <a href="{{ url_for('.view', project=project, branch=item['branch'].name,
+                     filename='index.html') }}">{{ item['branch'].name }}</a>,
+                     (by @{{ item['branch'].owner.username }})
+                     {% if is_dirty(project, item['branch'].name) %}
+                       <b>(modified {{ last_modified(project, item['branch'].name) }})</b>
+                     {% endif %}
+                     {% if has_requests(project, item['branch'].name) %}
+                       <b>(has requests)</b>
+                     {% endif %}
+                     - <a href="{{ url_for('.pdf', project=project,
+                     branch=item['branch'].name) }}">pdf</a>
+                     {% if item['branch'].expires %}
+                       expires ({{ item['branch'].expiration }})
+                     {% endif %}
+                     {% if item['subtree'] != [] %}
+                       <ul>
+                         {{ loop(item['subtree']) }}
+                       </ul>
+                     {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      It has no sub-branches.
+    {% endif %}
+
+    <h1>{{ _('Files in this project') }}</h1>
+
     <ul>
-      {% for item in tree[0].subtree recursive %}
+      {% for file in files %}
         <li>
-          <a href="{{ url_for('.view', project=project, branch=item['branch'].name,
-                   filename='index.html') }}">{{ item['branch'].name }}</a>,
-          (by @{{ item['branch'].owner.username }})
-          {% if is_dirty(project, item['branch'].name) %}
-          <b>(modified {{ last_modified(project, item['branch'].name) }})</b>
-          {% endif %}
-          {% if has_requests(project, item['branch'].name) %}
-          <b>(has requests)</b>
-          {% endif %}
-          - <a href="{{ url_for('.pdf', project=project,
-          branch=item['branch'].name) }}">pdf</a>
-          {% if item['branch'].expires %}
-            expires ({{ item['branch'].expiration }})
-          {% endif %}
-          {% if item['subtree'] != [] %}
-            <ul>
-              {{ loop(item['subtree']) }}
-            </ul>
-          {% endif %}
+          {{ file [0] }} -
+          <a href="/{{ project }}/master/view/{{ file[0] }}.html">view</a>,
+          {#
+            <a href="/{{ project }}/master/deletefile{{ file }}">delete</a>,
+            <a href="/{{ project }}/master/renamefile{{ file }}">rename</a>
+          #}
         </li>
       {% endfor %}
     </ul>
-  {% else %}
-    It has no sub-branches.
-  {% endif %}
 
-    <h2>{{ _('Last commits in _master:') }}
-      <div class="code highlight-default">
-        <div class="highlight">
-          <pre><span class="n" style="font-size:small">{{ log }}</span></pre>
-        </div>
+
+    <h1>{{ _('Last commits in _master:') }}</h1>
+
+    <div class="code highlight-default">
+      <div class="highlight">
+        <pre><span class="n" style="font-size:small">{{ log }}</span></pre>
       </div>
+    </div>
 
-</ul>
+  </ul>
 {% endmacro %}
 

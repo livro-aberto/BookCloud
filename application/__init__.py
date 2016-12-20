@@ -29,7 +29,8 @@ limiter = Limiter(
 # Initialize Flask-SQLAlchemy
 db = SQLAlchemy(app)
 
-
+# Setup Flask-Mail
+mail = Mail(app)
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
 class User(db.Model, UserMixin):

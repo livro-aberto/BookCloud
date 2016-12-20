@@ -8,7 +8,7 @@ from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
 from sqlalchemy import or_
-from application import app, db, User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag, limiter
+from application import app, db, User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag, limiter, mail
 import string
 from shutil import copyfile, rmtree
 import git
@@ -17,6 +17,8 @@ import traceback
 from datetime import datetime, timedelta
 
 from flask_babel import Babel, gettext as _
+
+from flask_mail import Message
 
 from wtforms import Form, BooleanField, StringField, validators,\
     RadioField, SelectMultipleField, TextAreaField, SelectField
@@ -405,8 +407,12 @@ def project(project):
     master = Branch.query.filter_by(project_id=project_id, name='master').first()
     tree = [ get_sub_branches(master) ]
     log = get_log(project, 'master')
+    master_path = join('repos', project, 'master', 'source')
+    files = [(splitext(f)[0], splitext(f)[1])
+             for f in os.listdir(master_path)
+             if isfile(join(master_path, f)) and f[0] != '.']
     threads = display_threads(Thread.query.filter_by(project_id=project_id))
-    return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads)
+    return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads, files=files)
 
 @bookcloud.route('/<project>/pdf')
 @bookcloud.route('/<project>/<branch>/pdf')
@@ -498,6 +504,17 @@ def newthread(project):
                 db.session.add(new_freetag)
 
             db.session.commit()
+            # send emails
+            with mail.connect() as conn:
+                for user in request.form.getlist('usertags'):
+                    user_obj = User.query.filter_by(username=user).first()
+                    message = request.form['firstcomment']
+                    subject = _('Thread: ') + request.form['title']
+                    msg = Message(recipients=[user_obj.email],
+                                  body=message,
+                                  subject=subject)
+                    conn.send(msg)
+
             flash(_('New thread successfully created'), 'info')
             if 'return_url' in request.args:
                 return redirect(urllib.unquote(request.args['return_url']))
@@ -531,6 +548,19 @@ def newcomment(project, thread_id, parent_lineage=''):
                                   datetime.utcnow())
             db.session.add(new_comment)
             db.session.commit()
+            # send emails
+            with mail.connect() as conn:
+                thread = Thread.query.filter_by(id=thread_id).first()
+                list_of_users = [ tag.user.username for tag in User_Tag.query.filter_by(thread_id=thread_id) ]
+                for user in list_of_users:
+                    user_obj = User.query.filter_by(username=user).first()
+                    message = request.form['comment']
+                    subject = _('Thread: ') + thread.title
+                    msg = Message(recipients=[user_obj.email],
+                                  body=message,
+                                  subject=subject)
+                    conn.send(msg)
+
             flash(_('New comment successfully created'), 'info')
             if 'return_url' in request.args:
                 return redirect(urllib.unquote(request.args['return_url']))
