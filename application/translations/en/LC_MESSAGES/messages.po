@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-11-29 16:05-0200\n"
+"POT-Creation-Date: 2016-12-22 22:48-0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -17,128 +17,160 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.3.4\n"
 
-#: views.py:136
-msgid "Process is taking too long and will be terminated!"
-msgstr "O processo está demorando muito e será terminado!"
-
-#: views.py:308
+#: views.py:173
 #, python-format
 msgid "Branch %s has been killed"
 msgstr "Ramo %s foi eliminado"
 
-#: views.py:310
+#: views.py:175
 #, python-format
 msgid "Branch %s has been marked obsolete"
 msgstr "Ramo %s foi marcado como obsoleto"
 
-#: views.py:377
+#: views.py:229
 msgid "Initial commit"
 msgstr "Submissao inicial"
 
-#: views.py:474
+#: views.py:326
 msgid "You have uncommitted changes!!!"
 msgstr "Você tem mudanças não submetidas!!!"
 
-#: views.py:479
+#: views.py:331
 msgid "You have unreviewed requests!!!"
 msgstr "Você tem requerimentos não revisados!!!"
 
-#: views.py:542
+#: views.py:383
 msgid "This project name already exists"
 msgstr "Este nome de projeto já existe"
 
-#: views.py:545
+#: views.py:386
 msgid "Project created successfuly!"
 msgstr "Projeto criado com sucesso"
 
-#: views.py:654
+#: views.py:497 views.py:511 views.py:555 views.py:571
+msgid "Thread: "
+msgstr "Tópico: "
+
+#: views.py:498 views.py:556
+msgid "Project: "
+msgstr "Projeto: "
+
+#: views.py:499
+msgid "Owner: "
+msgstr "Criador: "
+
+#: views.py:500 views.py:558
+msgid "Type: "
+msgstr "Tipo: "
+
+#: views.py:501 views.py:559
+msgid "Created at: "
+msgstr "Criado em: "
+
+#: views.py:502 views.py:560
+msgid "Contents:"
+msgstr "Conteúdo: "
+
+#: views.py:503
+msgid "To comment on this thread: "
+msgstr "Para comentar nesse tópico: "
+
+#: views.py:517
 msgid "New thread successfully created"
-msgstr ""
+msgstr "Novo tópico criado com sucesso"
 
-#: views.py:688
+#: views.py:557
+msgid "Author: "
+msgstr "Autor: "
+
+#: views.py:561
+msgid "To reply to this comment follow: "
+msgstr "Para responder a esse comentário, siga: "
+
+#: views.py:577
 msgid "New comment successfully created"
-msgstr ""
+msgstr "Novo comentário criado com sucesso"
 
-#: views.py:703
+#: views.py:592
 msgid "Thread is not empty"
-msgstr ""
+msgstr "Tópico não está vazio"
 
-#: views.py:708
+#: views.py:597
 msgid "You must be logged in to delete a thread"
-msgstr ""
+msgstr "Você precisa estar logado para deletar um tópico"
 
-#: views.py:717
+#: views.py:606
 msgid "Thread successfully deleted"
-msgstr ""
+msgstr "Tópico criado com sucesso"
 
-#: views.py:719 views.py:742
+#: views.py:608 views.py:631
 msgid "You are not allowed to delete this thread"
-msgstr ""
+msgstr "Você não está autorizado a deletar esse tópico"
 
-#: views.py:730
+#: views.py:619
 msgid "This comment has replies and cannot be deleted"
-msgstr ""
+msgstr "Esse comentário foi respondido e portanto não pode ser deletado"
 
-#: views.py:733
+#: views.py:622
 msgid "You must be logged in to delete a comment"
-msgstr ""
+msgstr "Você precisa estar logado para deletar esse comentário"
 
-#: views.py:740
+#: views.py:629
 msgid "Comment successfully deleted"
-msgstr ""
+msgstr "Comentário deletado com sucesso"
 
-#: views.py:770
+#: views.py:660
 msgid "This branch name already exists"
 msgstr "Esse nome de ramo já existe"
 
-#: views.py:775
+#: views.py:665
 msgid "Project cloned successfuly!"
 msgstr "Ramo criado com sucesso"
 
-#: views.py:790 views.py:818 views.py:831 views.py:889 views.py:916
-#: views.py:975 views.py:1010 views.py:1037
+#: views.py:677 views.py:708 views.py:721 views.py:779 views.py:805
+#: views.py:864 views.py:899 views.py:926
 msgid "You are not the owner of this branch"
 msgstr "Você não é o proprietário deste ramo"
 
-#: views.py:798
+#: views.py:688
 msgid "This file name name already exists"
 msgstr "Esse nome de arquivo já existe"
 
-#: views.py:808
+#: views.py:698
 msgid "File created successfuly!"
 msgstr "Arquivo criado com sucesso"
 
-#: views.py:821 views.py:950
+#: views.py:711 views.py:839
 msgid "Commit your changes before reviewing requests"
 msgstr "Submeta suas mudanças antes de revisar requerimentos"
 
-#: views.py:835 views.py:979 views.py:1015 views.py:1041
+#: views.py:725 views.py:868 views.py:904 views.py:930
 msgid "You are not merging"
 msgstr "Você não está consolidando uma submissão"
 
-#: views.py:838
+#: views.py:728
 msgid "You still have unreviewed files"
 msgstr "Você ainda tem arquivos não revisados"
 
-#: views.py:847 views.py:936
+#: views.py:737 views.py:825
 #, python-format
 msgid "Page submitted to _%s"
 msgstr "Submissão submetida para _%s"
 
-#: views.py:849
+#: views.py:739
 #, python-format
 msgid "You have finished merging _%s"
 msgstr "Você finalizou a consolidação do ramo _%s"
 
-#: views.py:920
+#: views.py:809
 msgid "You need to finish merging"
 msgstr "Você precisa de finalizar a consolidação"
 
-#: views.py:930
+#: views.py:819
 msgid "Some changes"
 msgstr "Algumas mudanças"
 
-#: views.py:957
+#: views.py:846
 #, python-format
 msgid "Branch _%s has no requests now"
 msgstr "Ramo _%s não possui requerimentos agora"
@@ -148,15 +180,15 @@ msgstr "Ramo _%s não possui requerimentos agora"
 msgid "Project (%(project)s), branch (_%(branch)s)"
 msgstr "Projeto (%(project)s), ramo (_%(branch)s)"
 
-#: templates/branch.html:11
+#: templates/branch.html:10
 msgid "Visit branch"
 msgstr "Visitar ramo"
 
-#: templates/branch.html:15
+#: templates/branch.html:14
 msgid "Create a new file"
 msgstr "Criar novo arquivo"
 
-#: templates/branch.html:19
+#: templates/branch.html:18
 #, python-format
 msgid "Last commits in _%s:"
 msgstr "Últimas submissões em _%s"
@@ -171,16 +203,16 @@ msgstr "Escolha um nome para o ramo"
 
 #: templates/comments.html:5
 msgid "List of comments"
-msgstr ""
+msgstr "Lista de comentários"
 
 #: templates/comments.html:10
 #, python-format
 msgid "Search comments in: %(project)s"
-msgstr ""
+msgstr "Procurar comentários em %(project)s"
 
 #: templates/comments.html:25
 msgid "No results found"
-msgstr ""
+msgstr "Nenhum resultado encontrado"
 
 #: templates/commit.html:5 templates/commit.html:8
 msgid "Commit your changes"
@@ -304,31 +336,31 @@ msgstr "Aqui você pode ver todos os projetos..."
 msgid "Create new project"
 msgstr "Criar novo projeto"
 
-#: templates/layout.html:164
+#: templates/layout.html:166
 msgid "discussion"
-msgstr ""
+msgstr "discussão"
 
-#: templates/layout.html:206
+#: templates/layout.html:212
 msgid "comments"
-msgstr ""
+msgstr "comentários"
 
-#: templates/layout.html:224
+#: templates/layout.html:230
 msgid "Users:"
-msgstr ""
+msgstr "Usuários:"
 
-#: templates/layout.html:228
+#: templates/layout.html:234
 msgid "Files:"
-msgstr ""
+msgstr "Arquivos:"
 
-#: templates/layout.html:232
+#: templates/layout.html:238
 msgid "Tags:"
 msgstr ""
 
-#: templates/layout.html:236
+#: templates/layout.html:242
 msgid "Others:"
-msgstr ""
+msgstr "Outros:"
 
-#: templates/layout.html:252
+#: templates/layout.html:258
 msgid "likes"
 msgstr ""
 
@@ -377,7 +409,7 @@ msgstr "Terminar consolidação"
 
 #: templates/newcomment.html:5 templates/newcomment.html:8
 msgid "Create new comment"
-msgstr ""
+msgstr "Criar novo comentário"
 
 #: templates/newfile.html:5 templates/newfile.html:8
 msgid "Create new file"
@@ -389,7 +421,7 @@ msgstr "Escolha um nome de arquivo"
 
 #: templates/newthread.html:5 templates/newthread.html:8
 msgid "Create new thread"
-msgstr ""
+msgstr "Criar novo tópico"
 
 #: templates/profile.html:11
 msgid "Here you can see all your branches"
@@ -407,9 +439,17 @@ msgstr ""
 " quiser editar o texto, clique no eixo mais apropriado e depois clique em"
 " 'editar'."
 
-#: templates/project.html:63
+#: templates/project.html:61
+msgid "Files in this project"
+msgstr "Arquivos nesse projeto"
+
+#: templates/project.html:77
 msgid "Last commits in _master:"
 msgstr "Últimas alterações"
+
+#: tools/__init__.py:57
+msgid "Process is taking too long and will be terminated!"
+msgstr "O processo está demorando muito e será terminado!"
 
 #~ msgid "Project branches"
 #~ msgstr "Ramos do projeto"
@@ -523,7 +563,7 @@ msgstr "Últimas alterações"
 #~ msgstr "Você não está consolidando uma submissão"
 
 #~ msgid "View the branch index"
-#~ msgstr ""
+#~ msgstr "Ver o índice do ramo"
 
 #~ msgid "Adding file %s"
 #~ msgstr "Adicionando arquivo %s"

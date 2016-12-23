@@ -9,17 +9,22 @@
 # Features:
 
   (priority)
+  - comments:
+    - implement like (is unicode symbol the &#128077;?)
+    - link to view file in thread tags
+    - search labels and add labels to file tags
+    - make comments hidden, with a show toggle button, so that only thread titles are shown
   - commit text below commit message view
   - upload figures
     - use safe_join to avoid malicious filenames
     - size of figures (thumbnail for html, hd for pdf...)
+  - add view that allows owner of thread or master to edit it.
+  - add view that allows owner of comment or master to edit it.
+
+  (medium)
   - more object types: discussion, issue, room,...
     - column for access rights? private (only owner), moderators of project, logged, public...
     - column for arbitrary data: json structure that is specific of the object type
-  - add view that allows owner of master to edit thread.
-  - remove title from comments (or let it be optional)
-
-  (medium)
   - radio button with commit author in commit view (add external authors to database?)
   - ability to rename file (using git mv) (possibly with template for name)
   - ability to remove file
@@ -29,7 +34,6 @@
   - implement other file types (besides rst). For this:
     - implement jinja for view<extension>.html
     - implement jinja for edit<extension>.html
-    - add all the files (output of ls) in the branch view
     - replace build (for html and pdf) with a single makefile
       that once something has changed runs through all the
       file extensions and generate html, pdf and epub.
