@@ -188,12 +188,15 @@
               {{ flash() | safe }}
               {{ contents() | safe }}
 
+              {% if threads %}
+                <h1 id="discussion">Discussions</h1>
+              {% endif %}
 
-              <h1 id="discussion">Discussions</h1>
               <p>
                 <a href="{{ url_for('bookcloud.newthread', project=project, return_url=url_encode(request.base_url)) }}" target="_blank"><text style="color: #336699;">new thread</text></a>
                 <a href="{{ url_for('bookcloud.comments', project=project) }}"><text style="color: #336699;">search</text></a>
               </p>
+
               {% if threads %}
                 {% for t in threads %}
                   <div class="thread">
@@ -272,9 +275,9 @@
                     </div>
                   {% endfor %}
                 {% endfor %}
-              {% endif %}
+               {% endif %}
             </div>
-          </div>
+         </div>
         </div>
       </div>
       <div class="clearer"></div>

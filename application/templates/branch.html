@@ -4,7 +4,6 @@
 
 {% macro contents() %}
 <h1>{{_('Project (%(project)s), branch (_%(branch)s)') | format(project=project, branch=branch) }}</h1>
-<ul id="navigation">
 
   <br>
 
@@ -16,14 +15,12 @@
 
   <br>
 
-  <h2>{{ _('Last commits in _%s:') % branch }}
+  <h1>{{ _('Last commits in _%s:') % branch }}</h1>
     <div class="code highlight-default">
       <div class="highlight">
         <pre><span class="n" style="font-size:small">{{ log }}</span></pre>
       </div>
     </div>
-
-</ul>
 
 {% endmacro %}
 
