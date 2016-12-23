@@ -7,7 +7,7 @@ import urllib
 from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
-from sqlalchemy import or_
+from sqlalchemy import or_, desc
 from application import app, db, User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag, limiter, mail
 import string
 from shutil import copyfile, rmtree
@@ -367,7 +367,9 @@ def profile():
         if user_branches:
             collection.append({'project': p.name,
                                'branches': user_branches})
-    threads = display_threads(Thread.query.join(User_Tag).filter(User_Tag.user_id==user_id))
+    threads = display_threads(Thread.query.join(User_Tag)
+                              .filter(User_Tag.user_id==user_id)
+                              .order_by(desc(Thread.posted_at)))
     return render_template('profile.html', username=current_user.username,
                            collection=collection, menu=menu, threads=threads)
 
@@ -402,7 +404,9 @@ def project(project):
     files = [(splitext(f)[0], splitext(f)[1])
              for f in os.listdir(master_path)
              if isfile(join(master_path, f)) and f[0] != '.']
-    threads = display_threads(Thread.query.filter_by(project_id=project_id))
+    threads = display_threads(Thread.query
+                              .filter_by(project_id=project_id)
+                              .order_by(desc(Thread.posted_at)))
     return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads, files=files)
 
 @bookcloud.route('/<project>/pdf')
@@ -428,9 +432,11 @@ def comments(project):
                         filter(or_(Comment.content.like('%' + form.search.data + '%'),
                                    Thread.title.like('%' + form.search.data + '%'))).
                         limit(100))
-        threads = display_threads(thread_query)
+        threads = display_threads(thread_query.order_by(desc(Thread.posted_at)))
     else:
-        threads = display_threads(Thread.query.filter_by(project_id=project_id))
+        threads = display_threads(Thread.query
+                                  .filter_by(project_id=project_id)
+                                  .order_by(desc(Thread.posted_at)))
     return render_template('comments.html', menu=menu, threads=threads, form=form)
 
 @bookcloud.route('/<project>/newthread', methods = ['GET', 'POST'])
@@ -580,7 +586,7 @@ def newcomment(project, thread_id, parent_lineage=''):
         else:
             form.comment.default = request.form['comment']
 
-    threads = display_threads(Thread.query.filter_by(id=thread_id).all())
+    threads = display_threads(Thread.query.filter_by(id=thread_id).order_by(desc(Thread.posted_at)))
     form.process()
     return render_template('newcomment.html', menu=menu, form=form, threads=threads)
 
@@ -641,7 +647,7 @@ def branch(project, branch):
     menu = menu_bar(project, branch)
     log = get_log(project, branch)
     project_id = Project.query.filter_by(name=project).first().id
-    threads = display_threads(Thread.query.filter_by(project_id=project_id))
+    threads = display_threads(Thread.query.filter_by(project_id=project_id).order_by(desc(Thread.posted_at)))
     return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
 
 @limiter.limit("7 per day")
@@ -766,7 +772,8 @@ def view(project, branch, filename):
     content = load_file(user_repo_path)
     threads = (display_threads(Thread.query.join(File_Tag)
                                .filter(File_Tag.filename==filename)
-                               .filter(Thread.project_id==project_id)))
+                               .filter(Thread.project_id==project_id)
+                               .order_by(desc(Thread.posted_at))))
     return render_template_string(content, menu=menu, render_sidebar=True, threads=threads)
 
 @limiter.exempt
