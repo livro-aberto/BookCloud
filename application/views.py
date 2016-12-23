@@ -33,7 +33,7 @@ import sphinx
 # import special tools for this platform
 from tools import window, rst2html, Command, get_git, load_file,\
     write_file, get_merging, get_requests, get_merge_pendencies,\
-    config_repo, is_dirty, get_log, get_log_diff
+    config_repo, is_dirty, get_log, get_log_diff, last_modified
 
 config_path = 'conf'
 
@@ -184,15 +184,6 @@ def get_branch_by_name(project, branch):
     project_id = Project.query.filter_by(name=project).first().id
     return Branch.query.filter_by(project_id=project_id, name=branch).first()
 
-
-import subprocess
-import arrow
-
-def last_modified(project, branch):
-    branch_source_path = os.path.abspath(join('repos', project, branch, 'source'))
-    command = 'find ' + branch_source_path + ' -printf "%TY-%Tm-%Td %TT\n" | sort -nr | head -n 1'
-    timestamp = arrow.get(subprocess.check_output(command, shell=True))
-    return(timestamp.humanize())
 
 @app.context_processor
 def package():
@@ -431,13 +422,10 @@ def comments(project):
     if request.method == 'POST' and form.validate():
         if not form.search.data:
             form.search.data = ""
-        #thread_query = (Thread.query.filter(Thread.project_id==project_id).
-        #                filter(Thread.title.like('%' + form.search.data + '%')))
         thread_query = (Thread.query.filter(Thread.project_id==project_id).
                         join(Comment).
                         filter(Comment.thread_id==Thread.id).
                         filter(or_(Comment.content.like('%' + form.search.data + '%'),
-                                   Comment.title.like('%' + form.search.data + '%'),
                                    Thread.title.like('%' + form.search.data + '%'))).
                         limit(100))
         threads = display_threads(thread_query)
@@ -466,10 +454,10 @@ def newthread(project):
 
     if request.method == 'POST':
         if form.validate():
-            owner_id = User.query.filter_by(username=current_user.username).first().id
+            owner = User.query.filter_by(username=current_user.username).first()
             # add thread
             new_thread = Thread(request.form['title'],
-                                owner_id,
+                                owner.id,
                                 project_id,
                                 request.form['flag'],
                                 datetime.utcnow())
@@ -478,7 +466,7 @@ def newthread(project):
             # add first comment
             new_comment = Comment('000000:',
                                   new_thread.id,
-                                  owner_id,
+                                  owner.id,
                                   request.form['firstcomment'],
                                   datetime.utcnow())
             db.session.add(new_comment)
@@ -506,9 +494,20 @@ def newthread(project):
             db.session.commit()
             # send emails
             with mail.connect() as conn:
+                message_head = _('Thread: ') + request.form['title'] + '\n' +\
+                               _('Project: ') + project + '\n' +\
+                               _('Owner: ') + owner.username + '\n' +\
+                               _('Type: ') + request.form['flag'] + '\n' +\
+                               _('Created at: ') + str(datetime.utcnow()) + '\n' +\
+                               _('Contents:') + '\n\n'
+                links = _('To comment on this thread: ') +\
+                        url_for('bookcloud.newcomment',
+                                project=project,
+                                thread_id = new_thread.id,
+                                _external = True)
                 for user in request.form.getlist('usertags'):
                     user_obj = User.query.filter_by(username=user).first()
-                    message = request.form['firstcomment']
+                    message = message_head + request.form['firstcomment'] + '\n\n' + links
                     subject = _('Thread: ') + request.form['title']
                     msg = Message(recipients=[user_obj.email],
                                   body=message,
@@ -536,14 +535,15 @@ def newcomment(project, thread_id, parent_lineage=''):
     if request.method == 'POST':
         if form.validate():
             project_id = Project.query.filter_by(name=project).first().id
-            owner_id = User.query.filter_by(username=current_user.username).first().id
+            owner = User.query.filter_by(username=current_user.username).first()
             siblings_pattern = parent_lineage + '%'
             decend_comments = (Comment.query.filter(Comment.thread_id==thread_id)
                                .filter(Comment.lineage.like(siblings_pattern)).all())
             number_siblings = len(decend_comments)
-            new_comment = Comment(parent_lineage + format(number_siblings, '06X') + ':',
+            new_comment_lineage = parent_lineage + format(number_siblings, '06X') + ':'
+            new_comment = Comment(new_comment_lineage,
                                   thread_id,
-                                  owner_id,
+                                  owner.id,
                                   request.form['comment'],
                                   datetime.utcnow())
             db.session.add(new_comment)
@@ -552,9 +552,22 @@ def newcomment(project, thread_id, parent_lineage=''):
             with mail.connect() as conn:
                 thread = Thread.query.filter_by(id=thread_id).first()
                 list_of_users = [ tag.user.username for tag in User_Tag.query.filter_by(thread_id=thread_id) ]
+                message_head = _('Thread: ') + thread.title + '\n' +\
+                               _('Project: ') + project + '\n' +\
+                               _('Author: ') + owner.username + '\n' +\
+                               _('Type: ') + thread.flag + '\n' +\
+                               _('Created at: ') + str(datetime.utcnow()) + '\n' +\
+                               _('Contents:') + '\n\n'
+                links = _('To reply to this comment follow: ') +\
+                        url_for('bookcloud.newcomment',
+                                project=project,
+                                thread_id=thread.id,
+                                parent_lineage=new_comment_lineage,
+                                _external=True)
                 for user in list_of_users:
                     user_obj = User.query.filter_by(username=user).first()
-                    message = request.form['comment']
+                    message = message_head + request.form['comment'] + '\n\n' + links
+                    print('\n\n' + message + '\n\n')
                     subject = _('Thread: ') + thread.title
                     msg = Message(recipients=[user_obj.email],
                                   body=message,
@@ -640,7 +653,7 @@ def clone(project, branch):
     merge_pendencies = get_merge_pendencies(project, branch)
     if merge_pendencies:
         flash('???', 'error')
-        return render_template('clone.html', menu=menu, form=form)
+        return render_template('merge.html', menu=menu, form=form)
     if request.method == 'POST' and form.validate():
         new_repo_path = join('repos', project, form.name.data)
         if os.path.isdir(new_repo_path):

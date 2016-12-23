@@ -189,11 +189,12 @@
               {{ contents() | safe }}
 
 
-                <h1 id="discussion">
-                  Discussions
-                  (<a href={{ url_for('bookcloud.newthread', project=project, return_url=url_encode(request.base_url)) }}><text style="color: #336699;">new thread</text></a>)
-                </h1>
-                {% if threads %}
+              <h1 id="discussion">Discussions</h1>
+              <p>
+                <a href="{{ url_for('bookcloud.newthread', project=project, return_url=url_encode(request.base_url)) }}" target="_blank"><text style="color: #336699;">new thread</text></a>
+                <a href="{{ url_for('bookcloud.comments', project=project) }}"><text style="color: #336699;">search</text></a>
+              </p>
+              {% if threads %}
                 {% for t in threads %}
                   <div class="thread">
                     <div class="thread-head" style="padding: 10px;">

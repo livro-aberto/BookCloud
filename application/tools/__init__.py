@@ -117,3 +117,13 @@ def get_log_diff(project, origin, branch):
                        '--abbrev-commit','--decorate', '--right-only',
                        "--format=format:%an (%ar): %s %d")
 
+import subprocess
+import arrow
+import os
+
+def last_modified(project, branch):
+    branch_source_path = os.path.abspath(join('repos', project, branch, 'source'))
+    command = 'find ' + branch_source_path + ' -printf "%TY-%Tm-%Td %TT\n" | sort -nr | head -n 1'
+    timestamp = arrow.get(subprocess.check_output(command, shell=True))
+    return(timestamp.humanize())
+
