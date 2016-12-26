@@ -64,10 +64,10 @@
       {% for file in files %}
         <li>
           {{ file [0] }} -
-          <a href="/{{ project }}/master/view/{{ file[0] }}.html">view</a>,
+          <a href="{{ url_for('.view', project=project, branch='master', filename=file[0]) }}.html">view</a>,
           {#
-            <a href="/{{ project }}/master/deletefile{{ file }}">delete</a>,
-            <a href="/{{ project }}/master/renamefile{{ file }}">rename</a>
+            <a href="urlfor...deletefile{{ file }}">delete</a>,
+            <a href="urlfor...renamefile{{ file }}">rename</a>
           #}
         </li>
       {% endfor %}
