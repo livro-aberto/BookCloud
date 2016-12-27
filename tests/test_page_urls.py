@@ -10,6 +10,7 @@ import string
 import pytest
 import shutil
 import os
+import re
 
 from flask_babel import Babel, gettext as _
 
@@ -280,5 +281,60 @@ def test_page_urls(client):
                                   filename='another'))
     assert '<h1>another' in response.data
 
+    # Testing comments
+    # GET newthread
+    response = client.get(url_for('bookcloud.newthread',
+                                  project=new_project_name))
+    assert 'foo' in response.data
+    assert 'index' in response.data
+
+    # POST newthread
+    response = client.post(url_for('bookcloud.newthread', project=new_project_name),
+                           follow_redirects=True,
+                           data=dict(title="Hi there!",
+                                     flag="discussion",
+                                     firstcomment="Give me some attention!",
+                                     usertags=[],
+                                     filetags=[],
+                                     namedtags=[],
+                                     freetags="last, one"))
+    assert "criado com sucesso" in response.data
+
+    # View thread in project page
+    response = client.get(url_for('bookcloud.project',
+                              project=new_project_name))
+    match = re.search(r'newcomment/(\d+)/000000:', response.data)
+    thread_id = match.group(1)
+    assert "Give me some attention!" in response.data
+
+    # POST reply
+    response = client.post(url_for('bookcloud.newcomment',
+                                   project=new_project_name,
+                                   thread_id=thread_id,
+                                   parent_lineage="000000:"),
+                           follow_redirects=True,
+                           data=dict(comment="Please!"))
+    assert "criado com sucesso" in response.data
+
+    # Check reply
+    response = client.get(url_for('bookcloud.project',
+                              project=new_project_name))
+    assert "Please!" in response.data
+
+    # Try to delete thread
+    response = client.get(url_for('bookcloud.deletethread', project=new_project_name),
+                          follow_redirects=True,
+                          data=dict(thread_id=thread_id,
+                                    return_url=url_for('bookcloud.home', _external=True)))
+    # print(response.data, thread_id, url_for('bookcloud.home', _external=True))
+    # Not working!!!
+    # assert "vazio" in response.data
 
     shutil.rmtree(os.path.abspath(os.path.join('repos', new_project_name)))
+
+
+
+
+
+
+

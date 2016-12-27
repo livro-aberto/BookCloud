@@ -7,6 +7,8 @@
     - Informe
     - Álgebra e funções
     - Probabilidade e Estatística
+  - implement edit threads for master and owner
+  - implement edit comment for owner
   - implement follow thread
   - implement tags for labels (no need for file tags anymore)
   - ability to rename file (using git mv) (possibly with template for name)
@@ -96,7 +98,6 @@
 
 # Organization of code:
 
-  - increase base test to include: commenting
   - organize view.py into different files:
     - git functions
     - helper functions
