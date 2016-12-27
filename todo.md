@@ -1,12 +1,5 @@
 # Urgent:
 
-  - create tags:
-    - Coordenadores de Eixo
-    - Discussão geral
-    - Geometria
-    - Informe
-    - Álgebra e funções
-    - Probabilidade e Estatística
   - implement edit threads for master and owner
   - implement edit comment for owner
   - implement follow thread
@@ -21,6 +14,9 @@
 # Features:
 
   (priority)
+  - create master admin view with:
+    - rename files
+    - manage named tags...
   - implement "steal branch" from parent owner
   - comments:
     - implement like (is unicode symbol the &#128077;?)
@@ -31,8 +27,6 @@
   - upload figures
     - use safe_join to avoid malicious filenames
     - size of figures (thumbnail for html, hd for pdf...)
-  - add view that allows owner of thread or master to edit it.
-  - add view that allows owner of comment or master to edit it.
 
   (medium)
   - more object types: discussion, issue, room,...
