@@ -223,7 +223,7 @@ def create_app(extra_config_settings={}):
                            url_prefix=app.config['BOOKCLOUD_URL_PREFIX'])
 
     # Setup Flask-Mail
-    # mail = Mail(app)
+    mail = Mail(app)
 
     # Create all database tables
     db.create_all()

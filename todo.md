@@ -1,6 +1,16 @@
 # Urgent:
 
-  - implement "steal branch" from parent owner
+  - create tags:
+    - Coordenadores de Eixo
+    - Discussão geral
+    - Geometria
+    - Informe
+    - Álgebra e funções
+    - Probabilidade e Estatística
+  - implement follow thread
+  - implement tags for labels (no need for file tags anymore)
+  - ability to rename file (using git mv) (possibly with template for name)
+  - ability to remove file
   - make security improvements on sphinx:
     - disallow raw html
       read the documentation for more
@@ -9,6 +19,7 @@
 # Features:
 
   (priority)
+  - implement "steal branch" from parent owner
   - comments:
     - implement like (is unicode symbol the &#128077;?)
     - link to view file in thread tags
@@ -26,8 +37,6 @@
     - column for access rights? private (only owner), moderators of project, logged, public...
     - column for arbitrary data: json structure that is specific of the object type
   - radio button with commit author in commit view (add external authors to database?)
-  - ability to rename file (using git mv) (possibly with template for name)
-  - ability to remove file
   - add template names for new files
   - implement delete project
 
