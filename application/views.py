@@ -671,6 +671,31 @@ def newcomment(project, thread_id, parent_lineage=''):
     form.process()
     return render_template('newcomment.html', menu=menu, form=form, threads=threads)
 
+@bookcloud.route('/<project>/editcomment/<comment_id>', methods = ['GET', 'POST'])
+@login_required
+def editcomment(project, comment_id):
+    menu = menu_bar(project)
+    form = NewCommentForm(request.form)
+    comment_obj = Comment.query.filter_by(id=comment_id).first()
+    if current_user.username != comment_obj.owner.username:
+        flash(_('You are not allowed to edit this comment'), 'error')
+        return redirect(url_for('.project', project=project))
+    form.comment.default = comment_obj.content
+    if request.method == 'POST':
+        if form.validate():
+            comment_obj.content = request.form['comment']
+            db.session.commit()
+
+            flash(_('Comment modified successfully'), 'info')
+            if 'return_url' in request.args:
+                return redirect(urllib.unquote(request.args['return_url']))
+        else:
+            form.comment.default = request.form['comment']
+
+    threads = display_threads(Thread.query.filter_by(id=comment_obj.thread_id).order_by(desc(Thread.posted_at)))
+    form.process()
+    return render_template('newcomment.html', menu=menu, form=form, threads=threads)
+
 @bookcloud.route('/<project>/deletethread')
 @login_required
 def deletethread(project):

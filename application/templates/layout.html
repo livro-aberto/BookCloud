@@ -286,6 +286,11 @@
                             <a href="{{ url_for('bookcloud.newcomment', project=project, thread_id = t.id, parent_lineage=c.lineage, return_url=url_encode(request.base_url)) }}">reply</a>
                           </li>
                           <li class="right" style="margin-right: 10px; float: right;">
+                            {% if current_user.username == c.author %}
+                              <a href="{{ url_for('bookcloud.editcomment',
+                                                  project=project, comment_id=c.id,
+                                                  return_url=url_encode(request.base_url)) }}">edit</a>
+                            {% endif %}
                             {% if not c.father and (current_user.username == c.author or current_user.username == project_owner) %}
                               <a href="{{ url_for('bookcloud.deletecomment', project=project, comment_id=c.id, return_url=url_encode(request.base_url)) }}" onclick="return confirm('Are you sure?')">delete</a>
                             {% endif %}
