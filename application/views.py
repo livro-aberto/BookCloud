@@ -786,7 +786,7 @@ def newfile(project, branch):
     menu = menu_bar(project, branch)
     form = IdentifierForm(request.form)
     if current_user.username != get_branch_owner(project, branch):
-        flash(_('You are not the owner of this branch'))
+        flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.view', project=project,
                                 branch=branch, filename='index.html'))
     merge_pendencies = get_merge_pendencies(project, branch)
@@ -812,6 +812,67 @@ def newfile(project, branch):
             return redirect(url_for('.view', project=project,
                                     branch=branch, filename='index.html'))
     return render_template('newfile.html', menu=menu, form=form)
+
+@limiter.limit("7 per day")
+@bookcloud.route('/<project>/renamefile/<oldfilename>', methods = ['GET', 'POST'])
+@login_required
+def renamefile(project, oldfilename):
+    menu = menu_bar(project, 'master')
+    form = IdentifierForm(request.form)
+    if current_user.username != get_branch_owner(project, 'master'):
+        flash(_('You are not the owner of master'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch='master', filename='index.html'))
+    merge_pendencies = get_merge_pendencies(project, 'master')
+    if merge_pendencies:
+        return merge_pendencies
+    if request.method == 'POST' and form.validate():
+        filename = form.name.data
+        file_extension = '.rst'
+        file_path = join('repos', project, 'master', 'source', filename + file_extension)
+        if os.path.isfile(file_path):
+            flash(_('This file name already exists'), 'error')
+        else:
+            git_api = get_git(project, 'master')
+            git_api.mv(oldfilename + file_extension, form.name.data + file_extension)
+            #author = git.Actor(current_user.username, current_user.email)
+            #repo.index.commit(_('Adding file %s' % filename), author=author)
+            flash(_('File renamed successfuly!'), 'info')
+            build(project, 'master')
+            return redirect(url_for('.view', project=project,
+                                    branch='master', filename='index.html'))
+    return render_template('newfile.html', menu=menu, form=form)
+
+@limiter.limit("2 per day")
+@bookcloud.route('/<project>/deletefile/<filename>')
+@login_required
+def deletefile(project, filename):
+    menu = menu_bar(project, 'master')
+    if current_user.username != get_branch_owner(project, 'master'):
+        flash(_('You are not the owner of master'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch='master', filename='index.html'))
+    merge_pendencies = get_merge_pendencies(project, 'master')
+    if merge_pendencies:
+        return merge_pendencies
+    file_extension = '.rst'
+    file_path = join('repos', project, 'master', 'source', filename + file_extension)
+    if not os.path.isfile(file_path):
+        flash(_('This file does not exist'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch='master', filename='index.html'))
+    if not os.stat(file_path).st_size == 0:
+        flash(_('This file is not empty'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch='master', filename='index.html'))
+    git_api = get_git(project, 'master')
+    git_api.rm('-f', filename + file_extension)
+    #author = git.Actor(current_user.username, current_user.email)
+    #repo.index.commit(_('Adding file %s' % filename), author=author)
+    flash(_('File removed successfuly!'), 'info')
+    build(project, 'master')
+    return redirect(url_for('.view', project=project,
+                            branch='master', filename='index.html'))
 
 @bookcloud.route('/<project>/<branch>/requests')
 @login_required

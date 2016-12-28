@@ -3,8 +3,6 @@
   - implement edit comment for owner
   - implement follow thread
   - implement tags for labels (no need for file tags anymore)
-  - ability to rename file (using git mv) (possibly with template for name)
-  - ability to remove file
   - make security improvements on sphinx:
     - disallow raw html
       read the documentation for more
@@ -14,7 +12,6 @@
 
   (priority)
   - create master admin view with:
-    - rename files
     - manage named tags...
   - implement "steal branch" from parent owner
   - comments:
