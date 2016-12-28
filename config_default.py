@@ -34,6 +34,8 @@ MAIL_SERVER =             os.getenv('MAIL_SERVER',          'smtp.gmail.com')
 MAIL_PORT =           int(os.getenv('MAIL_PORT',            '465'))
 MAIL_USE_SSL =        int(os.getenv('MAIL_USE_SSL',         True))
 
+ADMIN_MAIL = 'admin@domain.com'
+
 # Flask-User settings
 USER_APP_NAME        = "BookCloud"                # Used by email templates
 

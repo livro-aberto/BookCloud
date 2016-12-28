@@ -1083,6 +1083,11 @@ def internal_server_error(e):
     message = repr(e)
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')
+    # send email to admin
+    mail_message = message + '\n\n\n' + '\n'.join(trace)
+    msg = Message('Error: ' + message[:40],
+                  recipients=[app.config['ADMIN_MAIL']])
+    mail.send(msg)
     return render_template('500.html', message=message,
                            trace=trace), 500
 
