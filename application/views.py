@@ -81,6 +81,15 @@ class NewThreadForm(Form):
     freetags = StringField('Hash Tags')
     firstcomment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
 
+class EditThreadForm(Form):
+    title = StringField('Title', [ validators.Length(min=5, max=80)])
+    flag = RadioField('Flag', choices = [('discussion', 'disucussion'),
+                                         ('issue', 'issue')])
+    usertags = SelectMultipleField('Users', widget=select_multi_checkbox)
+    filetags = SelectMultipleField('Files', widget=select_multi_checkbox)
+    namedtags = SelectMultipleField('Tags', widget=select_multi_checkbox)
+    freetags = StringField('Hash Tags')
+
 class NewCommentForm(Form):
     comment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
 
@@ -530,6 +539,76 @@ def newthread(project):
 
     form.process()
     return render_template('newthread.html', menu=menu, form=form)
+
+@bookcloud.route('/<project>/editthread/<thread_id>', methods = ['GET', 'POST'])
+@login_required
+def editthread(project, thread_id):
+    menu = menu_bar(project)
+    project_id = Project.query.filter_by(name=project).first().id
+    thread_obj = Thread.query.filter_by(id=thread_id).first()
+    if (current_user.username != thread_obj.owner.username and
+        current_user.username != get_branch_owner(project, 'master')):
+        flash(_('You are not allowed to edit this thread'), 'error')
+        return redirect(url_for('.project', project=project))
+    form = EditThreadForm(request.form)
+    form.title.default = thread_obj.title
+    form.flag.default = thread_obj.flag
+    form.usertags.choices = [(u.username, u.username) for u in User.query.all()]
+    form.usertags.default = [t.user.username for t in User_Tag.query.filter_by(thread_id=thread_id).all()]
+    master_path = join('repos', project, 'master', 'source')
+    form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
+                             for f in os.listdir(master_path)
+                             if isfile(join(master_path, f)) and f[0] != '.']
+    form.filetags.default = [t.filename for t in File_Tag.query.filter_by(thread_id=thread_id).all()]
+    form.namedtags.choices = [(t.name, t.name) for t in Named_Tag.query.filter_by(project_id=project_id).all()]
+    form.freetags.default = ', '.join([t.name for t in Free_Tag.query.filter_by(thread_id=thread_id).all()])
+
+    if request.method == 'POST':
+        if form.validate():
+            owner = User.query.filter_by(username=current_user.username).first()
+            # modify thread
+            thread_obj.title = request.form['title']
+            thread_obj.flag = request.form['flag']
+            db.session.commit()
+            # clear previous tags
+            User_Tag.query.filter_by(thread_id=thread_id).delete()
+            File_Tag.query.filter_by(thread_id=thread_id).delete()
+            Custom_Tag.query.filter_by(thread_id=thread_id).delete()
+            Free_Tag.query.filter_by(thread_id=thread_id).delete()
+            db.session.commit()
+            # add user tags
+            for user in request.form.getlist('usertags'):
+                db.session.flush()
+                user_id = User.query.filter_by(username=user).first().id
+                new_usertag = User_Tag(thread_id, user_id)
+                db.session.add(new_usertag)
+            # add file tags
+            for file in request.form.getlist('filetags'):
+                new_filetag = File_Tag(thread_id, file)
+                db.session.add(new_filetag)
+            # add named tags
+            for tag in request.form.getlist('namedtags'):
+                db.session.flush()
+                namedtag_id = Named_Tag.query.filter_by(project_id=project_id, name=tag).first().id
+                new_namedtag = Custom_Tag(thread_id, namedtag_id)
+                db.session.add(new_namedtag)
+            # add free tags
+            for freetag in filter(None, re.findall(r"[\w']+", request.form['freetags'])):
+                new_freetag = Free_Tag(thread_id, freetag)
+                db.session.add(new_freetag)
+
+            db.session.commit()
+
+            flash(_('Thread successfully modified'), 'info')
+            if 'return_url' in request.args:
+                return redirect(urllib.unquote(request.args['return_url']))
+        else:
+            form.title.default = request.form['title']
+            form.freetags.default = request.form['freetags']
+
+    form.process()
+    return render_template('editthread.html', menu=menu, form=form)
+
 
 @bookcloud.route('/<project>/newcomment/<thread_id>', methods = ['GET', 'POST'])
 @bookcloud.route('/<project>/newcomment/<thread_id>/<parent_lineage>', methods = ['GET', 'POST'])

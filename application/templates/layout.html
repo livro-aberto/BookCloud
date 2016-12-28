@@ -215,8 +215,16 @@
                               <a href="{{ url_for('bookcloud.newcomment', project=project, thread_id = t.id, return_url=url_encode(request.base_url)) }}">comment</a>
                             </li>
                             <li class="right" style="margin-right: 10px; float: right;">
-                              {% if not t.comments and (current_user.username == t.author or current_user.username == project_owner) %}
-                                <a href="{{ url_for('bookcloud.deletethread', project=project, thread_id=t.id, return_url=url_encode(request.base_url)) }}" onclick="return confirm('Are you sure?')">delete</a>
+                              {% if (current_user.username == t.author or current_user.username == project_owner) %}
+                                  <a href="{{ url_for('bookcloud.editthread',
+                                                      project=project, thread_id=t.id,
+                                                      return_url=url_encode(request.base_url)) }}">edit</a>
+                                {% if not t.comments %}
+                                  <a href="{{ url_for('bookcloud.deletethread',
+                                                      project=project, thread_id=t.id,
+                                                      return_url=url_encode(request.base_url)) }}"
+                                     onclick="return confirm('Are you sure?')">delete</a>
+                                {% endif %}
                               {% endif %}
                             </li>
                           </ul>
