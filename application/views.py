@@ -975,8 +975,9 @@ def edit(project, branch, filename):
 @bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
 @login_required
 def commit(project, branch):
-    if current_user.username != get_branch_owner(project, branch):
-        flash(_('You are not the owner of this branch'), 'error')
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
+        flash(_('You are not the owner of this or the master branch'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
     if merging:

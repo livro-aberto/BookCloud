@@ -37,6 +37,13 @@
                      (by @{{ item['branch'].owner.username }})
                      {% if is_dirty(project, item['branch'].name) %}
                        <b>(modified {{ last_modified(project, item['branch'].name) }})</b>
+                       {% if current_user.username == project_owner %}
+                         - <a href="{{ url_for('.commit', project=project,
+                                               branch=item['branch'].name) }}">
+                             commit
+                           </a>
+                     {% endif %}
+
                      {% endif %}
                      {% if has_requests(project, item['branch'].name) %}
                        <b>(has requests)</b>
