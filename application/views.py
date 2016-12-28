@@ -440,9 +440,8 @@ def comments(project):
                         join(Comment).
                         filter(Comment.thread_id==Thread.id).
                         filter(or_(Comment.content.like('%' + form.search.data + '%'),
-                                   Thread.title.like('%' + form.search.data + '%'))).
-                        limit(100))
-        threads = display_threads(thread_query.order_by(desc(Thread.posted_at)))
+                                   Thread.title.like('%' + form.search.data + '%'))))
+        threads = display_threads(thread_query.order_by(desc(Thread.posted_at)).limit(100))
     else:
         threads = display_threads(Thread.query
                                   .filter_by(project_id=project_id)
@@ -461,9 +460,16 @@ def newthread(project):
     if (current_user.is_authenticated):
         form.usertags.default = [current_user.username]
     master_path = join('repos', project, 'master', 'source')
-    form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
-                             for f in os.listdir(master_path)
-                             if isfile(join(master_path, f)) and f[0] != '.']
+    label_list = []
+    for f in os.listdir(master_path):
+        if (isfile(join(master_path, f)) and f[0] != '.'):
+            data = load_file(join(master_path, f))
+            label_list.extend([(splitext(f)[0] + '#' + l, splitext(f)[0] + '#' + l)
+                               for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
+    form.filetags.choices = label_list
+    #    form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
+    #                             for f in os.listdir(master_path)
+    #                             if isfile(join(master_path, f)) and f[0] != '.']
     if request.args.get('filetags', ''):
         form.filetags.default = [request.args.get('filetags', '')]
     form.namedtags.choices = [(t.name, t.name) for t in Named_Tag.query.filter_by(project_id=project_id).all()]
@@ -558,9 +564,16 @@ def editthread(project, thread_id):
     form.usertags.choices = [(u.username, u.username) for u in User.query.all()]
     form.usertags.default = [t.user.username for t in User_Tag.query.filter_by(thread_id=thread_id).all()]
     master_path = join('repos', project, 'master', 'source')
-    form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
-                             for f in os.listdir(master_path)
-                             if isfile(join(master_path, f)) and f[0] != '.']
+    label_list = []
+    for f in os.listdir(master_path):
+        if (isfile(join(master_path, f)) and f[0] != '.'):
+            data = load_file(join(master_path, f))
+            label_list.extend([(splitext(f)[0] + '#' + l, splitext(f)[0] + '#' + l)
+                               for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
+    form.filetags.choices = label_list
+    # form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
+    #                          for f in os.listdir(master_path)
+    #                          if isfile(join(master_path, f)) and f[0] != '.']
     form.filetags.default = [t.filename for t in File_Tag.query.filter_by(thread_id=thread_id).all()]
     form.namedtags.choices = [(t.name, t.name) for t in Named_Tag.query.filter_by(project_id=project_id).all()]
     form.freetags.default = ', '.join([t.name for t in Free_Tag.query.filter_by(thread_id=thread_id).all()])
@@ -654,7 +667,6 @@ def newcomment(project, thread_id, parent_lineage=''):
                 for user in list_of_users:
                     user_obj = User.query.filter_by(username=user).first()
                     message = message_head + request.form['comment'] + '\n\n' + links
-                    print('\n\n' + message + '\n\n')
                     subject = _('Thread: ') + thread.title
                     msg = Message(recipients=[user_obj.email],
                                   body=message,

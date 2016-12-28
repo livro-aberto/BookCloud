@@ -7,6 +7,25 @@
     - disallow raw html
       read the documentation for more
       http://docutils.sourceforge.net/docs/ref/rst/directives.html#raw-data-pass-through
+  - search labels and add labels to file tags
+
+        from docutils.parsers import rst
+        settings = docutils.frontend.OptionParser(
+            components=(docutils.parsers.rst.Parser,)
+            ).get_default_values()
+
+        document = docutils.utils.new_document('', settings)
+
+        # here one can use load_file
+        with codecs.open('index.txt', 'r', 'utf-8') as file:
+            data = file.read()
+
+        rst.Parser().parse(data,document)
+
+        data = document.asdom().toxml()
+        y = BeautifulSoup(data)
+        q = set([t for t in y.find_all('target')])
+
 
 # Features:
 
@@ -17,7 +36,6 @@
   - comments:
     - implement like (is unicode symbol the &#128077;?)
     - link to view file in thread tags
-    - search labels and add labels to file tags
     - make comments hidden, with a show toggle button, so that only thread titles are shown
   - commit text below commit message view
   - upload figures
