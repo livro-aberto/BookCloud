@@ -380,7 +380,7 @@ def profile():
                               .filter(User_Tag.user_id==user_id)
                               .order_by(desc(Thread.posted_at)))
     return render_template('profile.html', username=current_user.username,
-                           collection=collection, menu=menu, threads=threads)
+                           collection=collection, menu=menu, threads=threads, show_discussion=True)
 
 @limiter.limit("4 per day")
 @bookcloud.route('/new', methods = ['GET', 'POST'])
@@ -416,7 +416,8 @@ def project(project):
     threads = display_threads(Thread.query
                               .filter_by(project_id=project_id)
                               .order_by(desc(Thread.posted_at)))
-    return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads, files=files)
+    return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads,
+                           files=files, show_discussion=True)
 
 @bookcloud.route('/<project>/pdf')
 @bookcloud.route('/<project>/<branch>/pdf')
@@ -446,7 +447,8 @@ def comments(project):
         threads = display_threads(Thread.query
                                   .filter_by(project_id=project_id)
                                   .order_by(desc(Thread.posted_at)))
-    return render_template('comments.html', menu=menu, threads=threads, form=form)
+    return render_template('comments.html', menu=menu, threads=threads,
+                           form=form, show_discussion=True)
 
 @bookcloud.route('/<project>/newthread', methods = ['GET', 'POST'])
 @login_required
@@ -853,7 +855,7 @@ def view(project, branch, filename):
                                .filter(File_Tag.filename==filename)
                                .filter(Thread.project_id==project_id)
                                .order_by(desc(Thread.posted_at))))
-    return render_template_string(content, menu=menu, render_sidebar=True, threads=threads)
+    return render_template_string(content, menu=menu, render_sidebar=True, threads=threads, show_discussion=True)
 
 @limiter.exempt
 @bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])

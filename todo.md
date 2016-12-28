@@ -1,6 +1,5 @@
 # Urgent:
 
-  - implement edit threads for master and owner
   - implement edit comment for owner
   - implement follow thread
   - implement tags for labels (no need for file tags anymore)

@@ -83,6 +83,13 @@
             float: left;
             }
 
+            .success {
+            padding: 20px;
+            background-color: #1abc9c;
+            color: white;
+            margin-bottom: 15px;
+            }
+
             .info {
             padding: 20px;
             background-color: #1abc9c;
@@ -188,14 +195,23 @@
               {{ flash() | safe }}
               {{ contents() | safe }}
 
-              {% if threads %}
+              {% if show_discussion %}
                 <h1 id="discussion">Discussions</h1>
-              {% endif %}
 
-              <p>
-                <a href="{{ url_for('bookcloud.newthread', project=project, return_url=url_encode(request.base_url)) }}" target="_blank"><text style="color: #336699;">new thread</text></a>
-                <a href="{{ url_for('bookcloud.comments', project=project) }}"><text style="color: #336699;">search</text></a>
-              </p>
+                <p>
+                  <a href="{{ url_for('bookcloud.newthread', project=project,
+                                      return_url=url_encode(request.base_url)) }}" target="_blank">
+                    <text style="color: #336699;">
+                      new thread
+                    </text>
+                  </a>
+                  <a href="{{ url_for('bookcloud.comments', project=project) }}">
+                    <text style="color: #336699;">
+                      search
+                    </text>
+                  </a>
+                </p>
+              {% endif %}
 
               {% if threads %}
                 {% for t in threads %}
