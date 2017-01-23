@@ -288,9 +288,9 @@ def create_branch(project, origin, branch, user_name):
 
     db.session.add(new_branch)
     db.session.commit()
-    build(project, branch)
+    build(project, branch, timeout=30)
 
-def build(project, branch):
+def build(project, branch, timeout=10):
     # Replace this terrible implementation
     config_path = 'conf'
     source_path = join('repos', project, branch, 'source')
@@ -304,7 +304,7 @@ def build(project, branch):
     command = 'sphinx-build -c ' + config_path + ' ' + source_path + ' ' + build_path
 
     process = Command(command)
-    process.run(timeout=10)
+    process.run(timeout=timeout)
     #os.system(command)
     return True
 
