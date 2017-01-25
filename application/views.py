@@ -380,7 +380,7 @@ def profile():
                               .filter(User_Tag.user_id==user_id)
                               .order_by(desc(Thread.posted_at)))
     return render_template('profile.html', username=current_user.username,
-                           collection=collection, menu=menu, threads=threads, show_discussion=True)
+                           collection=collection, menu=menu, threads=threads, show_discussion=False)
 
 @limiter.limit("4 per day")
 @bookcloud.route('/new', methods = ['GET', 'POST'])
@@ -1183,11 +1183,12 @@ def internal_server_error(e):
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')
     # send email to admin
-    mail_message = message + '\n\n\n' + '\n'.join(trace)
-    msg = Message('Error: ' + message[:40],
-                  body=mail_message,
-                  recipients=[app.config['ADMIN_MAIL']])
-    mail.send(msg)
+    if not app.config['TESTING']:
+        mail_message = message + '\n\n\n' + '\n'.join(trace)
+        msg = Message('Error: ' + message[:40],
+                      body=mail_message,
+                      recipients=[app.config['ADMIN_MAIL']])
+        mail.send(msg)
     return render_template('500.html', message=message,
                            trace=trace), 500
 
