@@ -152,7 +152,7 @@ def update_branch(project, branch):
         git_api.fetch()
         git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
         git_api.push('origin', branch)
-    build(project, branch)
+    build(project, branch, timeout=20)
 
 def update_subtree(project, branch):
     if not is_dirty(project, branch):
