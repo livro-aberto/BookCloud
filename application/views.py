@@ -758,7 +758,8 @@ def deletecomment(project):
 @bookcloud.route('/<project>/<branch>', methods = ['GET', 'POST'])
 def branch(project, branch):
     if (current_user.is_authenticated):
-        if current_user.username == get_branch_owner(project, branch):
+        if (current_user.username == get_branch_owner(project, branch) or
+            current_user.username == get_branch_owner(project, 'master')):
             merge_pendencies = get_merge_pendencies(project, branch)
             if merge_pendencies:
                 return merge_pendencies
@@ -797,8 +798,8 @@ def clone(project, branch):
 def newfile(project, branch):
     menu = menu_bar(project, branch)
     form = IdentifierForm(request.form)
-    if current_user.username != get_branch_owner(project, branch):
-        flash(_('You are not the owner of this branch'), 'error')
+    if current_user.username != get_branch_owner(project, 'master'):
+        flash(_('You are not the owner of master'), 'error')
         return redirect(url_for('.view', project=project,
                                 branch=branch, filename='index.html'))
     merge_pendencies = get_merge_pendencies(project, branch)
@@ -889,7 +890,8 @@ def deletefile(project, filename):
 @bookcloud.route('/<project>/<branch>/requests')
 @login_required
 def requests(project, branch):
-    if current_user.username != get_branch_owner(project, branch):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     if is_dirty(project, branch):
@@ -902,7 +904,8 @@ def requests(project, branch):
 @bookcloud.route('/<project>/<branch>/finish')
 @login_required
 def finish(project, branch):
-    if current_user.username != get_branch_owner(project, branch):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
@@ -939,7 +942,8 @@ def view(project, branch, filename):
         menu['right'].append({'url': url_for('.edit', project=project, branch=branch,
                                              filename=filename), 'name': 'edit'})
     else:
-        if current_user.username == get_branch_owner(project, branch):
+        if (current_user.username == get_branch_owner(project, branch) or
+            current_user.username == get_branch_owner(project, 'master')):
             merge_pendencies = get_merge_pendencies(project, branch)
             if merge_pendencies:
                 return merge_pendencies
@@ -1047,7 +1051,8 @@ def merge(project, branch, other):
 @bookcloud.route('/<project>/<branch>/review/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def review(project, branch, filename):
-    if current_user.username != get_branch_owner(project, branch):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.clone', project=project, branch=branch))
     merging = get_merging(project, branch)
@@ -1082,7 +1087,8 @@ def review(project, branch, filename):
 @bookcloud.route('/<project>/<branch>/diff/<path:filename>')
 @login_required
 def diff(project, branch, filename):
-    if current_user.username != get_branch_owner(project, branch):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.view', project=project, branch=branch,
                                 filename='index.html'))
@@ -1109,7 +1115,8 @@ def diff(project, branch, filename):
 @bookcloud.route('/<project>/<branch>/accept/<path:filename>')
 @login_required
 def accept(project, branch, filename):
-    if current_user.username != get_branch_owner(project, branch):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
     merging = get_merging(project, branch)
