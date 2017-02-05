@@ -298,7 +298,8 @@ def test_page_urls(client):
                                      filetags=[],
                                      namedtags=[],
                                      freetags="last, one"))
-    assert "criado com sucesso" in response.data
+    assert (("criado com sucesso" in response.data)
+            or ("successfully created" in response.data))
 
     # View thread in project page
     response = client.get(url_for('bookcloud.project',
@@ -314,7 +315,8 @@ def test_page_urls(client):
                                    parent_lineage="000000:"),
                            follow_redirects=True,
                            data=dict(comment="Please!"))
-    assert "criado com sucesso" in response.data
+    assert (("criado com sucesso" in response.data)
+            or ("successfully created" in response.data))
 
     # Check reply
     response = client.get(url_for('bookcloud.project',

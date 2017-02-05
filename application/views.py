@@ -152,7 +152,7 @@ def update_branch(project, branch):
         git_api.fetch()
         git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
         git_api.push('origin', branch)
-    build(project, branch)
+    build(project, branch, timeout=20)
 
 def update_subtree(project, branch):
     if not is_dirty(project, branch):
@@ -288,9 +288,9 @@ def create_branch(project, origin, branch, user_name):
 
     db.session.add(new_branch)
     db.session.commit()
-    build(project, branch)
+    build(project, branch, timeout=30)
 
-def build(project, branch):
+def build(project, branch, timeout=10):
     # Replace this terrible implementation
     config_path = 'conf'
     source_path = join('repos', project, branch, 'source')
@@ -304,7 +304,7 @@ def build(project, branch):
     command = 'sphinx-build -c ' + config_path + ' ' + source_path + ' ' + build_path
 
     process = Command(command)
-    process.run(timeout=10)
+    process.run(timeout=timeout)
     #os.system(command)
     return True
 
@@ -380,7 +380,7 @@ def profile():
                               .filter(User_Tag.user_id==user_id)
                               .order_by(desc(Thread.posted_at)))
     return render_template('profile.html', username=current_user.username,
-                           collection=collection, menu=menu, threads=threads, show_discussion=True)
+                           collection=collection, menu=menu, threads=threads, show_discussion=False)
 
 @limiter.limit("4 per day")
 @bookcloud.route('/new', methods = ['GET', 'POST'])
@@ -1190,10 +1190,12 @@ def internal_server_error(e):
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')
     # send email to admin
-    mail_message = message + '\n\n\n' + '\n'.join(trace)
-    msg = Message('Error: ' + message[:40],
-                  recipients=[app.config['ADMIN_MAIL']])
-    mail.send(msg)
+    if not app.config['TESTING']:
+        mail_message = message + '\n\n\n' + '\n'.join(trace)
+        msg = Message('Error: ' + message[:40],
+                      body=mail_message,
+                      recipients=[app.config['ADMIN_MAIL']])
+        mail.send(msg)
     return render_template('500.html', message=message,
                            trace=trace), 500
 
