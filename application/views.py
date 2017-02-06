@@ -1,5 +1,6 @@
 import os
 import re
+import math
 import json
 from os.path import isdir, isfile, join, splitext
 import flask
@@ -222,6 +223,7 @@ def package():
     sent_package['_'] = _
     sent_package['url_encode'] = lambda x: urllib.quote(x, safe='')
     sent_package['current_user'] = current_user
+    sent_package['floor'] = math.floor
     return sent_package
 
 def create_project(project, user):
@@ -410,9 +412,12 @@ def project(project):
     tree = [ get_sub_branches(master) ]
     log = get_log(project, 'master')
     master_path = join('repos', project, 'master', 'source')
-    files = [(splitext(f)[0], splitext(f)[1])
-             for f in os.listdir(master_path)
+    files = [f for f in os.listdir(master_path)
              if isfile(join(master_path, f)) and f[0] != '.']
+    print(files)
+    files.sort()
+    print(files)
+    files = [(splitext(f)[0], splitext(f)[1], int(os.stat(join(master_path, f)).st_size / 500)) for f in files]
     threads = display_threads(Thread.query
                               .filter_by(project_id=project_id)
                               .order_by(desc(Thread.posted_at)))
