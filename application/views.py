@@ -792,7 +792,6 @@ def clone(project, branch):
                                     filename='index.html'))
     return render_template('clone.html', menu=menu, form=form)
 
-@limiter.limit("7 per day")
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
 @login_required
 def newfile(project, branch):
@@ -826,7 +825,6 @@ def newfile(project, branch):
                                     branch=branch, filename='index.html'))
     return render_template('newfile.html', menu=menu, form=form)
 
-@limiter.limit("7 per day")
 @bookcloud.route('/<project>/renamefile/<oldfilename>', methods = ['GET', 'POST'])
 @login_required
 def renamefile(project, oldfilename):
@@ -856,7 +854,6 @@ def renamefile(project, oldfilename):
                                     branch='master', filename='index.html'))
     return render_template('newfile.html', menu=menu, form=form)
 
-@limiter.limit("2 per day")
 @bookcloud.route('/<project>/deletefile/<filename>')
 @login_required
 def deletefile(project, filename):
