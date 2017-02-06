@@ -1,5 +1,13 @@
 # Urgent:
 
+  - implement progress bar
+
+        <table><tr><td>Sabonete </td>
+        <td width=150 style="border: 2px solid silver;padding:none">
+        <hr style="color:#00c;background-color:#00c;height:15px; border:none;margin:0;" align="left" width=100% />
+        </td>
+        </tr></table>
+
   - implement edit comment for owner
   - implement follow thread
   - implement tags for labels (no need for file tags anymore)
