@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% from "_formhelpers.html" import render_field %}
+
+{% block title %}{{ user.username }} profile{% endblock%}
+
+{% macro contents() %}
+<h1>Hi {{ user.username }}</h1>
+
+<ul id="navigation">
+
+  <h2>
+    {{ _('Profile') }}
+  </h2>
+
+  {{ _('Here you can update your profile.') }}
+
+
+  <p>
+    <form method="POST">
+      {# form.integer_property_02 #}
+      {% for item in profile_form %}
+        <h3> {{ item['title'] }} </h3>
+        {% if item['type'] == 'string' %}
+          <p><input type="text" name="{{ item['variable'] }}"></p>
+        {% endif %}
+        {% if item['type'] == 'boolean' %}
+          <p><input type="radio" name="{{ item['variable'] }}" value="yes"
+                    {%- if getattr(user, item['variable']) == True -%}
+                      checked="checked"
+                    {%- endif -%}
+                    >{{ _('yes')}}<br></p>
+          <p><input type="radio" name="{{ item['variable'] }}" value="no"
+                    {%- if getattr(user, item['variable']) == False -%}
+                      checked="checked"
+                    {%- endif -%}
+                    >{{ _('no') }}</p>
+        {% endif %}
+        {% if item['type'] == 'integer' %}
+          {% for option in item['choices'] %}
+            <p>
+              <input type="radio" name="{{ item['variable'] }}" value="{{ option }}"
+                     {%- if option == item['choices'][getattr(user, item['variable'])] -%}
+                       checked="checked"
+                     {%- endif -%}
+                     >
+              {{ option }}<br>
+            </p>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+      <input type=submit value=Register>
+    </form>
+  </p>
+
+
+
+</ul>
+
+
+
+{% endmacro %}
