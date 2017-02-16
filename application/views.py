@@ -22,7 +22,7 @@ from flask_babel import Babel, gettext as _
 from flask_mail import Message
 
 from wtforms import Form, BooleanField, StringField, validators,\
-    RadioField, SelectMultipleField, TextAreaField, SelectField
+    RadioField, SelectMultipleField, TextAreaField, SelectField, HiddenField
 
 from wtforms.widgets import html_params
 
@@ -196,6 +196,10 @@ def get_branch_by_name(project, branch):
 
 
 @app.context_processor
+
+#def listat(obj):
+#    return obj.__dict__
+
 def package():
     sent_package = {}
     if 'project' in request.view_args:
@@ -224,6 +228,9 @@ def package():
     sent_package['url_encode'] = lambda x: urllib.quote(x, safe='')
     sent_package['current_user'] = current_user
     sent_package['floor'] = math.floor
+    sent_package['len'] = len
+    sent_package['getattr'] = getattr
+    #sent_package['listat'] = listat
     return sent_package
 
 def create_project(project, user):
@@ -362,7 +369,7 @@ def home():
     #threads = display_threads(Thread.query.limit(10))
     menu = menu_bar()
     return render_template('home.html', projects=projects, menu=menu,
-                           copyright='CC-BY-SA-NC')
+                           copyright='CC-BY-SA')
 
 @limiter.exempt
 @bookcloud.route('/profile')
@@ -371,18 +378,55 @@ def profile():
     menu = menu_bar()
     projects = [d for d in Project.query.all()]
     collection = []
-    user_id = User.query.filter_by(username=current_user.username).first().id
     for p in projects:
         user_branches = [b for b in Branch.query.filter_by(project_id=p.id,
-                                                           owner_id=user_id)]
+                                                           owner_id=current_user.id)]
         if user_branches:
             collection.append({'project': p.name,
                                'branches': user_branches})
     threads = display_threads(Thread.query.join(User_Tag)
-                              .filter(User_Tag.user_id==user_id)
+                              .filter(User_Tag.user_id==current_user.id)
                               .order_by(desc(Thread.posted_at)))
-    return render_template('profile.html', username=current_user.username,
-                           collection=collection, menu=menu, threads=threads, show_discussion=False)
+    return render_template('profile.html', user=current_user,
+                           profile_form=app.config['USER_PROPERTIES'],
+                           collection=collection, menu=menu, threads=threads,
+                           show_discussion=False)
+
+
+@limiter.limit("10 per day")
+@bookcloud.route('/update_profile', methods = ['GET', 'POST'])
+@login_required
+def update_profile():
+    menu = menu_bar()
+
+    if request.method == 'POST':
+        print '===='
+        print app.config['USER_PROPERTIES']
+        print '===='
+        print request.form
+        print '===='
+        for item in app.config['USER_PROPERTIES']:
+            user = User.query.filter(User.username == current_user.username).first()
+            if request.form.has_key(item['variable']):
+                if item['type'] == 'boolean':
+                    if request.form[item['variable']] == 'yes':
+                        setattr(user, item['variable'], True)
+                        print 'set ', item['variable'], 'true'
+                    else:
+                        setattr(user, item['variable'], False)
+                        print 'set ', item['variable'], 'false'
+                if item['type'] == 'integer':
+                    print ('updating ', item['variable'], request.form[item['variable']],
+                           'to value', item['choices'].index(request.form[item['variable']]))
+                    setattr(user, item['variable'],
+                            item['choices'].index(request.form[item['variable']]))
+
+        db.session.commit()
+        return redirect(url_for('.profile'))
+
+    return render_template('update_profile.html', user=current_user,
+                           profile_form=app.config['USER_PROPERTIES'],
+                           menu=menu, show_discussion=False)
 
 @limiter.limit("4 per day")
 @bookcloud.route('/new', methods = ['GET', 'POST'])

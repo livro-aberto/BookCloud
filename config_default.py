@@ -43,3 +43,13 @@ LANGUAGES = {
     'en': 'English',
     'pt': 'Portugues'
 }
+
+USER_PROPERTIES = (
+    { 'variable': 'integer_property_01',
+      'type': 'integer',
+      'title': 'State',
+      'choices': ('NY', 'NE', 'CA') },
+    { 'variable': 'boolean_property_01',
+      'type': 'boolean',
+      'title': 'Capital?' },
+)

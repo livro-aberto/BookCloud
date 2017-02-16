@@ -80,6 +80,14 @@ def test_page_urls(client):
 
     assert b'Title of test page' in response.data
 
+    # Create a new file
+    response = client.post(url_for('bookcloud.newfile',
+                                   project=new_project_name,
+                                   branch='master'),
+                           follow_redirects=True,
+                           data=dict(name='another'))
+    assert _('File created successfuly!').encode('utf8') in response.data
+
     # Commit change
     response = client.post(url_for('bookcloud.commit',
                                    project=new_project_name,
@@ -200,7 +208,8 @@ def test_page_urls(client):
                                    branch='typo'),
                            follow_redirects=True,
                            data=dict(name='another'))
-    assert _('File created successfuly!').encode('utf8') in response.data
+    print(response.data)
+    assert _('You are not the owner of master').encode('utf8') in response.data
 
     # Commit change
     response = client.post(url_for('bookcloud.commit',

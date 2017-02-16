@@ -117,8 +117,56 @@
   - organize view.py into different files:
     - git functions
     - helper functions
-    - organize views:
-      - user: profile (delete login and logout views)
+    - user profile (delete, change password...)
+        Última formação
+          - Nenhuma
+          - Fundamental
+          - Médio
+          - Superior
+          - Mestrado
+          - Doutorado
+
+        Estado
+          - RJ
+          - SP...
+        Capital (booleana)
+
+        Profissão
+          - Estudante ensino fundamental
+          - Estudante ensino médio
+          - Professor ensino fundamental I
+          - Professor ensino fundamental II
+          - Professor ensino médio
+          - Professor ensino superior
+          - Outros
+
+        Sabe LaTeX (booleana)
+        Sabe HTML (booleana)
+        Sabe Programar (booleana)
+        Sabe Python (booleana)
+        Sabe Javascript (booleana)
+        Sabe faze figuras (booleana)
+        Sabe editar vídeos (booleana)
+
+        Já participou da organização de evento acadêmico (booleana)
+
+        Quantas horas gostaria de dedicar por semana ao projeto?
+          - Não sei
+          - Adorei a ideia, mas não quero ser solicitado
+          - Até 2 horas
+          - Entre 2 e 5 horas
+          - Entre 5 e 10 horas
+          - Mais de 10 horas
+        Como você quer colaborar?
+          - Gostaria de colaborar fazendo sugestões acadêmicas nos materiais produzidos
+          - Gostaria de colaborar aplicando o material na minha sala de aula
+          - Gostaria de colaborar implemento as sugestões de outros usuários ou da equipe na plataforma
+          - Gostaria de colaborar diagramação do texto em LaTeX
+          - Gostaria de colaborar mantendo o site, implementando modificações da plataforma programando
+          - Gostaria de colaborar organizando oficinas de professores
+          - Gostaria de colaborar fazendo figuras para o livro
+          - Gostaria de colaborar produzindo ou editando vídeos
+      - organize views:
       - main: home, new, project, branch, clone, newfile, requests, finish, commit, review, diff, accept
       - extension specific: pdf, view, edit, merge
       - comments: comments, newthread, newcomment, deletethread, deletecomment
@@ -152,4 +200,3 @@ https://sphinxext-survey.readthedocs.io/en/latest/
   - sphinxcontrib-fulltoc
     Include a full table of contents in your sidebarhttps:
     https://sphinxcontrib-fulltoc.readthedocs.io/en/latest/
-

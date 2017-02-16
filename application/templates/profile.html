@@ -1,34 +1,76 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ username }} profile{% endblock%}
+{% block title %}{{ user.username }} profile{% endblock%}
 
 {% macro contents() %}
-<h1>Hi {{ username }}</h1>
+<h1>Hi {{ user.username }}</h1>
 
 <ul id="navigation">
 
-  <p>
+  <h2>
     {{ _('Here you can see all your branches') }}
-  </p>
+  </h2>
 
-  {% for item in collection %}
-  <li>
-    <a href="{{ url_for('.project', project=item.project) }}">{{ item.project }}</a>
-
-    <ul>
-      {% for branch in item.branches %}
+  <ul>
+    {% for item in collection %}
       <li>
-        <a href="{{ url_for('.branch', project=item.project, branch=branch.name) }}">
-          {{ branch.name }}</a> .....(contributes to {{ branch.origin.name }})
-      </li>
-      {% endfor %}
-    </ul>
+        <a href="{{ url_for('.project', project=item.project) }}">{{ item.project }}</a>
 
-  </li>
+        <ul>
+          {% for branch in item.branches %}
+            <li>
+              <a href="{{ url_for('.branch', project=item.project, branch=branch.name) }}">
+                {{ branch.name }}</a> .....(contributes to {{ branch.origin.name }})
+            </li>
+          {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <h2>
+    {{ _('Profile') }}
+  </h2>
+
+  {{ _('Here you can see all your profile.') }}
+  {{ _('To update it, click here: ') }} <a href="{{ url_for ('bookcloud.update_profile') }}"> update </a>
+  {% for item in profile_form %}
+
+    {% if item['type'] == 'boolean' %}
+      <h3> {{ item['title'] }} </h3>
+      <p>
+        {% if getattr(user, item['variable']) is not none %}
+          {{ getattr(user, item['variable']) }}
+        {% else %}
+          Sem resposta
+        {% endif %}
+      </p>
+    {% endif %}
+    {% if item['type'] == 'string' %}
+      <h3> {{ item['title'] }} </h3>
+      <p>
+        {% if getattr(user, item['variable']) is not none %}
+          {{ getattr(user, item['variable']) }}
+        {% else %}
+          Sem resposta
+        {% endif %}
+      </p>
+    {% endif %}
+    {% if item['type'] == 'integer' %}
+      <h3> {{ item['title'] }} </h3>
+      <p>
+        {% if getattr(user, item['variable']) is not none %}
+          {{ item['choices'][getattr(user, item['variable'])] }}
+        {% else %}
+          Sem resposta
+        {% endif %}
+      </p>
+    {% endif %}
+
   {% endfor %}
+
 </ul>
 
 
 
 {% endmacro %}
-
