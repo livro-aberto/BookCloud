@@ -263,8 +263,13 @@ def create_project(project, user):
     build(project, 'master')
 
 def get_branch_owner(project, branch):
-    project_id = Project.query.filter_by(name=project).first().id
-    return Branch.query.filter_by(project_id=project_id, name=branch).first().owner.username
+    project_obj = Project.query.filter_by(name=project).first()
+    if project_obj:
+        project_id = project_obj.id
+        branch_obj = Branch.query.filter_by(project_id=project_id, name=branch).first()
+        if branch_obj:
+            return branch_obj.owner.username
+    return None
 
 def get_sub_branches(branch_obj):
     children = Branch.query.filter_by(origin_id=branch_obj.id)
@@ -977,7 +982,11 @@ def finish(project, branch):
 @bookcloud.route('/<project>/<branch>/view/<path:filename>')
 def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
-    project_id = Project.query.filter_by(name=project).first().id
+    project_obj = Project.query.filter_by(name=project).first()
+    if project_obj:
+        project_id = project_obj.id
+    else:
+        return redirect(url_for('.home'))
     if file_extension == '':
         file_extension = '.html'
     user_repo_path = join('repos', project, branch,
@@ -1236,7 +1245,8 @@ def internal_server_error(e):
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')
     # send email to admin
-    if not app.config['TESTING']:
+    if (not app.config['TESTING']) and ('No such file or directory' not in message):
+        print 'email'
         mail_message = message + '\n\n\n' + '\n'.join(trace)
         msg = Message('Error: ' + message[:40],
                       body=mail_message,

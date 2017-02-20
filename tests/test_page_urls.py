@@ -208,7 +208,6 @@ def test_page_urls(client):
                                    branch='typo'),
                            follow_redirects=True,
                            data=dict(name='another'))
-    print(response.data)
     assert _('You are not the owner of master').encode('utf8') in response.data
 
     # Commit change
