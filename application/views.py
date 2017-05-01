@@ -1204,7 +1204,11 @@ def get_static(project, action, filename):
 @limiter.exempt
 @bookcloud.route('/_static/<path:filename>')
 def get_global_static(filename):
-    return flask.send_from_directory(os.path.abspath('conf/biz/static/'), filename)
+    print(filename)
+    print(os.path.abspath(join('conf/biz/static/', os.path.dirname(filename))),
+          os.path.basename(filename))
+    return flask.send_from_directory(os.path.abspath(join('conf/biz/static/', os.path.dirname(filename))),
+                                     os.path.basename(filename))
 
 @bookcloud.route('/<project>/<branch>/view/_sources/<path:filename>')
 def show_source(project, branch, filename):
