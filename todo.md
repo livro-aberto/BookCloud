@@ -37,6 +37,12 @@
 
 # Features:
 
+  - use ajax and sql queries for tag completion in textext
+    read also:
+
+        https://github.com/alexgorbatchev/jquery-textext/issues/9
+
+  - remove mathjax from where it is not needed, for speed
   (priority)
   - create master admin view with:
     - manage named tags...

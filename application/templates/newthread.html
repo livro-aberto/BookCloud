@@ -1,37 +1,104 @@
 {% extends "layout.html" %}
 
-{% from "_formhelpers.html" import render_field %}
+{% block title %}{{ _('New thread') }}{% endblock %}
 
-{% block title %}{{ _('Create new thread') }}{% endblock%}
+{% block scripts %}
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Kaushan+Script" type="text/css" />
+  {#  <link rel="stylesheet" href="/css/main.css" type="text/css" /> #}
+  <script src="/_static/tag/js/doc.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="/_static/tag/css/textext.core.css" type="text/css" />
+  <link rel="stylesheet" href="/_static/tag/css/textext.plugin.tags.css" type="text/css" />
+  <link rel="stylesheet" href="/_static/tag/css/textext.plugin.autocomplete.css" type="text/css" />
+  <link rel="stylesheet" href="/_static/tag/css/textext.plugin.focus.css" type="text/css" />
+  <link rel="stylesheet" href="/_static/tag/css/textext.plugin.prompt.css" type="text/css" />
+  <link rel="stylesheet" href="/_static/tag/css/textext.plugin.arrow.css" type="text/css" />
+  <script src="/_static/tag/js/textext.core.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/_static/tag/js/textext.plugin.tags.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/_static/tag/js/textext.plugin.autocomplete.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/_static/tag/js/textext.plugin.suggestions.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/_static/tag/js/textext.plugin.filter.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/_static/tag/js/textext.plugin.focus.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/_static/tag/js/textext.plugin.prompt.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/_static/tag/js/textext.plugin.ajax.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/_static/tag/js/textext.plugin.arrow.js" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}
 
 {% macro contents() %}
-<h1>{{ _('Create new thread') }}</h1>
-
 <ul id="navigation">
+
+  <h1>
+    {{ _('New thread') }}
+  </h1>
 
   <p>
     <form method="POST">
-      <dt>
-        {{ render_field(form.title, size='50') }}
-      </dt>
-      <div style="display: table-row">
-        <div style="display: table-cell; padding-right: 20px;">
-          {{ render_field(form.usertags) }}
-        </div>
-        <div style="display: table-cell; padding-right: 20px;">
-          {{ render_field(form.filetags) }}
-        </div>
-        <div style="display: table-cell; padding-right: 20px;">
-          {{ render_field(form.flag, style="padding-left: 0px; list-style-type: none;") }}
-          {{ render_field(form.namedtags) }}
-          {{ render_field(form.freetags) }}
-        </div>
-      </div>
-      {{ render_field(form.firstcomment, rows='20', cols='80') }}
-      <br>
+
+      {{ _('Title')}}</br>
+      <input type="text" name="title"
+             minlength=5, maxlength="80"></br>
+
+      {{ _('Flag') }}</br>
+      <input type="radio" name="flag" value="discussion" checked>discussion<br>
+      <input type="radio" name="flag" value="issue"> issue<br>
+
+      {{ _('Assigned to:') }}
+      <textarea id="usertags" class="example"
+                rows="1" name="usertags"
+                placeholder="{{ _('Assign this to...') }}"></textarea>
+      <script type="text/javascript">
+        $('#usertags')
+        .textext({
+        plugins : 'autocomplete suggestions filter tags',
+        filterItems: {{ filters["usertags"] | safe }},
+        suggestions: {{ filters["usertags"] | safe }}
+        });
+      </script>
+
+      {{ _('File tags:') }}
+      <textarea id="filetags" class="example"
+                rows="1" name="filetags"></textarea>
+      <script type="text/javascript">
+        $('#filetags')
+        .textext({
+        plugins : 'autocomplete suggestions filter tags',
+        tagsItems: {{ default["filetags"] | safe }},
+        filterItems: {{ filters["filetags"] | safe }},
+        suggestions: {{ filters["filetags"] | safe }}
+        });
+      </script>
+
+      {{ _('Special tags:') }}
+      <textarea id="namedtags" class="example"
+                rows="1" name="namedtags"></textarea>
+      <script type="text/javascript">
+        $('#namedtags')
+        .textext({
+        plugins : 'autocomplete suggestions filter tags',
+        filterItems: {{ filters["namedtags"] | safe }},
+        suggestions: {{ filters["namedtags"] | safe }}
+        });
+      </script>
+
+      {{ _('Free field tags:') }}
+      <textarea id="freetags" class="example"
+                rows="1" name="freetags"></textarea>
+      <script type="text/javascript">
+          $('#freetags').textext({ plugins: 'tags' });
+      </script>
+
+      {{ _('First comment:') }}
+      <textarea rows="20" cols="80" name="firstcomment"></textarea>
       <input type=submit value=Register>
     </form>
   </p>
-</ul>
-{% endmacro %}
 
+
+
+
+
+</ul>
+
+
+
+{% endmacro %}

@@ -405,24 +405,15 @@ def update_profile():
     menu = menu_bar()
 
     if request.method == 'POST':
-        print '===='
-        print app.config['USER_PROPERTIES']
-        print '===='
-        print request.form
-        print '===='
         for item in app.config['USER_PROPERTIES']:
             user = User.query.filter(User.username == current_user.username).first()
             if request.form.has_key(item['variable']):
                 if item['type'] == 'boolean':
                     if request.form[item['variable']] == 'yes':
                         setattr(user, item['variable'], True)
-                        print 'set ', item['variable'], 'true'
                     else:
                         setattr(user, item['variable'], False)
-                        print 'set ', item['variable'], 'false'
                 if item['type'] == 'integer':
-                    print ('updating ', item['variable'], request.form[item['variable']],
-                           'to value', item['choices'].index(request.form[item['variable']]))
                     setattr(user, item['variable'],
                             item['choices'].index(request.form[item['variable']]))
 
@@ -508,29 +499,36 @@ def comments(project):
 def newthread(project):
     menu = menu_bar(project)
     project_id = Project.query.filter_by(name=project).first().id
-    form = NewThreadForm(request.form)
-    form.flag.default = 'discussion'
-    form.usertags.choices = [(u.username, u.username) for u in User.query.all()]
-    if (current_user.is_authenticated):
-        form.usertags.default = [current_user.username]
+    filters = {}
+    default = {}
+    filters["usertags"] = json.dumps([u.username for u in User.query.all()])
     master_path = join('repos', project, 'master', 'source')
     label_list = []
     for f in os.listdir(master_path):
         if (isfile(join(master_path, f)) and f[0] != '.'):
             data = load_file(join(master_path, f))
-            label_list.extend([(splitext(f)[0] + '#' + l, splitext(f)[0] + '#' + l)
+            label_list.extend([splitext(f)[0] + '#' + l
                                for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
-    form.filetags.choices = label_list
+    filters["filetags"] = json.dumps(label_list)
     #    form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
     #                             for f in os.listdir(master_path)
     #                             if isfile(join(master_path, f)) and f[0] != '.']
     if request.args.get('filetags', ''):
-        form.filetags.default = [request.args.get('filetags', '')]
-    form.namedtags.choices = [(t.name, t.name) for t in Named_Tag.query.filter_by(project_id=project_id).all()]
-    form.freetags.default = ''
+        default["filetags"] = json.dumps([request.args.get('filetags', '')])
+    else:
+        default["filetags"] = [""]
+    filters["namedtags"] = json.dumps([t.name for t in Named_Tag.query.filter_by(project_id=project_id).all()])
 
     if request.method == 'POST':
-        if form.validate():
+
+        if ((request.form["title"] == "") or (request.form["firstcomment"] == "")):
+            # Trying to recover when one entry was invalid
+            # form.firstcomment.default = request.form['firstcomment']
+            # form.title.default = request.form['title']
+            # form.freetags.default = request.form['freetags']
+            return render_template('newthread.html', filters=filters, default=default,
+                                   menu=menu, show_discussion=False)
+        else:
             owner = User.query.filter_by(username=current_user.username).first()
             # add thread
             new_thread = Thread(request.form['title'],
@@ -548,17 +546,17 @@ def newthread(project):
                                   datetime.utcnow())
             db.session.add(new_comment)
             # add user tags
-            for user in request.form.getlist('usertags'):
+            for user in json.loads(request.form['usertags']):
                 db.session.flush()
                 user_id = User.query.filter_by(username=user).first().id
                 new_usertag = User_Tag(new_thread.id, user_id)
                 db.session.add(new_usertag)
             # add file tags
-            for file in request.form.getlist('filetags'):
+            for file in json.loads(request.form['filetags']):
                 new_filetag = File_Tag(new_thread.id, file)
                 db.session.add(new_filetag)
             # add named tags
-            for tag in request.form.getlist('namedtags'):
+            for tag in json.loads(request.form['namedtags']):
                 db.session.flush()
                 namedtag_id = Named_Tag.query.filter_by(project_id=project_id, name=tag).first().id
                 new_namedtag = Custom_Tag(new_thread.id, namedtag_id)
@@ -582,7 +580,7 @@ def newthread(project):
                                 project=project,
                                 thread_id = new_thread.id,
                                 _external = True)
-                for user in request.form.getlist('usertags'):
+                for user in json.loads(request.form['usertags']):
                     user_obj = User.query.filter_by(username=user).first()
                     message = message_head + request.form['firstcomment'] + '\n\n' + links
                     subject = _('Thread: ') + request.form['title']
@@ -594,13 +592,9 @@ def newthread(project):
             flash(_('New thread successfully created'), 'info')
             if 'return_url' in request.args:
                 return redirect(urllib.unquote(request.args['return_url']))
-        else:
-            form.firstcomment.default = request.form['firstcomment']
-            form.title.default = request.form['title']
-            form.freetags.default = request.form['freetags']
 
-    form.process()
-    return render_template('newthread.html', menu=menu, form=form)
+    return render_template('newthread.html', filters=filters, default=default,
+                           menu=menu, show_discussion=False)
 
 @bookcloud.route('/<project>/editthread/<thread_id>', methods = ['GET', 'POST'])
 @login_required

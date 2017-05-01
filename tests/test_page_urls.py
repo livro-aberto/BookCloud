@@ -302,10 +302,10 @@ def test_page_urls(client):
                            data=dict(title="Hi there!",
                                      flag="discussion",
                                      firstcomment="Give me some attention!",
-                                     usertags=[],
-                                     filetags=[],
-                                     namedtags=[],
-                                     freetags="last, one"))
+                                     usertags='["foo"]',
+                                     filetags='[]',
+                                     namedtags='[]',
+                                     freetags='["last", "one"]'))
     assert (("criado com sucesso" in response.data)
             or ("successfully created" in response.data))
 
