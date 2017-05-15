@@ -1006,7 +1006,15 @@ def view(project, branch, filename):
                                .filter(File_Tag.filename==filename)
                                .filter(Thread.project_id==project_id)
                                .order_by(desc(Thread.posted_at))))
-    return render_template_string(content, menu=menu, render_sidebar=True, threads=threads, show_discussion=True)
+    #threads_by_topic = (Thread.query.join(File_Tag)
+    #                                    .filter(File_Tag.filename.like(filename + '#' + '%'))
+    #                                    .filter(Thread.project_id==project_id)
+    #                                    .order_by(desc(Thread.posted_at)))
+    threads_by_topic = File_Tag.query.filter(File_Tag.filename.like(filename + '#' + '%')).all()
+    threads_by_topic = [x.filename for x in threads_by_topic]
+    threads_by_topic = {x:threads_by_topic.count(x) for x in threads_by_topic}
+    return render_template_string(content, menu=menu, render_sidebar=True, threads=threads,
+                                  threads_by_topic=threads_by_topic, show_discussion=True)
 
 @limiter.exempt
 @bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
@@ -1027,6 +1035,7 @@ def edit(project, branch, filename):
         edit_scroll = request.form['edit_scroll']
         write_file(branch_source_path, request.form['code'])
         repo = git.Repo(join('repos', project, branch, 'source'))
+        flash(_('File saved successfully'), 'info')
         repo.index.add([filename + '.rst'])
     build(project, branch)
     rst = load_file(branch_source_path)

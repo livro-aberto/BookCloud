@@ -37,6 +37,7 @@
 
 # Features:
 
+  - make site usable when javascript is disabled.
   - use ajax and sql queries for tag completion in textext
     read also:
 

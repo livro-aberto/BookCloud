@@ -213,6 +213,15 @@
                 </p>
               {% endif %}
 
+              {% if threads_by_topic %}
+                {% for t in threads_by_topic %}
+                  <div>
+                    Discussions {{ t }}, {{ threads_by_topic[t] }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+
+
               {% if threads %}
                 {% for t in threads %}
                   <div class="thread">
