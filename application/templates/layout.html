@@ -213,12 +213,32 @@
                 </p>
               {% endif %}
 
-              {% if threads_by_topic %}
-                {% for t in threads_by_topic %}
-                  <div>
-                    Discussions {{ t }}, {{ threads_by_topic[t] }}
+              {% if threads_by_tag %}
+                {% for t in threads_by_tag %}
+                <div id="disucussion_from-{{ t['name'] }}"
+                     style="background-color: #d5e3f1">
+                  <div title="{{ '\n'.join(t['titles']) }}">
+                    Discussions ({{ len(t['titles']) }})
+                  </div>
+                    (<a href="{{ url_for('bookcloud.tagthreads',
+                              project=project, filetag=t['name']) }}"
+                        target="_blank">view</a>)
+                    (<a href="{{ url_for('bookcloud.newthread',
+                              project=project) }}?filetags={{ t['fullname'] }}"
+                        target="_blank">new</a>)
                   </div>
                 {% endfor %}
+                <script>
+                  $(document).ready(function() {
+                  {% for t in threads_by_tag %}
+                    if ($("span#{{ t['name'] }}").length) {
+                    $("#disucussion_from-{{ t['name'] }}").appendTo($("#{{ t['name'] }}").parent());
+                    } else {
+                    $("#disucussion_from-{{ t['name'] }}").appendTo($("#{{ t['name'] }}"));
+                    }
+                  {% endfor %}
+                  });
+                </script>
               {% endif %}
 
 

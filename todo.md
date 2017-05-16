@@ -1,5 +1,10 @@
 # Urgent:
 
+
+  - in discussions:
+    - put example tags to help user start typing (using random elements from sql)
+    - put link to view discussions and to add discussion on that topic
+
   - implement progress bar
 
         <table><tr><td>Sabonete </td>

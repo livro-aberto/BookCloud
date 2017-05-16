@@ -44,7 +44,7 @@
 
       {{ _('Assigned to:') }}
       <textarea id="usertags" class="example"
-                rows="1" name="usertags"
+                rows="1" cols="80" name="usertags"
                 placeholder="{{ _('Assign this to...') }}"></textarea>
       <script type="text/javascript">
         $('#usertags')
@@ -57,7 +57,7 @@
 
       {{ _('File tags:') }}
       <textarea id="filetags" class="example"
-                rows="1" name="filetags"></textarea>
+                rows="1" cols="80" name="filetags"></textarea>
       <script type="text/javascript">
         $('#filetags')
         .textext({
@@ -70,7 +70,7 @@
 
       {{ _('Special tags:') }}
       <textarea id="namedtags" class="example"
-                rows="1" name="namedtags"></textarea>
+                rows="1" cols="80" name="namedtags"></textarea>
       <script type="text/javascript">
         $('#namedtags')
         .textext({
@@ -82,7 +82,7 @@
 
       {{ _('Free field tags:') }}
       <textarea id="freetags" class="example"
-                rows="1" name="freetags"></textarea>
+                rows="1" cols="80" name="freetags"></textarea>
       <script type="text/javascript">
           $('#freetags').textext({ plugins: 'tags' });
       </script>

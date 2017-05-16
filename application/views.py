@@ -397,7 +397,6 @@ def profile():
                            collection=collection, menu=menu, threads=threads,
                            show_discussion=False)
 
-
 @limiter.limit("10 per day")
 @bookcloud.route('/update_profile', methods = ['GET', 'POST'])
 @login_required
@@ -454,9 +453,7 @@ def project(project):
     master_path = join('repos', project, 'master', 'source')
     files = [f for f in os.listdir(master_path)
              if isfile(join(master_path, f)) and f[0] != '.']
-    print(files)
     files.sort()
-    print(files)
     files = [(splitext(f)[0], splitext(f)[1], int(os.stat(join(master_path, f)).st_size / 500)) for f in files]
     threads = display_threads(Thread.query
                               .filter_by(project_id=project_id)
@@ -472,6 +469,18 @@ def pdf(project, branch='master'):
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
+
+@limiter.exempt
+@bookcloud.route('/<project>/tagsthreads/<filetag>')
+def tagthreads(project, filetag):
+    menu = menu_bar(project)
+    project_id = Project.query.filter_by(name=project).first().id
+    threads = (display_threads(Thread.query.join(File_Tag)
+                               .filter(File_Tag.filename.like('%' + filetag + '%'))
+                               .filter(Thread.project_id==project_id)
+                               .order_by(desc(Thread.posted_at))))
+    return render_template('comments.html', menu=menu, threads=threads,
+                           show_discussion=True)
 
 @bookcloud.route('/<project>/comments', methods = ['GET', 'POST'])
 def comments(project):
@@ -1006,15 +1015,20 @@ def view(project, branch, filename):
                                .filter(File_Tag.filename==filename)
                                .filter(Thread.project_id==project_id)
                                .order_by(desc(Thread.posted_at))))
-    #threads_by_topic = (Thread.query.join(File_Tag)
-    #                                    .filter(File_Tag.filename.like(filename + '#' + '%'))
-    #                                    .filter(Thread.project_id==project_id)
-    #                                    .order_by(desc(Thread.posted_at)))
-    threads_by_topic = File_Tag.query.filter(File_Tag.filename.like(filename + '#' + '%')).all()
-    threads_by_topic = [x.filename for x in threads_by_topic]
-    threads_by_topic = {x:threads_by_topic.count(x) for x in threads_by_topic}
+    label_list = []
+    data = load_file(join('repos', project, branch,
+                          'source', filename + '.rst'))
+    label_list.extend([l for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
+    threads_by_tag = (db.session.query(File_Tag.filename, Thread.title)
+                      .filter(File_Tag.filename.like(filename + '#' + '%'))
+                      .filter(File_Tag.thread_id==Thread.id).all())
+    threads_by_tag = [ {'name': name,
+                        'fullname': filename + '%23' + name,
+                        'titles': [x[1] for x in threads_by_tag
+                                   if x[0].split('#')[1] == name]} for name in label_list]
+    print(threads_by_tag)
     return render_template_string(content, menu=menu, render_sidebar=True, threads=threads,
-                                  threads_by_topic=threads_by_topic, show_discussion=True)
+                                  threads_by_tag=threads_by_tag, show_discussion=False)
 
 @limiter.exempt
 @bookcloud.route('/<project>/<branch>/edit/<path:filename>', methods = ['GET', 'POST'])
@@ -1213,9 +1227,6 @@ def get_static(project, action, filename):
 @limiter.exempt
 @bookcloud.route('/_static/<path:filename>')
 def get_global_static(filename):
-    print(filename)
-    print(os.path.abspath(join('conf/biz/static/', os.path.dirname(filename))),
-          os.path.basename(filename))
     return flask.send_from_directory(os.path.abspath(join('conf/biz/static/', os.path.dirname(filename))),
                                      os.path.basename(filename))
 
@@ -1247,7 +1258,6 @@ def page_not_found(e):
 @limiter.exempt
 @bookcloud.errorhandler(Exception)
 def internal_server_error(e):
-    print(">>>" + repr(e))
     message = repr(e)
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')

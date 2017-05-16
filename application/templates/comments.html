@@ -13,11 +13,13 @@
   <ul id="navigation">
 
   <p>
-    <form method="POST">
-      {{ render_field(form.search) }}
-      <br>
-      <input type=submit value=Register>
-    </form>
+    {% if form %}
+      <form method="POST">
+        {{ render_field(form.search) }}
+        <br>
+        <input type=submit value=Register>
+      </form>
+    {% endif %}
   </p>
 
   <p>
