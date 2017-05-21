@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- include libries(jQuery, bootstrap, fontawesome) -->
+  <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.css" rel="stylesheet">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js"></script>
+  <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.js"></script>
+  <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.3/summernote.css" rel="stylesheet">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.3/summernote.js"></script>
+
+  <style>
+    .note-group-select-from-files, .note-align {
+      display: none
+    }
+  </style>
+<body>
+
+  {% if converted %}
+    <pre><code class="javascript"><code class="keyword">{{- converted | safe -}}</code> <code class="name"></code>
+  {% else %}
+
+
+    <div class="summernote container">
+      <div class="row">
+        {% if prefetch %}
+          <h2>
+            We could not convert your text, try to use less resources
+          </h2>
+        {% endif %}
+      </div>
+      <div class="row">
+	<form class="span12" id="postForm" action="/html2rst" method="POST" enctype="multipart/form-data" onsubmit="return postForm()">
+	  <fieldset>
+	    <legend>Type your text and convert to sphinx</legend>
+	    <p class="container">
+	      <textarea class="input-block-level" id="summernote" name="content" rows="18">
+                {{ prefetch }}
+	      </textarea>
+	    </p>
+	  </fieldset>
+	  <button type="submit" class="btn btn-primary">Convert to sphinx!</button>
+	</form>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      $(document).ready(function() {
+      $('#summernote').summernote({
+      height: "300px",
+      toolbar: [
+	   // [groupName, [list of button]]
+	   ['style', ['style']],
+	   ['font', ['bold', 'italic', 'clear']],
+           ['para', ['ul', 'ol', 'paragraph']],
+	   ['table', ['table']],
+	   ['insert', ['picture']],
+	   ['view', ['fullscreen']],
+	   ['help', ['help']]
+	  ]
+
+      });
+      });
+      var postForm = function() {
+      var content = $('textarea[name="content"]').html($('#summernote').code());
+      }
+
+      $(document).ready(function(){
+      $("blockquote").hide();
+      $("pre").hide();
+      });
+
+    </script>
+  {% endif %}
+</body>
+</html>

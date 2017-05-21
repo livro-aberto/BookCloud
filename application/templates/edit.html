@@ -20,6 +20,15 @@
 <script src="https://codemirror.net/addon/search/matchesonscrollbar.js"></script>
 <script src="https://codemirror.net/addon/search/jump-to-line.js"></script>
 
+
+<script language="javascript" type="text/javascript">
+  function popitup(url) {
+    newwindow = window.open(url,'name','height=500,width=900');
+    if (window.focus) {newwindow.focus()}
+    return false;
+  }
+</script>
+
 <script>
   var is_changed = 0;
 
@@ -188,6 +197,8 @@ div.bodywrapper {
             <button onclick="insertAround('\\subset','')">&#x2282</button>
             <button onclick="insertAround('\\overrightarrow{','}')">x&#8407</button>
           </nobr>
+          experimental
+          <button {# href="{{ url_for('.html2rst') }}"#} onclick="return popitup('{{ url_for('.html2rst') }}')">Visual</button>
         <form id="myform" action="{{ url_for('.edit', project=project, branch=branch,
                                   filename=filename) }}" method="post">
           <textarea id="code" name="code">{{ rst }}</textarea>

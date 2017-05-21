@@ -31,6 +31,8 @@ import hashlib
 
 import sphinx
 
+from creole import html2rest
+
 # import special tools for this platform
 from tools import window, rst2html, Command, get_git, load_file,\
     write_file, get_merging, get_requests, get_merge_pendencies,\
@@ -41,6 +43,9 @@ config_path = 'conf'
 bookcloud = Blueprint('bookcloud', __name__, template_folder='templates')
 
 babel = Babel(app)
+
+import pprint
+pp = pprint.PrettyPrinter(indent=4).pprint
 
 class IdentifierForm(Form):
     name = StringField('Identifier', [
@@ -396,6 +401,26 @@ def profile():
                            profile_form=app.config['USER_PROPERTIES'],
                            collection=collection, menu=menu, threads=threads,
                            show_discussion=False)
+
+@limiter.limit("300 per day")
+@bookcloud.route('/html2rst', methods = ['GET', 'POST'])
+def html2rst():
+    if request.method == 'POST':
+        print(request.form)
+        if request.form.has_key('content'):
+            input = request.form.get('content')
+            if not input:
+                input = 'undefined'
+            if input != 'undefined':
+                try:
+                    converted = html2rest(input)
+                    prefetch = None
+                except:
+                    converted = None
+                    prefetch = input
+                return render_template('html2rst.html', converted=converted,
+                                       prefetch=prefetch)
+    return render_template('html2rst.html')
 
 @limiter.limit("10 per day")
 @bookcloud.route('/update_profile', methods = ['GET', 'POST'])
@@ -1026,7 +1051,7 @@ def view(project, branch, filename):
                         'fullname': filename + '%23' + name,
                         'titles': [x[1] for x in threads_by_tag
                                    if x[0].split('#')[1] == name]} for name in label_list]
-    print(threads_by_tag)
+#    print(threads_by_tag)
     return render_template_string(content, menu=menu, render_sidebar=True, threads=threads,
                                   threads_by_tag=threads_by_tag, show_discussion=False)
 
