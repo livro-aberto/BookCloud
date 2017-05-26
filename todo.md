@@ -1,6 +1,5 @@
 # Urgent:
 
-
   - in discussions:
     - put example tags to help user start typing (using random elements from sql)
     - put link to view discussions and to add discussion on that topic
@@ -39,8 +38,25 @@
         y = BeautifulSoup(data)
         q = set([t for t in y.find_all('target')])
 
-
 # Features:
+
+  - user experience. Read book:
+
+        https://en.wikibooks.org/wiki/Usability_for_Nerds/Print_version
+  - exercises. use javascript for electronic activities:
+
+        https://jsxgraph.uni-bayreuth.de/wiki/index.php/Category:Examples
+
+  - intensify use of include in sphinx:
+
+        http://docutils.sourceforge.net/docs/ref/rst/directives.html#miscellaneous
+  - consider support for MathBook XML:
+
+        http://mathbook.pugetsound.edu/index.html
+
+  - consider interfacing with redmine:
+
+        https://python-redmine.com/
 
   - make site usable when javascript is disabled.
   - use ajax and sql queries for tag completion in textext
