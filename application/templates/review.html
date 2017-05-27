@@ -23,6 +23,7 @@
       value: value,
       origLeft: orig1,
       lineNumbers: true,
+      lineWrapping: true,
       highlightDifferences: highlight,
       connect: connect,
       collapseIdentical: collapse
@@ -73,6 +74,10 @@
 </script>
 
 <style>
+.CodeMirror-merge, .CodeMirror-merge .CodeMirror {
+  height: calc(100vh - 150px);
+}
+
 .CodeMirror { line-height: 1.2; }
 @media screen and (min-width: 1300px) {
   article { max-width: 1000px; }
