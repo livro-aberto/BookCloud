@@ -19,6 +19,10 @@
     - disallow raw html
       read the documentation for more
       http://docutils.sourceforge.net/docs/ref/rst/directives.html#raw-data-pass-through
+
+  - parse sphinx
+    https://stackoverflow.com/questions/10766609/extract-field-list-from-restructuredtext/10782270#10782270
+    https://stackoverflow.com/questions/11302885/parse-sphinx-like-documentation
   - search labels and add labels to file tags
 
         from docutils.parsers import rst

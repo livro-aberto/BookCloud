@@ -361,25 +361,13 @@ def menu_bar(project=None, branch=None):
                                           'name': 'requests', 'style': 'attention'})
     return { 'left': left, 'right': right}
 
-@limiter.exempt
-@bookcloud.route('/')
-def home():
-    path = 'repos'
-    projects = [d.name for d in Project.query.all()]
-    project_folders = [d for d in os.listdir(path) if isdir(join(path, d))]
-    projects_without_folder = set(projects) - set(project_folders)
-    if projects_without_folder:
-        flash('Some projects have no folder (%s)' % ', '.join(projects_without_folder),
-              'error')
-    folders_without_project = set(project_folders) - set(projects)
-    if folders_without_project:
-        flash('Some folders have no project (%s)' % ', '.join(folders_without_project),
-              'error')
-    projects = list(set(projects) - set(projects_without_folder))
-    #threads = display_threads(Thread.query.limit(10))
-    menu = menu_bar()
-    return render_template('home.html', projects=projects, menu=menu,
-                           copyright='CC-BY-SA')
+@bookcloud.route('/login')
+def login():
+    return redirect(url_for('user.login'))
+
+@bookcloud.route('/logout')
+def logout():
+    return redirect(url_for('user.logout'))
 
 @limiter.exempt
 @bookcloud.route('/profile')
@@ -401,26 +389,6 @@ def profile():
                            profile_form=app.config['USER_PROPERTIES'],
                            collection=collection, menu=menu, threads=threads,
                            show_discussion=False)
-
-@limiter.limit("300 per day")
-@bookcloud.route('/html2rst', methods = ['GET', 'POST'])
-def html2rst():
-    if request.method == 'POST':
-        print(request.form)
-        if request.form.has_key('content'):
-            input = request.form.get('content')
-            if not input:
-                input = 'undefined'
-            if input != 'undefined':
-                try:
-                    converted = html2rest(input)
-                    prefetch = None
-                except:
-                    converted = None
-                    prefetch = input
-                return render_template('html2rst.html', converted=converted,
-                                       prefetch=prefetch)
-    return render_template('html2rst.html')
 
 @limiter.limit("10 per day")
 @bookcloud.route('/update_profile', methods = ['GET', 'POST'])
@@ -447,6 +415,26 @@ def update_profile():
     return render_template('update_profile.html', user=current_user,
                            profile_form=app.config['USER_PROPERTIES'],
                            menu=menu, show_discussion=False)
+
+@limiter.exempt
+@bookcloud.route('/')
+def home():
+    path = 'repos'
+    projects = [d.name for d in Project.query.all()]
+    project_folders = [d for d in os.listdir(path) if isdir(join(path, d))]
+    projects_without_folder = set(projects) - set(project_folders)
+    if projects_without_folder:
+        flash('Some projects have no folder (%s)' % ', '.join(projects_without_folder),
+              'error')
+    folders_without_project = set(project_folders) - set(projects)
+    if folders_without_project:
+        flash('Some folders have no project (%s)' % ', '.join(folders_without_project),
+              'error')
+    projects = list(set(projects) - set(projects_without_folder))
+    #threads = display_threads(Thread.query.limit(10))
+    menu = menu_bar()
+    return render_template('home.html', projects=projects, menu=menu,
+                           copyright='CC-BY-SA')
 
 @limiter.limit("4 per day")
 @bookcloud.route('/new', methods = ['GET', 'POST'])
@@ -486,14 +474,318 @@ def project(project):
     return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads,
                            files=files, show_discussion=True)
 
-@bookcloud.route('/<project>/pdf')
-@bookcloud.route('/<project>/<branch>/pdf')
-def pdf(project, branch='master'):
-    build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
-    build_latex(project, branch)
-    command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
-    os.system(command)
-    return flask.send_from_directory(build_path, 'linux.pdf')
+@bookcloud.route('/<project>/<branch>', methods = ['GET', 'POST'])
+def branch(project, branch):
+    if (current_user.is_authenticated):
+        if (current_user.username == get_branch_owner(project, branch) or
+            current_user.username == get_branch_owner(project, 'master')):
+            merge_pendencies = get_merge_pendencies(project, branch)
+            if merge_pendencies:
+                return merge_pendencies
+    menu = menu_bar(project, branch)
+    log = get_log(project, branch)
+    project_id = Project.query.filter_by(name=project).first().id
+    threads = display_threads(Thread.query.filter_by(project_id=project_id).order_by(desc(Thread.posted_at)))
+    return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
+
+@limiter.limit("7 per day")
+@bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
+@login_required
+def clone(project, branch):
+    menu = menu_bar(project, branch)
+    form = IdentifierForm(request.form)
+    merge_pendencies = get_merge_pendencies(project, branch)
+    if merge_pendencies:
+        flash('???', 'error')
+        return render_template('merge.html', menu=menu, form=form)
+    if request.method == 'POST' and form.validate():
+        new_repo_path = join('repos', project, form.name.data)
+        if os.path.isdir(new_repo_path):
+            flash(_('This branch name already exists'), 'error')
+            return redirect(url_for('.clone', project=project, branch=branch))
+        else:
+            new_branch = request.form['name']
+            create_branch(project, branch, new_branch, current_user.username)
+            flash(_('Project cloned successfuly!'), 'info')
+            return redirect(url_for('.view', project=project, branch=new_branch,
+                                    filename='index.html'))
+    return render_template('clone.html', menu=menu, form=form)
+
+@bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
+@login_required
+def newfile(project, branch):
+    menu = menu_bar(project, branch)
+    form = IdentifierForm(request.form)
+    if current_user.username != get_branch_owner(project, 'master'):
+        flash(_('You are not the owner of master'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch=branch, filename='index.html'))
+    merge_pendencies = get_merge_pendencies(project, branch)
+    if merge_pendencies:
+        return merge_pendencies
+    if request.method == 'POST' and form.validate():
+        filename = form.name.data
+        file_extension = '.rst'
+        file_path = join('repos', project, branch, 'source', filename + file_extension)
+        if os.path.isfile(file_path):
+            flash(_('This file name name already exists'), 'error')
+        else:
+            #file = open(file_path, 'w+')
+            stars = '*' * len(filename) + '\n'
+            #file.write(stars + filename + '\n' + stars)
+            write_file(file_path, stars + filename + '\n' + stars)
+            repo = git.Repo(join('repos', project, branch, 'source'))
+            repo.index.add([filename + file_extension])
+            #author = git.Actor(current_user.username, current_user.email)
+            #repo.index.commit(_('Adding file %s' % filename), author=author)
+            flash(_('File created successfuly!'), 'info')
+            build(project, branch)
+            return redirect(url_for('.view', project=project,
+                                    branch=branch, filename='index.html'))
+    return render_template('newfile.html', menu=menu, form=form)
+
+@bookcloud.route('/<project>/renamefile/<oldfilename>', methods = ['GET', 'POST'])
+@login_required
+def renamefile(project, oldfilename):
+    menu = menu_bar(project, 'master')
+    form = IdentifierForm(request.form)
+    if current_user.username != get_branch_owner(project, 'master'):
+        flash(_('You are not the owner of master'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch='master', filename='index.html'))
+    merge_pendencies = get_merge_pendencies(project, 'master')
+    if merge_pendencies:
+        return merge_pendencies
+    if request.method == 'POST' and form.validate():
+        filename = form.name.data
+        file_extension = '.rst'
+        file_path = join('repos', project, 'master', 'source', filename + file_extension)
+        if os.path.isfile(file_path):
+            flash(_('This file name already exists'), 'error')
+        else:
+            git_api = get_git(project, 'master')
+            git_api.mv(oldfilename + file_extension, form.name.data + file_extension)
+            #author = git.Actor(current_user.username, current_user.email)
+            #repo.index.commit(_('Adding file %s' % filename), author=author)
+            flash(_('File renamed successfuly!'), 'info')
+            build(project, 'master')
+            return redirect(url_for('.view', project=project,
+                                    branch='master', filename='index.html'))
+    return render_template('newfile.html', menu=menu, form=form)
+
+@bookcloud.route('/<project>/deletefile/<filename>')
+@login_required
+def deletefile(project, filename):
+    menu = menu_bar(project, 'master')
+    if current_user.username != get_branch_owner(project, 'master'):
+        flash(_('You are not the owner of master'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch='master', filename='index.html'))
+    merge_pendencies = get_merge_pendencies(project, 'master')
+    if merge_pendencies:
+        return merge_pendencies
+    file_extension = '.rst'
+    file_path = join('repos', project, 'master', 'source', filename + file_extension)
+    if not os.path.isfile(file_path):
+        flash(_('This file does not exist'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch='master', filename='index.html'))
+    if not os.stat(file_path).st_size == 0:
+        flash(_('This file is not empty'), 'error')
+        return redirect(url_for('.view', project=project,
+                                branch='master', filename='index.html'))
+    git_api = get_git(project, 'master')
+    git_api.rm('-f', filename + file_extension)
+    #author = git.Actor(current_user.username, current_user.email)
+    #repo.index.commit(_('Adding file %s' % filename), author=author)
+    flash(_('File removed successfuly!'), 'info')
+    build(project, 'master')
+    return redirect(url_for('.view', project=project,
+                            branch='master', filename='index.html'))
+
+@bookcloud.route('/<project>/<branch>/requests')
+@login_required
+def requests(project, branch):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    if is_dirty(project, branch):
+        flash(_('Commit your changes before reviewing requests'), 'error')
+        return redirect(url_for('.branch', project=project, branch=branch))
+    requests = get_requests(project, branch)
+    menu = menu_bar(project, branch)
+    return render_template('requests.html', unmerged=requests, menu=menu)
+
+@bookcloud.route('/<project>/<branch>/finish')
+@login_required
+def finish(project, branch):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    merging = get_merging(project, branch)
+    if not merging:
+        flash(_('You are not merging'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    if len(merging['modified']):
+        flash(_('You still have unreviewed files'), 'error')
+        return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
+    git_api = get_git(project, branch)
+    git_api.commit('-m', 'Merge ' + merging['branch'])
+    merge_file_path = join('repos', project, branch, 'merging.json')
+    os.remove(merge_file_path)
+    origin = get_branch_origin(project, branch).name
+    if branch != origin:
+        git_api.push('origin', branch)
+        flash(_('Page submitted to _%s') % origin, 'info')
+    update_subtree(project, branch)
+    flash(_('You have finished merging _%s') % merging['branch'], 'info')
+    return redirect(url_for('.branch', project=project, branch=branch))
+
+@bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
+@login_required
+def commit(project, branch):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
+        flash(_('You are not the owner of this or the master branch'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    merging = get_merging(project, branch)
+    if merging:
+        flash(_('You need to finish merging'), 'error')
+        return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
+    user_repo_path = join('repos', project, branch)
+    repo = git.Repo(join(user_repo_path, 'source'))
+    form = MessageForm(request.form)
+    if request.method == 'POST' and form.validate():
+        author = git.Actor(current_user.username, current_user.email)
+        if len(form.message.data):
+            message = form.message.data
+        else:
+            message = _('Some changes')
+        repo.index.commit(message, author=author)
+        origin = get_branch_origin(project, branch).name
+        if branch != origin:
+            git_api = repo.git
+            git_api.push('origin', branch)
+            flash(_('Page submitted to _%s') % origin, 'info')
+        update_subtree(project, branch)
+        flash('Change commited', 'info')
+        return redirect(url_for('.branch', project=project, branch=branch))
+    menu = menu_bar(project, branch)
+    diff = repo.git.diff('--cached')
+    return render_template('commit.html', menu=menu, form=form, diff=diff)
+
+@bookcloud.route('/<project>/<branch>/merge/<other>')
+@login_required
+def merge(project, branch, other):
+    merging = get_merging(project, branch)
+    if not merging:
+        if is_dirty(project, branch):
+            flash(_('Commit your changes before reviewing requests'), 'error')
+            return redirect(url_for('.commit', project=project, branch=branch))
+        # Check if other has something to merge
+        git_api = get_git(project, branch)
+        branches = string.split(git_api.branch())
+        merged = string.split(git_api.branch('--merged'))
+        if other in merged:
+            flash(_('Branch _%s has no requests now') % other, 'error')
+            return redirect(url_for('.view', project=project, branch=branch,
+                                    filename='index.html'))
+        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', other)
+        modified = string.split(git_api.diff('HEAD', '--name-only'))
+        merging = {'branch': other, 'modified': modified, 'reviewed': []}
+        write_file(join('repos', project, branch, 'merging.json'), json.dumps(merging))
+    menu = {'right': [{'name': branch,
+                       'url': url_for('.merge', project=project, branch=branch, other=other)}]}
+    log = get_log(project, other)
+    return render_template('merge.html', modified=merging['modified'],
+                           reviewed=merging['reviewed'], other=other, log=log,
+                           menu=menu)
+
+@bookcloud.route('/<project>/<branch>/review/<path:filename>', methods = ['GET', 'POST'])
+@login_required
+def review(project, branch, filename):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.clone', project=project, branch=branch))
+    merging = get_merging(project, branch)
+    if not merging:
+        flash(_('You are not merging'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch,
+                                filename='index.html'))
+    update_branch(project, branch)
+    filename, file_extension = os.path.splitext(filename)
+    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
+    branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
+    if request.method == 'POST':
+        write_file(branch_source_path, request.form['code'])
+        repo = git.Repo(join('repos', project, branch, 'source'))
+        repo.index.add([filename + '.rst'])
+        return redirect(url_for('.accept', project=project, branch=branch,
+                                filename=filename + file_extension))
+    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
+    new = load_file(branch_source_path)
+    git_api = get_git(project, branch)
+    if git_api.ls_tree('-r', '--name-only', branch, filename + file_extension) != '':
+        old = git_api.show(branch + ':' + filename + file_extension)
+    else:
+        old = ''
+    menu = {'right': [{'name': branch,
+                       'url': url_for('.edit', project=project,
+                                      branch=branch, filename=filename)}]}
+    return render_template('review.html', new=new, old=old,
+                           filename=filename + file_extension,
+                           menu=menu, other=merging['branch'], render_sidebar=False)
+
+@bookcloud.route('/<project>/<branch>/diff/<path:filename>')
+@login_required
+def diff(project, branch, filename):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch,
+                                filename='index.html'))
+    merging = get_merging(project, branch)
+    if not merging:
+        flash(_('You are not merging'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch,
+                                filename='index.html'))
+    #menu = menu_bar(project, branch)
+    differ = HtmlDiff()
+    filename, file_extension = os.path.splitext(filename)
+    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
+    new = string.split(load_file(branch_source_path), '\n')
+    git_api = get_git(project, branch)
+    if git_api.ls_tree('-r', '--name-only', branch, filename + file_extension) != '':
+        old = string.split(git_api.show(branch + ':' + filename + file_extension), '\n')
+    else:
+        old = ''
+    diff = differ.make_table(new, old)
+    diff = string.replace(diff, 'nowrap="nowrap"', '')
+    return render_template('diff.html', other=merging['branch'],
+                           diff=diff, filename=filename + file_extension)
+
+@bookcloud.route('/<project>/<branch>/accept/<path:filename>')
+@login_required
+def accept(project, branch, filename):
+    if (current_user.username != get_branch_owner(project, branch) and
+        current_user.username != get_branch_owner(project, 'master')):
+        flash(_('You are not the owner of this branch'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    merging = get_merging(project, branch)
+    if not merging:
+        flash(_('You are not merging'), 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    if not filename in merging['modified']:
+        flash('File %s is not being reviewed' % filename, 'error')
+        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
+    merging['modified'].remove(filename)
+    merging['reviewed'].append(filename)
+    merge_file_path = join('repos', project, branch, 'merging.json')
+    write_file(merge_file_path, json.dumps(merging))
+    return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
 
 @limiter.exempt
 @bookcloud.route('/<project>/tagsthreads/<filetag>')
@@ -837,175 +1129,6 @@ def deletecomment(project):
                 flash(_('You are not allowed to delete this thread'), 'error')
     return redirect(urllib.unquote(request.args['return_url']))
 
-@bookcloud.route('/<project>/<branch>', methods = ['GET', 'POST'])
-def branch(project, branch):
-    if (current_user.is_authenticated):
-        if (current_user.username == get_branch_owner(project, branch) or
-            current_user.username == get_branch_owner(project, 'master')):
-            merge_pendencies = get_merge_pendencies(project, branch)
-            if merge_pendencies:
-                return merge_pendencies
-    menu = menu_bar(project, branch)
-    log = get_log(project, branch)
-    project_id = Project.query.filter_by(name=project).first().id
-    threads = display_threads(Thread.query.filter_by(project_id=project_id).order_by(desc(Thread.posted_at)))
-    return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
-
-@limiter.limit("7 per day")
-@bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
-@login_required
-def clone(project, branch):
-    menu = menu_bar(project, branch)
-    form = IdentifierForm(request.form)
-    merge_pendencies = get_merge_pendencies(project, branch)
-    if merge_pendencies:
-        flash('???', 'error')
-        return render_template('merge.html', menu=menu, form=form)
-    if request.method == 'POST' and form.validate():
-        new_repo_path = join('repos', project, form.name.data)
-        if os.path.isdir(new_repo_path):
-            flash(_('This branch name already exists'), 'error')
-            return redirect(url_for('.clone', project=project, branch=branch))
-        else:
-            new_branch = request.form['name']
-            create_branch(project, branch, new_branch, current_user.username)
-            flash(_('Project cloned successfuly!'), 'info')
-            return redirect(url_for('.view', project=project, branch=new_branch,
-                                    filename='index.html'))
-    return render_template('clone.html', menu=menu, form=form)
-
-@bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
-@login_required
-def newfile(project, branch):
-    menu = menu_bar(project, branch)
-    form = IdentifierForm(request.form)
-    if current_user.username != get_branch_owner(project, 'master'):
-        flash(_('You are not the owner of master'), 'error')
-        return redirect(url_for('.view', project=project,
-                                branch=branch, filename='index.html'))
-    merge_pendencies = get_merge_pendencies(project, branch)
-    if merge_pendencies:
-        return merge_pendencies
-    if request.method == 'POST' and form.validate():
-        filename = form.name.data
-        file_extension = '.rst'
-        file_path = join('repos', project, branch, 'source', filename + file_extension)
-        if os.path.isfile(file_path):
-            flash(_('This file name name already exists'), 'error')
-        else:
-            #file = open(file_path, 'w+')
-            stars = '*' * len(filename) + '\n'
-            #file.write(stars + filename + '\n' + stars)
-            write_file(file_path, stars + filename + '\n' + stars)
-            repo = git.Repo(join('repos', project, branch, 'source'))
-            repo.index.add([filename + file_extension])
-            #author = git.Actor(current_user.username, current_user.email)
-            #repo.index.commit(_('Adding file %s' % filename), author=author)
-            flash(_('File created successfuly!'), 'info')
-            build(project, branch)
-            return redirect(url_for('.view', project=project,
-                                    branch=branch, filename='index.html'))
-    return render_template('newfile.html', menu=menu, form=form)
-
-@bookcloud.route('/<project>/renamefile/<oldfilename>', methods = ['GET', 'POST'])
-@login_required
-def renamefile(project, oldfilename):
-    menu = menu_bar(project, 'master')
-    form = IdentifierForm(request.form)
-    if current_user.username != get_branch_owner(project, 'master'):
-        flash(_('You are not the owner of master'), 'error')
-        return redirect(url_for('.view', project=project,
-                                branch='master', filename='index.html'))
-    merge_pendencies = get_merge_pendencies(project, 'master')
-    if merge_pendencies:
-        return merge_pendencies
-    if request.method == 'POST' and form.validate():
-        filename = form.name.data
-        file_extension = '.rst'
-        file_path = join('repos', project, 'master', 'source', filename + file_extension)
-        if os.path.isfile(file_path):
-            flash(_('This file name already exists'), 'error')
-        else:
-            git_api = get_git(project, 'master')
-            git_api.mv(oldfilename + file_extension, form.name.data + file_extension)
-            #author = git.Actor(current_user.username, current_user.email)
-            #repo.index.commit(_('Adding file %s' % filename), author=author)
-            flash(_('File renamed successfuly!'), 'info')
-            build(project, 'master')
-            return redirect(url_for('.view', project=project,
-                                    branch='master', filename='index.html'))
-    return render_template('newfile.html', menu=menu, form=form)
-
-@bookcloud.route('/<project>/deletefile/<filename>')
-@login_required
-def deletefile(project, filename):
-    menu = menu_bar(project, 'master')
-    if current_user.username != get_branch_owner(project, 'master'):
-        flash(_('You are not the owner of master'), 'error')
-        return redirect(url_for('.view', project=project,
-                                branch='master', filename='index.html'))
-    merge_pendencies = get_merge_pendencies(project, 'master')
-    if merge_pendencies:
-        return merge_pendencies
-    file_extension = '.rst'
-    file_path = join('repos', project, 'master', 'source', filename + file_extension)
-    if not os.path.isfile(file_path):
-        flash(_('This file does not exist'), 'error')
-        return redirect(url_for('.view', project=project,
-                                branch='master', filename='index.html'))
-    if not os.stat(file_path).st_size == 0:
-        flash(_('This file is not empty'), 'error')
-        return redirect(url_for('.view', project=project,
-                                branch='master', filename='index.html'))
-    git_api = get_git(project, 'master')
-    git_api.rm('-f', filename + file_extension)
-    #author = git.Actor(current_user.username, current_user.email)
-    #repo.index.commit(_('Adding file %s' % filename), author=author)
-    flash(_('File removed successfuly!'), 'info')
-    build(project, 'master')
-    return redirect(url_for('.view', project=project,
-                            branch='master', filename='index.html'))
-
-@bookcloud.route('/<project>/<branch>/requests')
-@login_required
-def requests(project, branch):
-    if (current_user.username != get_branch_owner(project, branch) and
-        current_user.username != get_branch_owner(project, 'master')):
-        flash(_('You are not the owner of this branch'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    if is_dirty(project, branch):
-        flash(_('Commit your changes before reviewing requests'), 'error')
-        return redirect(url_for('.branch', project=project, branch=branch))
-    requests = get_requests(project, branch)
-    menu = menu_bar(project, branch)
-    return render_template('requests.html', unmerged=requests, menu=menu)
-
-@bookcloud.route('/<project>/<branch>/finish')
-@login_required
-def finish(project, branch):
-    if (current_user.username != get_branch_owner(project, branch) and
-        current_user.username != get_branch_owner(project, 'master')):
-        flash(_('You are not the owner of this branch'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    merging = get_merging(project, branch)
-    if not merging:
-        flash(_('You are not merging'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    if len(merging['modified']):
-        flash(_('You still have unreviewed files'), 'error')
-        return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
-    git_api = get_git(project, branch)
-    git_api.commit('-m', 'Merge ' + merging['branch'])
-    merge_file_path = join('repos', project, branch, 'merging.json')
-    os.remove(merge_file_path)
-    origin = get_branch_origin(project, branch).name
-    if branch != origin:
-        git_api.push('origin', branch)
-        flash(_('Page submitted to _%s') % origin, 'info')
-    update_subtree(project, branch)
-    flash(_('You have finished merging _%s') % merging['branch'], 'info')
-    return redirect(url_for('.branch', project=project, branch=branch))
-
 @limiter.exempt
 @bookcloud.route('/<project>/<branch>/view/<path:filename>')
 def view(project, branch, filename):
@@ -1085,149 +1208,34 @@ def edit(project, branch, filename):
                            menu=menu, html_scroll=html_scroll,
                            edit_scroll=edit_scroll, render_sidebar=False)
 
-@bookcloud.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
-@login_required
-def commit(project, branch):
-    if (current_user.username != get_branch_owner(project, branch) and
-        current_user.username != get_branch_owner(project, 'master')):
-        flash(_('You are not the owner of this or the master branch'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    merging = get_merging(project, branch)
-    if merging:
-        flash(_('You need to finish merging'), 'error')
-        return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
-    user_repo_path = join('repos', project, branch)
-    repo = git.Repo(join(user_repo_path, 'source'))
-    form = MessageForm(request.form)
-    if request.method == 'POST' and form.validate():
-        author = git.Actor(current_user.username, current_user.email)
-        if len(form.message.data):
-            message = form.message.data
-        else:
-            message = _('Some changes')
-        repo.index.commit(message, author=author)
-        origin = get_branch_origin(project, branch).name
-        if branch != origin:
-            git_api = repo.git
-            git_api.push('origin', branch)
-            flash(_('Page submitted to _%s') % origin, 'info')
-        update_subtree(project, branch)
-        flash('Change commited', 'info')
-        return redirect(url_for('.branch', project=project, branch=branch))
-    menu = menu_bar(project, branch)
-    diff = repo.git.diff('--cached')
-    return render_template('commit.html', menu=menu, form=form, diff=diff)
-
-@bookcloud.route('/<project>/<branch>/merge/<other>')
-@login_required
-def merge(project, branch, other):
-    merging = get_merging(project, branch)
-    if not merging:
-        if is_dirty(project, branch):
-            flash(_('Commit your changes before reviewing requests'), 'error')
-            return redirect(url_for('.commit', project=project, branch=branch))
-        # Check if other has something to merge
-        git_api = get_git(project, branch)
-        branches = string.split(git_api.branch())
-        merged = string.split(git_api.branch('--merged'))
-        if other in merged:
-            flash(_('Branch _%s has no requests now') % other, 'error')
-            return redirect(url_for('.view', project=project, branch=branch,
-                                    filename='index.html'))
-        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', other)
-        modified = string.split(git_api.diff('HEAD', '--name-only'))
-        merging = {'branch': other, 'modified': modified, 'reviewed': []}
-        write_file(join('repos', project, branch, 'merging.json'), json.dumps(merging))
-    menu = {'right': [{'name': branch,
-                       'url': url_for('.merge', project=project, branch=branch, other=other)}]}
-    log = get_log(project, other)
-    return render_template('merge.html', modified=merging['modified'],
-                           reviewed=merging['reviewed'], other=other, log=log,
-                           menu=menu)
-
-@bookcloud.route('/<project>/<branch>/review/<path:filename>', methods = ['GET', 'POST'])
-@login_required
-def review(project, branch, filename):
-    if (current_user.username != get_branch_owner(project, branch) and
-        current_user.username != get_branch_owner(project, 'master')):
-        flash(_('You are not the owner of this branch'), 'error')
-        return redirect(url_for('.clone', project=project, branch=branch))
-    merging = get_merging(project, branch)
-    if not merging:
-        flash(_('You are not merging'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch,
-                                filename='index.html'))
-    update_branch(project, branch)
-    filename, file_extension = os.path.splitext(filename)
-    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
-    branch_html_path = join('repos', project, branch, 'build/html', filename + '.html')
+@limiter.limit("300 per day")
+@bookcloud.route('/html2rst', methods = ['GET', 'POST'])
+def html2rst():
     if request.method == 'POST':
-        write_file(branch_source_path, request.form['code'])
-        repo = git.Repo(join('repos', project, branch, 'source'))
-        repo.index.add([filename + '.rst'])
-        return redirect(url_for('.accept', project=project, branch=branch,
-                                filename=filename + file_extension))
-    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
-    new = load_file(branch_source_path)
-    git_api = get_git(project, branch)
-    if git_api.ls_tree('-r', '--name-only', branch, filename + file_extension) != '':
-        old = git_api.show(branch + ':' + filename + file_extension)
-    else:
-        old = ''
-    menu = {'right': [{'name': branch,
-                       'url': url_for('.edit', project=project,
-                                      branch=branch, filename=filename)}]}
-    return render_template('review.html', new=new, old=old,
-                           filename=filename + file_extension,
-                           menu=menu, other=merging['branch'], render_sidebar=False)
+        print(request.form)
+        if request.form.has_key('content'):
+            input = request.form.get('content')
+            if not input:
+                input = 'undefined'
+            if input != 'undefined':
+                try:
+                    converted = html2rest(input)
+                    prefetch = None
+                except:
+                    converted = None
+                    prefetch = input
+                return render_template('html2rst.html', converted=converted,
+                                       prefetch=prefetch)
+    return render_template('html2rst.html')
 
-@bookcloud.route('/<project>/<branch>/diff/<path:filename>')
-@login_required
-def diff(project, branch, filename):
-    if (current_user.username != get_branch_owner(project, branch) and
-        current_user.username != get_branch_owner(project, 'master')):
-        flash(_('You are not the owner of this branch'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch,
-                                filename='index.html'))
-    merging = get_merging(project, branch)
-    if not merging:
-        flash(_('You are not merging'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch,
-                                filename='index.html'))
-    #menu = menu_bar(project, branch)
-    differ = HtmlDiff()
-    filename, file_extension = os.path.splitext(filename)
-    branch_source_path = join('repos', project, branch, 'source', filename + '.rst')
-    new = string.split(load_file(branch_source_path), '\n')
-    git_api = get_git(project, branch)
-    if git_api.ls_tree('-r', '--name-only', branch, filename + file_extension) != '':
-        old = string.split(git_api.show(branch + ':' + filename + file_extension), '\n')
-    else:
-        old = ''
-    diff = differ.make_table(new, old)
-    diff = string.replace(diff, 'nowrap="nowrap"', '')
-    return render_template('diff.html', other=merging['branch'],
-                           diff=diff, filename=filename + file_extension)
-
-@bookcloud.route('/<project>/<branch>/accept/<path:filename>')
-@login_required
-def accept(project, branch, filename):
-    if (current_user.username != get_branch_owner(project, branch) and
-        current_user.username != get_branch_owner(project, 'master')):
-        flash(_('You are not the owner of this branch'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    merging = get_merging(project, branch)
-    if not merging:
-        flash(_('You are not merging'), 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    if not filename in merging['modified']:
-        flash('File %s is not being reviewed' % filename, 'error')
-        return redirect(url_for('.view', project=project, branch=branch, filename='index.html'))
-    merging['modified'].remove(filename)
-    merging['reviewed'].append(filename)
-    merge_file_path = join('repos', project, branch, 'merging.json')
-    write_file(merge_file_path, json.dumps(merging))
-    return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
+@bookcloud.route('/<project>/pdf')
+@bookcloud.route('/<project>/<branch>/pdf')
+def pdf(project, branch='master'):
+    build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
+    build_latex(project, branch)
+    command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
+    os.system(command)
+    return flask.send_from_directory(build_path, 'linux.pdf')
 
 @bookcloud.route('/<project>/<branch>/view/genindex.html')
 def genindex(project, branch):
@@ -1265,14 +1273,6 @@ def show_source(project, branch, filename):
 @bookcloud.route('/<project>/images/<path:filename>')
 def get_image(project, filename):
     return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
-
-@bookcloud.route('/login')
-def login():
-    return redirect(url_for('user.login'))
-
-@bookcloud.route('/logout')
-def logout():
-    return redirect(url_for('user.logout'))
 
 @limiter.exempt
 @bookcloud.errorhandler(404)
