@@ -90,6 +90,32 @@
             margin-bottom: 15px;
             }
 
+            .info, .error {
+                -moz-animation: cssAnimation 0s ease-in 5s forwards;
+                /* Firefox */
+                -webkit-animation: cssAnimation 0s ease-in 5s forwards;
+                /* Safari and Chrome */
+                -o-animation: cssAnimation 0s ease-in 5s forwards;
+                /* Opera */
+                animation: cssAnimation 0s ease-in 5s forwards;
+                -webkit-animation-fill-mode: forwards;
+                animation-fill-mode: forwards;
+            }
+            @keyframes cssAnimation {
+                to {
+               position: absolute;
+               top: -9999px;
+               left: -9999px;
+                }
+            }
+            @-webkit-keyframes cssAnimation {
+                to {
+               position: absolute;
+               top: -9999px;
+               left: -9999px;
+                }
+            }
+
             .info {
             padding: 20px;
             background-color: #1abc9c;
