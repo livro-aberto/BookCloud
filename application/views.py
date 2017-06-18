@@ -99,46 +99,7 @@ class EditThreadForm(Form):
 class NewCommentForm(Form):
     comment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
 
-def display_threads(threads):
-    #***
-    if not threads:
-        return None
-    response = []
-    query = list(threads)
-    for q in query:
-        current_thread = {}
-        current_thread['id'] = q.id
-        current_thread['title'] = q.title
-        current_thread['author'] = User.query.filter_by(id=q.owner_id).first().username
-        current_thread['flag'] = q.flag
-        current_thread['posted_at'] = q.posted_at
-        current_thread['number'] = Comment.query.filter_by(thread_id=q.id).count()
-        user_tags = User_Tag.query.filter_by(thread_id=q.id)
-        current_thread['user_tags'] = [u.user.username for u in user_tags]
-        file_tags = File_Tag.query.filter_by(thread_id=q.id)
-        current_thread['file_tags'] = [f.filename for f in file_tags]
-        custom_tags = Custom_Tag.query.filter_by(thread_id=q.id)
-        current_thread['custom_tags'] = [c.named_tag.name for c in custom_tags]
-        free_tags = Free_Tag.query.filter_by(thread_id=q.id)
-        current_thread['free_tags'] = [f.name for f in free_tags]
-        current_thread['comments'] = []
-
-        get_comments = Comment.query.filter_by(thread_id=q.id).order_by(Comment.lineage).limit(100)
-        for prev_comment, comment, next_comment  in window(get_comments):
-            current_comment = {}
-            current_comment['id'] = comment.id
-            current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
-            current_comment['content'] = rst2html(comment.content)
-            current_comment['posted_at'] = comment.posted_at
-            current_comment['lineage'] = comment.lineage
-            current_comment['indent'] = 6 * len(comment.lineage)
-            current_comment['likes'] = Likes.query.filter_by(comment_id=comment.id).count()
-            if next_comment:
-                current_comment['father'] = (next_comment.lineage.startswith(comment.lineage))
-            current_thread['comments'].append(current_comment)
-        response.append(current_thread)
-
-    return response
+from utils import display_threads, get_branch_owner
 
 @babel.localeselector
 def get_locale():
@@ -267,15 +228,6 @@ def create_project(project, user):
     db.session.commit()
     build(project, 'master')
 
-def get_branch_owner(project, branch):
-    project_obj = Project.query.filter_by(name=project).first()
-    if project_obj:
-        project_id = project_obj.id
-        branch_obj = Branch.query.filter_by(project_id=project_id, name=branch).first()
-        if branch_obj:
-            return branch_obj.owner.username
-    return None
-
 def get_sub_branches(branch_obj):
     children = Branch.query.filter_by(origin_id=branch_obj.id)
     answer = { 'branch': branch_obj, 'subtree': [] }
@@ -336,85 +288,12 @@ def build_latex(project, branch):
     os.system(command)
     return True
 
-def menu_bar(project=None, branch=None):
-    left  = [{'url': url_for('bookcloud.home'), 'name': 'home'}]
-    if current_user.is_authenticated:
-        right = [{'url': url_for('user.logout'), 'name': 'logout'},
-                    {'url': url_for('bookcloud.profile'), 'name': current_user.username}]
-    else:
-        right = [{'url': url_for('user.login'), 'name': 'login'}]
-    if project:
-        left.append({'url': url_for('bookcloud.project', project=project), 'name': project})
-        if branch:
-            left.append({'url': url_for('bookcloud.branch', project=project,
-                                        branch=branch), 'name': branch})
-            if current_user.is_authenticated:
-                if current_user.username == get_branch_owner(project, branch):
-                    if is_dirty(project, branch):
-                        flash(_('You have uncommitted changes!!!'), 'error')
-                        right.append({'url': url_for('.commit', project=project, branch=branch),
-                                      'name': 'commit', 'style': 'attention'})
-                    else:
-                        if len(get_requests(project, branch)):
-                            flash(_('You have unreviewed requests!!!'), 'error')
-                            right.append({'url': url_for('.requests', project=project, branch=branch),
-                                          'name': 'requests', 'style': 'attention'})
-    return { 'left': left, 'right': right}
+from utils import menu_bar
 
-@bookcloud.route('/login')
-def login():
-    return redirect(url_for('user.login'))
+import users
 
-@bookcloud.route('/logout')
-def logout():
-    return redirect(url_for('user.logout'))
+app.register_blueprint(users.my)
 
-@limiter.exempt
-@bookcloud.route('/profile')
-@login_required
-def profile():
-    menu = menu_bar()
-    projects = [d for d in Project.query.all()]
-    collection = []
-    for p in projects:
-        user_branches = [b for b in Branch.query.filter_by(project_id=p.id,
-                                                           owner_id=current_user.id)]
-        if user_branches:
-            collection.append({'project': p.name,
-                               'branches': user_branches})
-    threads = display_threads(Thread.query.join(User_Tag)
-                              .filter(User_Tag.user_id==current_user.id)
-                              .order_by(desc(Thread.posted_at)))
-    return render_template('profile.html', user=current_user,
-                           profile_form=app.config['USER_PROPERTIES'],
-                           collection=collection, menu=menu, threads=threads,
-                           show_discussion=False)
-
-@limiter.limit("10 per day")
-@bookcloud.route('/update_profile', methods = ['GET', 'POST'])
-@login_required
-def update_profile():
-    menu = menu_bar()
-
-    if request.method == 'POST':
-        for item in app.config['USER_PROPERTIES']:
-            user = User.query.filter(User.username == current_user.username).first()
-            if request.form.has_key(item['variable']):
-                if item['type'] == 'boolean':
-                    if request.form[item['variable']] == 'yes':
-                        setattr(user, item['variable'], True)
-                    else:
-                        setattr(user, item['variable'], False)
-                if item['type'] == 'integer':
-                    setattr(user, item['variable'],
-                            item['choices'].index(request.form[item['variable']]))
-
-        db.session.commit()
-        return redirect(url_for('.profile'))
-
-    return render_template('update_profile.html', user=current_user,
-                           profile_form=app.config['USER_PROPERTIES'],
-                           menu=menu, show_discussion=False)
 
 @limiter.exempt
 @bookcloud.route('/')

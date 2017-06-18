@@ -14,12 +14,12 @@
   <ul>
     {% for item in collection %}
       <li>
-        <a href="{{ url_for('.project', project=item.project) }}">{{ item.project }}</a>
+        <a href="{{ url_for('bookcloud.project', project=item.project) }}">{{ item.project }}</a>
 
         <ul>
           {% for branch in item.branches %}
             <li>
-              <a href="{{ url_for('.branch', project=item.project, branch=branch.name) }}">
+              <a href="{{ url_for('bookcloud.branch', project=item.project, branch=branch.name) }}">
                 {{ branch.name }}</a> .....(contributes to {{ branch.origin.name }})
             </li>
           {% endfor %}
@@ -33,7 +33,7 @@
   </h2>
 
   {{ _('Here you can see all your profile.') }}
-  {{ _('To update it, click here: ') }} <a href="{{ url_for ('bookcloud.update_profile') }}"> update </a>
+  {{ _('To update it, click here: ') }} <a href="{{ url_for ('my.update_profile') }}"> update </a>
   {% for item in profile_form %}
 
     {% if item['type'] == 'boolean' %}

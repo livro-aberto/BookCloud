@@ -29,7 +29,7 @@ def test_page_urls(client):
     assert b'You have signed in successfully' in response.data
 
     # Get user profile page
-    response = client.get(url_for('bookcloud.profile'))
+    response = client.get(url_for('my.profile'))
     assert b'Hi foo' in response.data
 
     # Get page for new()
@@ -77,6 +77,7 @@ def test_page_urls(client):
                               project=new_project_name,
                               branch='master',
                               filename='index'))
+    print(response.data)
 
     assert b'Title of test page' in response.data
 

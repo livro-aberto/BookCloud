@@ -31,8 +31,8 @@
 
       <title>{% block title %}{% endblock %}</title>
 
-      <link rel="stylesheet" href="{{ url_for('.get_global_static', filename='bizstyle.css') }}" type="text/css" />
-      <link rel="stylesheet" href="{{ url_for('.get_global_static', filename='cloud.css') }}" type="text/css" />
+      <link rel="stylesheet" href="{{ url_for('bookcloud.get_global_static', filename='bizstyle.css') }}" type="text/css" />
+      <link rel="stylesheet" href="{{ url_for('bookcloud.get_global_static', filename='cloud.css') }}" type="text/css" />
 
       <!--<link rel="stylesheet" href="/_static/basic.css" type="text/css" />
           <link rel="stylesheet" href="/_static/pygments.css" type="text/css" />-->

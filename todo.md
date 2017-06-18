@@ -3,18 +3,8 @@
   - in discussions:
     - put example tags to help user start typing (using random elements from sql)
     - put link to view discussions and to add discussion on that topic
-
-  - implement progress bar
-
-        <table><tr><td>Sabonete </td>
-        <td width=150 style="border: 2px solid silver;padding:none">
-        <hr style="color:#00c;background-color:#00c;height:15px; border:none;margin:0;" align="left" width=100% />
-        </td>
-        </tr></table>
-
-  - implement edit comment for owner
   - implement follow thread
-  - implement tags for labels (no need for file tags anymore)
+  - implement tags for labels (remove the file from the name?)
   - make security improvements on sphinx:
     - disallow raw html
       read the documentation for more
@@ -23,7 +13,7 @@
   - parse sphinx
     https://stackoverflow.com/questions/10766609/extract-field-list-from-restructuredtext/10782270#10782270
     https://stackoverflow.com/questions/11302885/parse-sphinx-like-documentation
-  - search labels and add labels to file tags
+  - improve search labels?
 
         from docutils.parsers import rst
         settings = docutils.frontend.OptionParser(
@@ -41,6 +31,12 @@
         data = document.asdom().toxml()
         y = BeautifulSoup(data)
         q = set([t for t in y.find_all('target')])
+
+# Restructure code:
+
+  - organize the use of paths
+  - create classes to handle common code
+  - split view.py into services
 
 # Features:
 
