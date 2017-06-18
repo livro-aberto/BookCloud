@@ -32,6 +32,11 @@ def test_page_urls(client):
     response = client.get(url_for('my.profile'))
     assert b'Hi foo' in response.data
 
+    # Update profile
+    response = client.post(url_for('my.update_profile'), follow_redirects=True,
+                           data=dict(integer_property_01='NY'))
+    assert b'NY' in response.data
+
     # Get page for new()
     response = client.get(url_for('bookcloud.new'))
     assert _('Create new project') in response.data
@@ -77,7 +82,6 @@ def test_page_urls(client):
                               project=new_project_name,
                               branch='master',
                               filename='index'))
-    print(response.data)
 
     assert b'Title of test page' in response.data
 
