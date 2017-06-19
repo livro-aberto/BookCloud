@@ -33,7 +33,7 @@
   </h2>
 
   {{ _('Here you can see all your profile.') }}
-  {{ _('To update it, click here: ') }} <a href="{{ url_for ('my.update_profile') }}"> update </a>
+  {{ _('To update it, click here: ') }} <a href="{{ url_for ('users.update_profile') }}"> update </a>
   {% for item in profile_form %}
 
     {% if item['type'] == 'boolean' %}

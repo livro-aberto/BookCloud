@@ -29,11 +29,11 @@ def test_page_urls(client):
     assert b'You have signed in successfully' in response.data
 
     # Get user profile page
-    response = client.get(url_for('my.profile'))
+    response = client.get(url_for('users.profile'))
     assert b'Hi foo' in response.data
 
     # Update profile
-    response = client.post(url_for('my.update_profile'), follow_redirects=True,
+    response = client.post(url_for('users.update_profile'), follow_redirects=True,
                            data=dict(integer_property_01='NY'))
     assert b'NY' in response.data
 
@@ -296,13 +296,13 @@ def test_page_urls(client):
 
     # Testing comments
     # GET newthread
-    response = client.get(url_for('bookcloud.newthread',
+    response = client.get(url_for('threads.newthread',
                                   project=new_project_name))
     assert 'foo' in response.data
     assert 'index' in response.data
 
     # POST newthread
-    response = client.post(url_for('bookcloud.newthread', project=new_project_name),
+    response = client.post(url_for('threads.newthread', project=new_project_name),
                            follow_redirects=True,
                            data=dict(title="Hi there!",
                                      flag="discussion",
@@ -322,7 +322,7 @@ def test_page_urls(client):
     assert "Give me some attention!" in response.data
 
     # POST reply
-    response = client.post(url_for('bookcloud.newcomment',
+    response = client.post(url_for('threads.newcomment',
                                    project=new_project_name,
                                    thread_id=thread_id,
                                    parent_lineage="000000:"),
@@ -337,7 +337,7 @@ def test_page_urls(client):
     assert "Please!" in response.data
 
     # Try to delete thread
-    response = client.get(url_for('bookcloud.deletethread', project=new_project_name),
+    response = client.get(url_for('threads.deletethread', project=new_project_name),
                           follow_redirects=True,
                           data=dict(thread_id=thread_id,
                                     return_url=url_for('bookcloud.home', _external=True)))

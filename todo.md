@@ -207,6 +207,9 @@
     - https://github.com/mathjax/MathJax
   - fix BookCloud.wsgi to use a configuration value as path
 
+  - list of next's (to follow the right link after some operation)
+    - after creating a thread, go back to where we were
+
 # Codemirror addons:
 
   - dialog for latex/image help: https://codemirror.net/doc/manual.html#addon_dialog

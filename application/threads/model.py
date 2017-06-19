@@ -1,7 +1,7 @@
 from application import db
 from sqlalchemy.orm import relationship
 
-# Classes for comments
+# Classes for threads and comments
 
 class Thread(db.Model):
     # One thread holds several comments and is associated to a project
