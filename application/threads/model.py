@@ -1,5 +1,8 @@
 from application import db
 from sqlalchemy.orm import relationship
+from application.users import User
+
+from application.tools import window, rst2html
 
 # Classes for threads and comments
 
@@ -23,6 +26,30 @@ class Thread(db.Model):
         self.posted_at = posted_at
         self.flag = flag
 
+    def get_author(self):
+        author = User.query.filter_by(id=self.owner_id).first()
+        if not author:
+            raise #???
+        return author
+
+    def get_number_of_comments(self):
+        return Comment.query.filter_by(thread_id=self.id).count()
+
+    def get_comments(self, number):
+        return Comment.query.filter_by(thread_id=self.id).order_by(Comment.lineage).limit(number)
+
+    def get_user_tags(self):
+        return User_Tag.query.filter_by(thread_id=self.id)
+
+    def get_file_tags(self):
+        return File_Tag.query.filter_by(thread_id=self.id)
+
+    def get_custom_tags(self):
+        return Custom_Tag.query.filter_by(thread_id=self.id)
+
+    def get_free_tags(self):
+        return Free_Tag.query.filter_by(thread_id=self.id)
+
 class Comment(db.Model):
     # Comments have a father thread and a lineage inside that thread.
     # The lineage encodes where in the thread tree that command appears
@@ -42,6 +69,25 @@ class Comment(db.Model):
         self.owner_id = owner_id
         self.content = content
         self.posted_at = posted_at
+
+    def get_author(self):
+        author = User.query.filter_by(id=self.owner_id).first()
+        if not author:
+            raise #???
+        return author
+
+    def get_indent(self):
+        return 6 * len(self.lineage)
+
+    def get_likes(self):
+        return Likes.query.filter_by(comment_id=self.id).count()
+
+    def has_replies(self):
+        decendants = self.lineage + '%'
+        decend_comments = (Comment.query
+                           .filter(Comment.thread_id==self.thread_id)
+                           .filter(Comment.lineage.like(decendants)).all())
+        return len(decend_comments) > 1
 
 class Likes(db.Model):
     # Associates a like to a comment

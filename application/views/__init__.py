@@ -314,9 +314,8 @@ def project(project):
              if isfile(join(master_path, f)) and f[0] != '.']
     files.sort()
     files = [(splitext(f)[0], splitext(f)[1], int(os.stat(join(master_path, f)).st_size / 500)) for f in files]
-    threads = display_threads(Thread.query
-                              .filter_by(project_id=project_id)
-                              .order_by(desc(Thread.posted_at)))
+    threads = (Thread.query.filter_by(project_id=project_id)
+               .order_by(desc(Thread.posted_at)))
     return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads,
                            files=files, show_discussion=True)
 
@@ -331,7 +330,7 @@ def branch(project, branch):
     menu = menu_bar(project, branch)
     log = get_log(project, branch)
     project_id = Project.query.filter_by(name=project).first().id
-    threads = display_threads(Thread.query.filter_by(project_id=project_id).order_by(desc(Thread.posted_at)))
+    threads = Thread.query.filter_by(project_id=project_id).order_by(desc(Thread.posted_at))
     return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
 
 @limiter.limit("7 per day")
@@ -668,10 +667,10 @@ def view(project, branch, filename):
             menu['right'].append({'url': url_for('.clone', project=project, branch=branch),
                                   'name': 'edit'})
     content = load_file(user_repo_path)
-    threads = (display_threads(Thread.query.join(File_Tag)
-                               .filter(File_Tag.filename==filename)
-                               .filter(Thread.project_id==project_id)
-                               .order_by(desc(Thread.posted_at))))
+    threads = (Thread.query.join(File_Tag)
+               .filter(File_Tag.filename==filename)
+               .filter(Thread.project_id==project_id)
+               .order_by(desc(Thread.posted_at)))
     label_list = []
     data = load_file(join('repos', project, branch,
                           'source', filename + '.rst'))

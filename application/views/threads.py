@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, url_for, flash
+from flask import Blueprint, request, render_template, url_for, flash, redirect
 from flask_user import login_required
 from application import limiter
 from flask_user import login_required, current_user
@@ -16,6 +16,7 @@ from ..models import Project
 
 import json
 import re
+import urllib
 import os
 from os.path import join, isfile
 from datetime import datetime
@@ -25,12 +26,13 @@ threads = Blueprint('threads', __name__, url_prefix='/threads')
 @limiter.exempt
 @threads.route('/<project>/tagsthreads/<filetag>')
 def tagthreads(project, filetag):
+    # Find threads with a certain filetag
     menu = menu_bar(project)
     project_id = Project.query.filter_by(name=project).first().id
-    threads = (display_threads(Thread.query.join(File_Tag)
-                               .filter(File_Tag.filename.like('%' + filetag + '%'))
-                               .filter(Thread.project_id==project_id)
-                               .order_by(desc(Thread.posted_at))))
+    threads = (Thread.query.join(File_Tag)
+               .filter(File_Tag.filename.like('%' + filetag + '%'))
+               .filter(Thread.project_id==project_id)
+               .order_by(desc(Thread.posted_at)))
     return render_template('comments.html', menu=menu, threads=threads,
                            show_discussion=True)
 
@@ -47,11 +49,11 @@ def comments(project):
                         filter(Comment.thread_id==Thread.id).
                         filter(or_(Comment.content.like('%' + form.search.data + '%'),
                                    Thread.title.like('%' + form.search.data + '%'))))
-        threads = display_threads(thread_query.order_by(desc(Thread.posted_at)).limit(100))
+        threads = thread_query.order_by(desc(Thread.posted_at)).limit(100)
     else:
-        threads = display_threads(Thread.query
-                                  .filter_by(project_id=project_id)
-                                  .order_by(desc(Thread.posted_at)))
+        threads = (Thread.query
+                   .filter_by(project_id=project_id)
+                   .order_by(desc(Thread.posted_at)))
     return render_template('comments.html', menu=menu, threads=threads,
                            form=form, show_discussion=True)
 
@@ -288,7 +290,7 @@ def newcomment(project, thread_id, parent_lineage=''):
         else:
             form.comment.default = request.form['comment']
 
-    threads = display_threads(Thread.query.filter_by(id=thread_id).order_by(desc(Thread.posted_at)))
+    threads = Thread.query.filter_by(id=thread_id).order_by(desc(Thread.posted_at))
     form.process()
     return render_template('newcomment.html', menu=menu, form=form, threads=threads)
 
@@ -313,7 +315,7 @@ def editcomment(project, comment_id):
         else:
             form.comment.default = request.form['comment']
 
-    threads = display_threads(Thread.query.filter_by(id=comment_obj.thread_id).order_by(desc(Thread.posted_at)))
+    threads = Thread.query.filter_by(id=comment_obj.thread_id).order_by(desc(Thread.posted_at))
     form.process()
     return render_template('newcomment.html', menu=menu, form=form, threads=threads)
 
@@ -345,10 +347,7 @@ def deletethread(project):
 @login_required
 def deletecomment(project):
     comment = Comment.query.filter_by(id=request.args['comment_id']).first()
-    decendants = comment.lineage + '%'
-    decend_comments = (Comment.query.filter(Comment.thread_id==comment.thread_id)
-                       .filter(Comment.lineage.like(decendants)).all())
-    if len(decend_comments) > 1:
+    if comment.has_replies():
         flash(_('This comment has replies and cannot be deleted'), 'error')
     else:
         if not current_user.is_authenticated:
