@@ -248,19 +248,19 @@
                     <div class="thread-head" style="padding: 10px;">
                       <div style="display: table-row">
                         <div style="display: table-cell;">
-                          <canvas width="40" height="40" data-jdenticon-hash="{{ hash(t.get_author().username) }}"
+                          <canvas width="40" height="40" data-jdenticon-hash="{{ hash(t.author.username) }}"
                                   style="vertical-align: baseline;"></canvas>
                         </div>
                         <div style="display: table-cell; vertical-align: top; width: 100%; padding-left: 10px;" role="navigation">
                           <ul class="bar" style="display: inline; width: 100%;">
                             <li class="left" style="margin-right: 10px; float: left;">
-                              {{ t.get_author().username }} ({{ t.flag }}) - {{ t.posted_at }} - ({{ t.get_number_of_comments() }} {{ _('comments') }}):
+                              {{ t.author.username }} ({{ t.flag }}) - {{ t.posted_at }} - ({{ t.get_number_of_comments() }} {{ _('comments') }}):
                             </li>
                             <li class="right" style="margin-right: 10px; float: right;">
                               <a href="{{ url_for('threads.newcomment', project=project, thread_id = t.id, return_url=url_encode(request.base_url)) }}">comment</a>
                             </li>
                             <li class="right" style="margin-right: 10px; float: right;">
-                              {% if (current_user == t.get_author() or current_user.username == project_owner) %}
+                              {% if (current_user == t.author or current_user.username == project_owner) %}
                                   <a href="{{ url_for('threads.editthread',
                                                       project=project, thread_id=t.id,
                                                       return_url=url_encode(request.base_url)) }}">edit</a>
@@ -299,12 +299,12 @@
                   {% for c in t.get_comments(100) %}
                     <div class="comment" class="table-row" style="margin-left: {{ c.get_indent() }}px;">
                       <div style="display: table-cell;">
-                        <canvas width="20" height="20" data-jdenticon-hash="{{ hash(c.get_author().username) }}"></canvas>
+                        <canvas width="20" height="20" data-jdenticon-hash="{{ hash(c.author.username) }}"></canvas>
                       </div>
                       <div style="display: table-cell; vertical-align: top; padding-left: 10px; width: 100%">
                         <ul class="bar" style="display: inline; width: 100%;">
                           <li class="left" style="margin-right: 10px; float: left;">
-                            <font style="color: #336699; font-size: 1em;"> {{ c.get_author().username }} </font>
+                            <font style="color: #336699; font-size: 1em;"> {{ c.author.username }} </font>
                             <font style="color: #888888; font-size: .9em;">
                               - {{ c.posted_at }} - ({{ c.get_likes() }} {{ _('likes') }}),
                             </font>
@@ -313,12 +313,12 @@
                             <a href="{{ url_for('threads.newcomment', project=project, thread_id = t.id, parent_lineage=c.lineage, return_url=url_encode(request.base_url)) }}">reply</a>
                           </li>
                           <li class="right" style="margin-right: 10px; float: right;">
-                            {% if current_user == c.get_author() %}
+                            {% if current_user == c.author %}
                               <a href="{{ url_for('threads.editcomment',
                                                   project=project, comment_id=c.id,
                                                   return_url=url_encode(request.base_url)) }}">edit</a>
                             {% endif %}
-                            {% if not c.has_replies() and (current_user == c.get_author() or current_user.username == project_owner) %}
+                            {% if not c.has_replies() and (current_user == c.author or current_user.username == project_owner) %}
                               <a href="{{ url_for('threads.deletecomment', project=project, comment_id=c.id, return_url=url_encode(request.base_url)) }}" onclick="return confirm('Are you sure?')">delete</a>
                             {% endif %}
                           </li>

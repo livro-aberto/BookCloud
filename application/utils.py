@@ -1,7 +1,7 @@
 from flask import url_for, flash
 
 from flask_user import current_user
-from users import User
+from users import *
 from models import Project, Branch
 from application.threads import Comment, User_Tag, File_Tag, Custom_Tag, Free_Tag, Likes
 from application.tools import window, rst2html

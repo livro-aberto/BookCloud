@@ -1,6 +1,6 @@
 from application import db
 from sqlalchemy.orm import relationship
-from application.users import User
+import application.users
 
 from application.tools import window, rst2html
 
@@ -25,12 +25,6 @@ class Thread(db.Model):
         print(posted_at)
         self.posted_at = posted_at
         self.flag = flag
-
-    def get_author(self):
-        author = User.query.filter_by(id=self.owner_id).first()
-        if not author:
-            raise #???
-        return author
 
     def get_number_of_comments(self):
         return Comment.query.filter_by(thread_id=self.id).count()
@@ -69,12 +63,6 @@ class Comment(db.Model):
         self.owner_id = owner_id
         self.content = content
         self.posted_at = posted_at
-
-    def get_author(self):
-        author = User.query.filter_by(id=self.owner_id).first()
-        if not author:
-            raise #???
-        return author
 
     def get_indent(self):
         return 6 * len(self.lineage)

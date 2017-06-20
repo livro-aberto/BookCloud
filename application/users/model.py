@@ -1,6 +1,9 @@
-from application import db
-
 from flask_user import UserMixin
+
+from application import db
+from application.threads import *
+
+
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
 class User(db.Model, UserMixin):
@@ -54,4 +57,8 @@ class User(db.Model, UserMixin):
     boolean_property_19 = db.Column(db.Boolean(), nullable=True, unique=False)
     boolean_property_20 = db.Column(db.Boolean(), nullable=True, unique=False)
 
+    threads = db.relationship('Thread', backref='author',
+                              lazy='dynamic')
+    comments = db.relationship('Comment', backref='author',
+                              lazy='dynamic')
 
