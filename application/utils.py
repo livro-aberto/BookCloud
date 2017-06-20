@@ -3,7 +3,7 @@ from flask import url_for, flash
 from flask_user import current_user
 from users import User
 from models import Project, Branch
-from threads import Comment, User_Tag, File_Tag, Custom_Tag, Free_Tag, Likes
+from application.threads import Comment, User_Tag, File_Tag, Custom_Tag, Free_Tag, Likes
 from application.tools import window, rst2html
 
 from flask_babel import gettext as _

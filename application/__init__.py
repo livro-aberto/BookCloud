@@ -33,9 +33,8 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 from models import Project, Branch
-from threads import Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag
 from users import User
-
+from threads import Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag
 
 def create_app(extra_config_settings={}):
     """

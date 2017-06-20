@@ -170,7 +170,7 @@
               {% endfor %}
               {% if threads %}
                 <li>
-                  || <a href="#discussion">{{ _('discussion') }} ({{ threads | length }}) </a>
+                  || <a href="#discussion">{{ _('discussion') }} ({{ threads.count() }}) </a>
                 </li>
               {% endif %}
 
@@ -248,23 +248,23 @@
                     <div class="thread-head" style="padding: 10px;">
                       <div style="display: table-row">
                         <div style="display: table-cell;">
-                          <canvas width="40" height="40" data-jdenticon-hash="{{ hash(t.author) }}"
+                          <canvas width="40" height="40" data-jdenticon-hash="{{ hash(t.get_author().username) }}"
                                   style="vertical-align: baseline;"></canvas>
                         </div>
                         <div style="display: table-cell; vertical-align: top; width: 100%; padding-left: 10px;" role="navigation">
                           <ul class="bar" style="display: inline; width: 100%;">
                             <li class="left" style="margin-right: 10px; float: left;">
-                              {{ t.author }} ({{ t.flag }}) - {{ t.posted_at }} - ({{ t.number }} {{ _('comments') }}):
+                              {{ t.get_author().username }} ({{ t.flag }}) - {{ t.posted_at }} - ({{ t.get_number_of_comments() }} {{ _('comments') }}):
                             </li>
                             <li class="right" style="margin-right: 10px; float: right;">
                               <a href="{{ url_for('threads.newcomment', project=project, thread_id = t.id, return_url=url_encode(request.base_url)) }}">comment</a>
                             </li>
                             <li class="right" style="margin-right: 10px; float: right;">
-                              {% if (current_user.username == t.author or current_user.username == project_owner) %}
+                              {% if (current_user == t.get_author() or current_user.username == project_owner) %}
                                   <a href="{{ url_for('threads.editthread',
                                                       project=project, thread_id=t.id,
                                                       return_url=url_encode(request.base_url)) }}">edit</a>
-                                {% if not t.comments %}
+                                {% if t.get_number_of_comments() == 0 %}
                                   <a href="{{ url_for('threads.deletethread',
                                                       project=project, thread_id=t.id,
                                                       return_url=url_encode(request.base_url)) }}"
@@ -280,45 +280,45 @@
                       </div>
                       <p>
                           {{ _('Users:') }}
-                          {% for user in t.user_tags %}<span class="tag">{{ user }}</span>{% endfor %} &emsp;
+                          {% for tag in t.get_user_tags() %}<span class="tag">{{ tag.user.username }}</span>{% endfor %} &emsp;
                         <nobr>
                           {{ _('Files:') }}
-                          {% for file in t.file_tags %}<span class="tag">{{ file }}</span>{% endfor %} &emsp;
+                          {% for file in t.get_file_tags() %}<span class="tag">{{ file.filename }}</span>{% endfor %} &emsp;
                         </nobr>
                         <nobr>
                           {{ _('Tags:') }}
-                          {% for custom in t.custom_tags %}<span class="tag">{{ custom }}</span>{% endfor %} &emsp;
+                          {% for custom in t.get_custom_tags() %}<span class="tag">{{ custom.named_tag.name }}</span>{% endfor %} &emsp;
                         </nobr>
                         <nobr>
                           {{ _('Others:') }}
-                          {% for free in t.free_tags %}<span class="tag">{{ free }}</span>{% endfor %}
+                          {% for free in t.get_free_tags() %}<span class="tag">{{ free.name }}</span>{% endfor %}
                         </nobr>
                       </p>
                     </div>
                   </div>
-                  {% for c in t.comments %}
-                    <div class="comment" class="table-row" style="margin-left: {{ c.indent }}px;">
+                  {% for c in t.get_comments(100) %}
+                    <div class="comment" class="table-row" style="margin-left: {{ c.get_indent() }}px;">
                       <div style="display: table-cell;">
-                        <canvas width="20" height="20" data-jdenticon-hash="{{ hash(c.author) }}"></canvas>
+                        <canvas width="20" height="20" data-jdenticon-hash="{{ hash(c.get_author().username) }}"></canvas>
                       </div>
                       <div style="display: table-cell; vertical-align: top; padding-left: 10px; width: 100%">
                         <ul class="bar" style="display: inline; width: 100%;">
                           <li class="left" style="margin-right: 10px; float: left;">
-                            <font style="color: #336699; font-size: 1em;"> {{ c.author }} </font>
+                            <font style="color: #336699; font-size: 1em;"> {{ c.get_author().username }} </font>
                             <font style="color: #888888; font-size: .9em;">
-                              - {{ c.posted_at }} - ({{ c.likes }} {{ _('likes') }}),
+                              - {{ c.posted_at }} - ({{ c.get_likes() }} {{ _('likes') }}),
                             </font>
                           </li>
                           <li class="right" style="margin-right: 10px; float: right;">
                             <a href="{{ url_for('threads.newcomment', project=project, thread_id = t.id, parent_lineage=c.lineage, return_url=url_encode(request.base_url)) }}">reply</a>
                           </li>
                           <li class="right" style="margin-right: 10px; float: right;">
-                            {% if current_user.username == c.author %}
+                            {% if current_user == c.get_author() %}
                               <a href="{{ url_for('threads.editcomment',
                                                   project=project, comment_id=c.id,
                                                   return_url=url_encode(request.base_url)) }}">edit</a>
                             {% endif %}
-                            {% if not c.father and (current_user.username == c.author or current_user.username == project_owner) %}
+                            {% if not c.has_replies() and (current_user == c.get_author() or current_user.username == project_owner) %}
                               <a href="{{ url_for('threads.deletecomment', project=project, comment_id=c.id, return_url=url_encode(request.base_url)) }}" onclick="return confirm('Are you sure?')">delete</a>
                             {% endif %}
                           </li>
