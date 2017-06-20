@@ -210,6 +210,16 @@
   - list of next's (to follow the right link after some operation)
     - after creating a thread, go back to where we were
 
+        The next value will exist in request.args after a GET request for the login page.
+        You’ll have to pass it along when sending the POST request from the login form.
+        You can do this with a hidden input tag, then retrieve it from request.form when
+        logging the user in.
+
+        <input type="hidden" value="{{ request.args.get('next', '') }}"/>
+
+
+
+
 # Codemirror addons:
 
   - dialog for latex/image help: https://codemirror.net/doc/manual.html#addon_dialog
