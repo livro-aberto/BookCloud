@@ -13,10 +13,14 @@ from application import create_app, db as the_db
 the_app = create_app(dict(
     TESTING=True,  # Propagate exceptions
     LOGIN_DISABLED=False,  # Enable @register_required
-    MAIL_SUPPRESS_SEND=True,  # Disable Flask-Mail send
+    MAIL_SUPPRESS_SEND=False,  # Disable Flask-Mail send
     SERVER_NAME='localhost',  # Enable url_for() without request context
     SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',  # In-memory SQLite DB
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
+    USER_ENABLE_EMAIL =          False,
+    USER_ENABLE_CONFIRM_EMAIL =  False,
+    USER_SEND_REGISTERED_EMAIL = False,
+    USER_ENABLE_LOGIN_WITHOUT_CONFIRM_EMAIL = False
     #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'              # v0.5.3 and up
 ))
 

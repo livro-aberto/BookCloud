@@ -2,8 +2,7 @@ from flask_user import UserMixin
 
 from application import db
 from application.threads import *
-
-
+from application.models import CRUDMixin
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
 class User(db.Model, UserMixin):
@@ -61,4 +60,5 @@ class User(db.Model, UserMixin):
                               lazy='dynamic')
     comments = db.relationship('Comment', backref='author',
                               lazy='dynamic')
+
 

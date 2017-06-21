@@ -3,10 +3,26 @@ from sqlalchemy.orm import relationship
 import application.users
 
 from application.tools import window, rst2html
+from application.models import CRUDMixin
 
 # Classes for threads and comments
 
-class Thread(db.Model):
+user_tags = db.Table('user_tag',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('thread_id', db.Integer, db.ForeignKey('thread.id'))
+)
+
+likes = db.Table('likes',
+    db.Column('comment_id', db.Integer, db.ForeignKey('comment.id')),
+    db.Column('owner_id', db.Integer, db.ForeignKey('user.id'))
+)
+
+custom_tags = db.Table('custom_tag',
+    db.Column('thread_id', db.Integer, db.ForeignKey('thread.id')),
+    db.Column('named_tag_id', db.Integer, db.ForeignKey('named_tag.id'))
+)
+
+class Thread(CRUDMixin, db.Model):
     # One thread holds several comments and is associated to a project
     __tablename__ = 'thread'
     id = db.Column(db.Integer, primary_key=True)
@@ -18,6 +34,14 @@ class Thread(db.Model):
     flag = db.Column(db.String(10), nullable=False)
     posted_at = db.Column(db.DateTime(), nullable=False)
 
+    comments = db.relationship('Comment', back_populates='thread', lazy='dynamic')
+    user_tags = db.relationship('User', secondary=user_tags,
+                                backref=db.backref('tagged_threads', lazy='dynamic'))
+    custom_tags = db.relationship('Named_Tag', secondary=custom_tags,
+                                  backref=db.backref('threads', lazy='dynamic'))
+    file_tags = db.relationship('File_Tag', back_populates='thread', lazy='dynamic')
+    free_tags = db.relationship('Free_Tag', back_populates='thread', lazy='dynamic')
+
     def __init__(self, title, owner_id, project_id, flag, posted_at):
         self.title = title
         self.owner_id = owner_id
@@ -26,25 +50,10 @@ class Thread(db.Model):
         self.posted_at = posted_at
         self.flag = flag
 
-    def get_number_of_comments(self):
-        return Comment.query.filter_by(thread_id=self.id).count()
-
     def get_comments(self, number):
         return Comment.query.filter_by(thread_id=self.id).order_by(Comment.lineage).limit(number)
 
-    def get_user_tags(self):
-        return User_Tag.query.filter_by(thread_id=self.id)
-
-    def get_file_tags(self):
-        return File_Tag.query.filter_by(thread_id=self.id)
-
-    def get_custom_tags(self):
-        return Custom_Tag.query.filter_by(thread_id=self.id)
-
-    def get_free_tags(self):
-        return Free_Tag.query.filter_by(thread_id=self.id)
-
-class Comment(db.Model):
+class Comment(CRUDMixin, db.Model):
     # Comments have a father thread and a lineage inside that thread.
     # The lineage encodes where in the thread tree that command appears
     __tablename__ = 'comment'
@@ -57,6 +66,10 @@ class Comment(db.Model):
     content = db.Column(db.Unicode(2000), nullable=False, unique=False)
     posted_at = db.Column(db.DateTime(), nullable=False)
 
+    thread = db.relationship('Thread', back_populates='comments')
+    likes = db.relationship('User', secondary=likes, lazy='dynamic',
+                            backref=db.backref('liked_commends', lazy='dynamic'))
+
     def __init__(self, lineage, thread_id, owner_id, content, posted_at):
         self.lineage = lineage
         self.thread_id = thread_id
@@ -67,41 +80,12 @@ class Comment(db.Model):
     def get_indent(self):
         return 6 * len(self.lineage)
 
-    def get_likes(self):
-        return Likes.query.filter_by(comment_id=self.id).count()
-
     def has_replies(self):
         decendants = self.lineage + '%'
         decend_comments = (Comment.query
                            .filter(Comment.thread_id==self.thread_id)
                            .filter(Comment.lineage.like(decendants)).all())
         return len(decend_comments) > 1
-
-class Likes(db.Model):
-    # Associates a like to a comment
-    __tablename__ = 'likes'
-    id = db.Column(db.Integer, primary_key=True)
-    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'))
-    comment = relationship('Comment')
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    owner = relationship('User')
-
-    def __init__(self, comment_id, owner_id):
-        self.comment_id = comment_id
-        self.owner_id = owner_id
-
-class User_Tag(db.Model):
-    # Associates a user to a thread
-    __tablename__ = 'user_tag'
-    id = db.Column(db.Integer, primary_key=True)
-    thread_id = db.Column(db.Integer, db.ForeignKey('thread.id'))
-    thread = relationship('Thread')
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    user = relationship('User')
-
-    def __init__(self, thread_id, user_id):
-        self.thread_id = thread_id
-        self.user_id = user_id
 
 class File_Tag(db.Model):
     # Associates a file to a thread
@@ -126,19 +110,6 @@ class Named_Tag(db.Model):
     def __init__(self, name, project_id):
         self.name = name
         self.project_id = project_id
-
-class Custom_Tag(db.Model):
-    # Associates a named_tag to a thread
-    __tablename__ = 'custom_tag'
-    id = db.Column(db.Integer, primary_key=True)
-    thread_id = db.Column(db.Integer, db.ForeignKey('thread.id'))
-    thread = relationship('Thread')
-    named_tag_id = db.Column(db.Integer, db.ForeignKey('named_tag.id'))
-    named_tag = relationship('Named_Tag')
-
-    def __init__(self, thread_id, named_tag_id):
-        self.thread_id = thread_id
-        self.named_tag_id = named_tag_id
 
 class Free_Tag(db.Model):
     # Associates a free-named tag to a thread

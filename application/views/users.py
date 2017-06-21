@@ -4,7 +4,7 @@ from flask_babel import gettext as _
 from sqlalchemy import or_, desc
 
 from application import db
-from application.threads import Thread, User_Tag, display_threads
+from application.threads import Thread
 from application.users import User
 from application import app, limiter
 
@@ -34,9 +34,10 @@ def profile():
         if user_branches:
             collection.append({'project': p.name,
                                'branches': user_branches})
-    threads = display_threads(Thread.query.join(User_Tag)
-                              .filter(User_Tag.user_id==current_user.id)
-                              .order_by(desc(Thread.posted_at)))
+    threads = current_user.tagged_threads
+    #threads = (Thread.query.join(User_Tag)
+    #           .filter(User_Tag.user_id==current_user.id)
+    #           .order_by(desc(Thread.posted_at)))
     return render_template('profile.html', user=current_user,
                            profile_form=app.config['USER_PROPERTIES'],
                            collection=collection, menu=menu, threads=threads,
