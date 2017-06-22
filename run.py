@@ -1,5 +1,16 @@
 from application import create_app, db as the_db
 
+import os
+
+extra_dirs = ['application/templates',]
+extra_files = extra_dirs[:]
+for extra_dir in extra_dirs:
+    for dirname, dirs, files in os.walk(extra_dir):
+        for filename in files:
+            filename = os.path.join(dirname, filename)
+            if os.path.isfile(filename):
+                extra_files.append(filename)
+
 app = create_app(dict(
     TESTING=True,  # Propagate exceptions
     LOGIN_DISABLED=False,  # Enable @register_required
@@ -39,4 +50,4 @@ def create_users():
 
 create_users()
 
-app.run(debug=True)
+app.run(debug=True, extra_files=extra_files)

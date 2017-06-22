@@ -1,0 +1,157 @@
+{% macro menu_items(pack) %}
+  {% for t in pack %}
+    {% if t.sub_menu %}
+      <li>
+        <a href="#">
+          {{ t.name }}
+          <span uk-icon="icon: triangle-down"></span>
+        </a>
+        <div class="uk-navbar-dropdown">
+          <ul class="uk-nav uk-navbar-dropdown-nav">
+            {% for s in t.sub_menu %}
+              <li><a href="{{ s.url }}">{{ s.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </li>
+    {% else %}
+      {%- if t.style == 'attention' %}
+        <div class="uk-navbar-item">
+          <a class="uk-button uk-button-danger" href="{{ t.url }}">{{ t.name }}</a>
+        </div>
+      {% else %}
+        <li><a href="{{ t.url }}">{{ t.name }}</a></li>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+{% endmacro %}
+
+
+
+
+{% macro navigation_bar() %}
+  <nav class="uk-navbar-container" uk-navbar="mode: click">
+    <div class="uk-navbar-left uk-padding uk-padding-remove-top uk-padding-remove-bottom">
+      <ul class="uk-navbar-nav">
+        <li class="uk-active"><a href="/">Home</a></li>
+        {{ menu_items(menu.left) }}
+        {% if threads %}
+          <li><a href="#discussion">
+              {{ _('discussion') }}
+              &nbsp
+              <span class="uk-badge">{{ threads.count() }}</span>
+          </a></li>
+        {% endif %}
+      </ul>
+    </div>
+    <div class="uk-navbar-right uk-padding uk-padding-remove-top uk-padding-remove-bottom">
+      <ul class="uk-navbar-nav">
+        {{ menu_items(menu.right) }}
+      </ul>
+    </div>
+  </nav>
+{% endmacro %}
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+  <head>
+    <!-- Title -->
+    <title>{% block title %}{% endblock %}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.25/css/uikit.min.css"/>
+    <!-- jQuery is required -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- UIkit JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.25/js/uikit.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.0.0-beta.25/js/uikit-icons.min.js"></script>
+    <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
+    <!-- MathJax -->
+    <script type="text/javascript"
+            src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- Hash identicon -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jdenticon/1.4.0/jdenticon.min.js"></script>
+{#    <style>
+      .uk-navbar-container:not(.uk-navbar-transparent) {
+      background: rgba(32, 141, 241);
+      }
+    </style>
+    #}
+  </head>
+
+  <body>
+    {{ navigation_bar() }}
+
+    <div class="main-container uk-container uk-container-center uk-margin-top uk-margin-bottom">
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            {% if category == 'info' %}
+              <div class="uk-alert-success" uk-alert>
+                <a class="uk-alert-close" uk-close></a>
+                <p>{{ message }}</p>
+              </div>
+            {% else %}
+              <div class="uk-alert-danger" uk-alert>
+                <a class="uk-alert-close" uk-close></a>
+                <p>{{ message}}</p>
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Without sidebar -->
+      {% if not self.sidebar() %}
+        <div class="uk-grid" data-uk-grid-margin>
+          <div class="uk-width-1-1">
+            <p class="uk-text-large">{% block sub_title %}{% endblock %}</p>
+            {{ contents() }}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- With sidebar -->
+      {% if self.sidebar() %}
+        <div class="uk-text-center" uk-grid>
+          <div class="uk-width-1-3@m">
+            <div class="uk-card uk-card-default uk-card-body">{% block sidebar %}{% endblock %}</div>
+          </div>
+          <div class="uk-width-expand@m">
+            {{ contents() }}
+          </div>
+        </div>
+      {% endif %}
+
+      <a href="" class="uk-align-right" uk-scroll>
+        <span uk-icon="icon: chevron-up; ratio: 2"></span>
+      </a>
+
+      
+    </div>
+
+    
+    <nav class="uk-navbar-container" uk-navbar="mode: click">
+      <div class="uk-navbar-right uk-padding uk-padding-remove-top uk-padding-remove-bottom">
+        <ul class="uk-navbar-nav">
+          <li class="uk-active">
+            <div class="tm-middle uk-container uk-container-center uk-text-center">
+              <ul class="uk-subnav uk-subnav-line uk-flex-center">
+                <div class="uk-navbar-item">
+                  &copy; {{ copyright }}.
+                  {{ _('Created using') }} Sphinx 1.2.3.
+                </div>
+                </ul>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+  </body>
+</html>

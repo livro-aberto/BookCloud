@@ -356,6 +356,7 @@ def clone(project, branch):
                                     filename='index.html'))
     return render_template('clone.html', menu=menu, form=form)
 
+# Fix this, newfile should not have a branch
 @bookcloud.route('/<project>/<branch>/newfile', methods = ['GET', 'POST'])
 @login_required
 def newfile(project, branch):

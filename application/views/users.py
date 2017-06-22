@@ -25,7 +25,7 @@ def logout():
 @users.route('/profile')
 @login_required
 def profile():
-    menu = menu_bar()
+    menu = menu_bar('sabao', 'master')
     projects = [d for d in Project.query.all()]
     collection = []
     for p in projects:
@@ -34,9 +34,10 @@ def profile():
         if user_branches:
             collection.append({'project': p.name,
                                'branches': user_branches})
-    threads = display_threads(Thread.query.join(User_Tag)
-                              .filter(User_Tag.user_id==current_user.id)
-                              .order_by(desc(Thread.posted_at)))
+    threads = (Thread.query.join(User_Tag)
+               .filter(User_Tag.user_id==current_user.id)
+               .order_by(desc(Thread.posted_at)))
+    print(menu)
     return render_template('profile.html', user=current_user,
                            profile_form=app.config['USER_PROPERTIES'],
                            collection=collection, menu=menu, threads=threads,
