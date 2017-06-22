@@ -34,7 +34,7 @@ mail = Mail(app)
 
 from models import Project, Branch
 from users import User
-from threads import Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag
+from threads import Thread, Comment, File_Tag, Named_Tag, Free_Tag
 
 def create_app(extra_config_settings={}):
     """
@@ -46,6 +46,7 @@ def create_app(extra_config_settings={}):
 
     # Read extra config settings from function parameter 'extra_config_settings'
     app.config.update(extra_config_settings)  # Overwrite with 'extra_config_settings' parameter
+
 
     app.config['LANGUAGE'] = 'pt_BR'
     if app.testing or app.config['TESTING']:

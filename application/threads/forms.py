@@ -1,6 +1,6 @@
 from wtforms import (
-    Form, StringField, validators,
-    RadioField, SelectMultipleField, TextAreaField, SelectField
+    Form, StringField, validators, RadioField,
+    SelectMultipleField, TextAreaField, SelectField
 )
 
 from ..utils import select_multi_checkbox
@@ -20,3 +20,6 @@ class NewThreadForm(ThreadForm):
 
 class NewCommentForm(Form):
     comment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
+
+class CommentSearchForm(Form):
+    search = StringField('Search', [ validators.Length(min=3, max=60)])

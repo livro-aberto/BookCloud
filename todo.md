@@ -92,6 +92,12 @@
     - replace build (for html and pdf) with a single makefile
       that once something has changed runs through all the
       file extensions and generate html, pdf and epub.
+  - implement role based access rights:
+    - per-project role
+    - I think that the rights can be nested: admin > moderator > author > nothing
+    - perhaps rights can be fixed (no per project role rights)
+    - one simple admin interface to choose who gets what
+    - roles are important to discussions
 
 # Bugs:
 

@@ -1,14 +1,15 @@
 from flask import url_for, flash
 
 from flask_user import current_user
-from users import User
+from users import *
 from models import Project, Branch
-from application.threads import Comment, User_Tag, File_Tag, Custom_Tag, Free_Tag, Likes
+from application.threads import Comment, File_Tag, Free_Tag
 from application.tools import window, rst2html
 
 from flask_babel import gettext as _
 
 from tools import is_dirty, get_requests
+from wtforms.widgets import html_params
 
 def select_multi_checkbox(field, ul_class='', **kwargs):
     kwargs.setdefault('type', 'checkbox')

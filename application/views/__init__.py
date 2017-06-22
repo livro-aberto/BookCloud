@@ -9,7 +9,7 @@ from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
 from sqlalchemy import or_, desc
-from application import app, db, User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag, limiter, mail
+from application import app, db, User, Project, Branch, Thread, Comment, File_Tag, Named_Tag, Free_Tag, limiter, mail
 import string
 from shutil import copyfile, rmtree
 import git
@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 
 from flask_babel import Babel, gettext as _
 
-from flask_mail import Message
+from flask_mail import Mail, Message
 
 from wtforms import Form, BooleanField, StringField, validators,\
     RadioField, SelectMultipleField, TextAreaField, SelectField, HiddenField
@@ -34,7 +34,7 @@ import sphinx
 from creole import html2rest
 
 from application.threads import (
-    display_threads, NewThreadForm,
+    NewThreadForm,
     ThreadForm, NewCommentForm
 )
 
@@ -42,6 +42,8 @@ from application.threads import (
 from application.tools import window, rst2html, Command, get_git, load_file,\
     write_file, get_merging, get_requests, get_merge_pendencies,\
     config_repo, is_dirty, get_log, get_log_diff, last_modified
+
+mail.init_app(app)
 
 config_path = 'conf'
 
@@ -64,9 +66,6 @@ class MessageForm(Form):
         validators.Regexp('^[\w ,.?!-]+$',
                           message="Messages must contain only a-zA-Z0-9_-,.!? and space"),
     ])
-
-class CommentSearchForm(Form):
-    search = StringField('Search', [ validators.Length(min=3, max=60)])
 
 from ..utils import get_branch_owner, menu_bar, select_multi_checkbox
 
@@ -784,9 +783,10 @@ def get_image(project, filename):
     return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
 
 @limiter.exempt
-@bookcloud.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    menu = menu_bar()
+    return render_template('404.html', menu=menu), 404
 
 #@bookcloud.errorhandler(500)
 @limiter.exempt
