@@ -241,7 +241,7 @@
 
               {% if threads_by_tag %}
                 {% for t in threads_by_tag %}
-                <div id="disucussion_from-{{ t['name'] }}"
+                <div id="discussion_from-{{ t['name'] }}"
                      style="background-color: #d5e3f1">
                   <div title="{{ '\n'.join(t['titles']) }}">
                     Discussions ({{ len(t['titles']) }})
@@ -259,9 +259,9 @@
                   $(document).ready(function() {
                   {% for t in threads_by_tag %}
                     if ($("span#{{ t['name'] }}").length) {
-                    $("#disucussion_from-{{ t['name'] }}").insertAfter($("#{{ t['name'] }}").next("h1, h2, h3, h4, h5"));
+                    $("#discussion_from-{{ t['name'] }}").insertAfter($("#{{ t['name'] }}").next("a, h1, h2, h3, h4, h5"));
                     } else {
-                    $("#disucussion_from-{{ t['name'] }}").append($("#{{ t['name'] }}"));
+                    $("#discussion_from-{{ t['name'] }}").insertAfter($("#{{ t['name'] }}"));
                     }
                   {% endfor %}
                   });
