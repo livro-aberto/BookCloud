@@ -894,26 +894,27 @@ def newthread(project):
 
             db.session.commit()
             # send emails
-            with mail.connect() as conn:
-                message_head = _('Thread: ') + request.form['title'] + '\n' +\
-                               _('Project: ') + project + '\n' +\
-                               _('Owner: ') + owner.username + '\n' +\
-                               _('Type: ') + request.form['flag'] + '\n' +\
-                               _('Created at: ') + str(datetime.utcnow()) + '\n' +\
-                               _('Contents:') + '\n\n'
-                links = _('To comment on this thread: ') +\
-                        url_for('bookcloud.newcomment',
-                                project=project,
-                                thread_id = new_thread.id,
-                                _external = True)
-                for user in json.loads(request.form['usertags']):
-                    user_obj = User.query.filter_by(username=user).first()
-                    message = message_head + request.form['firstcomment'] + '\n\n' + links
-                    subject = _('Thread: ') + request.form['title']
-                    msg = Message(recipients=[user_obj.email],
-                                  body=message,
-                                  subject=subject)
-                    conn.send(msg)
+            if not app.config['TESTING']:
+                with mail.connect() as conn:
+                    message_head = _('Thread: ') + request.form['title'] + '\n' +\
+                                   _('Project: ') + project + '\n' +\
+                                   _('Owner: ') + owner.username + '\n' +\
+                                   _('Type: ') + request.form['flag'] + '\n' +\
+                                   _('Created at: ') + str(datetime.utcnow()) + '\n' +\
+                                   _('Contents:') + '\n\n'
+                    links = _('To comment on this thread: ') +\
+                            url_for('bookcloud.newcomment',
+                                    project=project,
+                                    thread_id = new_thread.id,
+                                    _external = True)
+                    for user in json.loads(request.form['usertags']):
+                        user_obj = User.query.filter_by(username=user).first()
+                        message = message_head + request.form['firstcomment'] + '\n\n' + links
+                        subject = _('Thread: ') + request.form['title']
+                        msg = Message(recipients=[user_obj.email],
+                                      body=message,
+                                      subject=subject)
+                        conn.send(msg)
 
             flash(_('New thread successfully created'), 'info')
             if 'return_url' in request.args:
@@ -1023,29 +1024,30 @@ def newcomment(project, thread_id, parent_lineage=''):
             db.session.add(new_comment)
             db.session.commit()
             # send emails
-            with mail.connect() as conn:
-                thread = Thread.query.filter_by(id=thread_id).first()
-                list_of_users = [ tag.user.username for tag in User_Tag.query.filter_by(thread_id=thread_id) ]
-                message_head = _('Thread: ') + thread.title + '\n' +\
-                               _('Project: ') + project + '\n' +\
-                               _('Author: ') + owner.username + '\n' +\
-                               _('Type: ') + thread.flag + '\n' +\
-                               _('Created at: ') + str(datetime.utcnow()) + '\n' +\
-                               _('Contents:') + '\n\n'
-                links = _('To reply to this comment follow: ') +\
-                        url_for('bookcloud.newcomment',
-                                project=project,
-                                thread_id=thread.id,
-                                parent_lineage=new_comment_lineage,
-                                _external=True)
-                for user in list_of_users:
-                    user_obj = User.query.filter_by(username=user).first()
-                    message = message_head + request.form['comment'] + '\n\n' + links
-                    subject = _('Thread: ') + thread.title
-                    msg = Message(recipients=[user_obj.email],
-                                  body=message,
-                                  subject=subject)
-                    conn.send(msg)
+            if not app.config['TESTING']:
+                with mail.connect() as conn:
+                    thread = Thread.query.filter_by(id=thread_id).first()
+                    list_of_users = [ tag.user.username for tag in User_Tag.query.filter_by(thread_id=thread_id) ]
+                    message_head = _('Thread: ') + thread.title + '\n' +\
+                                   _('Project: ') + project + '\n' +\
+                                   _('Author: ') + owner.username + '\n' +\
+                                   _('Type: ') + thread.flag + '\n' +\
+                                   _('Created at: ') + str(datetime.utcnow()) + '\n' +\
+                                   _('Contents:') + '\n\n'
+                    links = _('To reply to this comment follow: ') +\
+                            url_for('bookcloud.newcomment',
+                                    project=project,
+                                    thread_id=thread.id,
+                                    parent_lineage=new_comment_lineage,
+                                    _external=True)
+                    for user in list_of_users:
+                        user_obj = User.query.filter_by(username=user).first()
+                        message = message_head + request.form['comment'] + '\n\n' + links
+                        subject = _('Thread: ') + thread.title
+                        msg = Message(recipients=[user_obj.email],
+                                      body=message,
+                                      subject=subject)
+                        conn.send(msg)
 
             flash(_('New comment successfully created'), 'info')
             if 'return_url' in request.args:

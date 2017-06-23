@@ -245,7 +245,7 @@
                      style="background-color: #d5e3f1">
                   <div title="{{ '\n'.join(t['titles']) }}">
                     Discussions ({{ len(t['titles']) }})
-                  </div>
+
                     (<a href="{{ url_for('bookcloud.tagthreads',
                               project=project, filetag=t['name']) }}"
                         target="_blank">view</a>)
@@ -253,14 +253,15 @@
                               project=project) }}?filetags={{ t['fullname'] }}"
                         target="_blank">new</a>)
                   </div>
+                  </div>
                 {% endfor %}
                 <script>
                   $(document).ready(function() {
                   {% for t in threads_by_tag %}
                     if ($("span#{{ t['name'] }}").length) {
-                    $("#disucussion_from-{{ t['name'] }}").appendTo($("#{{ t['name'] }}").parent());
+                    $("#disucussion_from-{{ t['name'] }}").insertAfter($("#{{ t['name'] }}").next("h1, h2, h3, h4, h5"));
                     } else {
-                    $("#disucussion_from-{{ t['name'] }}").appendTo($("#{{ t['name'] }}"));
+                    $("#disucussion_from-{{ t['name'] }}").append($("#{{ t['name'] }}"));
                     }
                   {% endfor %}
                   });
