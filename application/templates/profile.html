@@ -1,77 +1,116 @@
-{% extends "base.html" %}
+{% extends "base_template.html" %}
 
 {% block title %}{{ user.username }} profile{% endblock%}
 
 {% macro contents() %}
-<h1>Hi {{ user.username }}</h1>
 
-<ul id="navigation">
+  <!-- Card -->
+  <div class="uk-grid-small uk-child-width-1-4@s uk-flex-center uk-text-center" uk-grid>
+    <div class="uk-card uk-card-default uk-width-1-2@m">
+      <div class="uk-card-header uk-flex-center">
+        <div class="uk-grid-small uk-flex-center" uk-grid>
+          <div class="uk-width-auto">
+            <canvas width="80" height="80" data-jdenticon-hash="{{ hash(current_user.username) }}"
+                    style="vertical-align: baseline;"></canvas>
+          </div>
+        </div>
+        <div class="uk-width-auto">
+          <h3 class="uk-card-title uk-margin-remove-bottom">{{ user.username }}</h3>
+          {{ current_user.email }}
+        </div>
+      </div>
+      {% if current_user.confirmed_at %}
+        <div class="uk-card-footer">
+          {{ current_user.confirmed_at }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
 
-  <h2>
-    {{ _('Here you can see all your branches') }}
-  </h2>
+  <!-- Branches -->
+  <h2>{{ _('Your branches') }}</h2>
+  <table class="uk-table uk-table-striped">
+    <thead>
+      <tr>
+        <th>{{ _('Project') }}</th>
+        <th>{{ _('Owner') }}</th>
+        <th>{{ _('Branch') }}</th>
+        <th>{{ _('Father branch') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in projects %}
+        {% for b in p.branches %}
+          <tr>
+            <td>
+              <a href="{{ url_for('bookcloud.project', project=p.name) }}">
+                {{ p.name }}
+              </a>
+            <td>{{ p.owner.username }}</td>
+            <td>
+              <a href="{{ url_for('bookcloud.branch', project=p.name, branch=b.name) }}">
+                {{ b.name }}
+              </a>
+            </td>
+            <td>
+              <a href="{{ url_for('bookcloud.branch', project=p.name, branch=b.origin.name) }}">
+                {{ b.origin.name }}
+              </a>
+          </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
 
-  <ul>
-    {% for item in collection %}
-      <li>
-        <a href="{{ url_for('bookcloud.project', project=item.project) }}">{{ item.project }}</a>
-
-        <ul>
-          {% for branch in item.branches %}
-            <li>
-              <a href="{{ url_for('bookcloud.branch', project=item.project, branch=branch.name) }}">
-                {{ branch.name }}</a> .....(contributes to {{ branch.origin.name }})
-            </li>
-          {% endfor %}
-        </ul>
-      </li>
-    {% endfor %}
-  </ul>
-
-  <h2>
-    {{ _('Profile') }}
-  </h2>
-
-  {{ _('Here you can see all your profile.') }}
-  {{ _('To update it, click here: ') }} <a href="{{ url_for ('users.update_profile') }}"> update </a>
-  {% for item in profile_form %}
-
-    {% if item['type'] == 'boolean' %}
-      <h3> {{ item['title'] }} </h3>
-      <p>
-        {% if getattr(user, item['variable']) is not none %}
-          {{ getattr(user, item['variable']) }}
-        {% else %}
-          Sem resposta
-        {% endif %}
-      </p>
-    {% endif %}
-    {% if item['type'] == 'string' %}
-      <h3> {{ item['title'] }} </h3>
-      <p>
-        {% if getattr(user, item['variable']) is not none %}
-          {{ getattr(user, item['variable']) }}
-        {% else %}
-          Sem resposta
-        {% endif %}
-      </p>
-    {% endif %}
-    {% if item['type'] == 'integer' %}
-      <h3> {{ item['title'] }} </h3>
-      <p>
-        {% if getattr(user, item['variable']) is not none %}
-          {{ item['choices'][getattr(user, item['variable'])] }}
-        {% else %}
-          Sem resposta
-        {% endif %}
-      </p>
-    {% endif %}
-
-  {% endfor %}
-
-</ul>
-
-
+  <!-- Profile -->
+  <h2>{{ _('Profile') }}</h2>
+  <table class="uk-table uk-table-striped">
+    <tbody>
+      <tr>
+        <td>{{ _('First Name') }}</td>
+        <td>{{ current_user.first_name }}</td>
+      </tr>
+      <tr>
+        <td>{{ _('Last Name') }}</td>
+        <td>{{ current_user.last_name }}</td>
+      </tr>
+      {% for item in properties %}
+        <tr>
+          {% if item['type'] == 'boolean' %}
+            <td> {{ item['title'] }} </td>
+            <td>
+              {% if getattr(user, item['variable']) is not none %}
+                {{ getattr(user, item['variable']) }}
+              {% else %}
+                {{ _('Not answered') }}
+              {% endif %}
+            </td>
+          {% endif %}
+          {% if item['type'] == 'string' %}
+            <td> {{ item['title'] }} </td>
+            <td>
+              {% if getattr(user, item['variable']) is not none %}
+                {{ getattr(user, item['variable']) }}
+              {% else %}
+                {{ _('Not answered') }}
+              {% endif %}
+            </td>
+          {% endif %}
+          {% if item['type'] == 'integer' %}
+            <td> {{ item['title'] }} </td>
+            <td>
+              {% if getattr(user, item['variable']) is not none %}
+                {{ item['choices'][getattr(user, item['variable'])] }}
+              {% else %}
+                {{ _('Not answered') }}
+              {% endif %}
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a class="uk-button uk-button-primary" href="{{ url_for ('users.update_profile') }}">update</a>
 
 {% endmacro %}
 

@@ -40,42 +40,49 @@ def menu_bar(project=None, branch=None):
     #if current_user.is_authenticated:
     if project:
         left.append(
-            {   'name': project,
-                'sub_menu':
-                [   {'name': 'dashboard', 'url': url_for('bookcloud.project', project=project)},
-                    {'name': 'view master', 'url': url_for('bookcloud.view', project=project,
-                                                           branch='master', filename='index.html')},
-                    {'name': 'pdf', 'url': url_for('bookcloud.pdf', project=project)},
-                ]})
+            { 'name': project,
+              'sub_menu':
+                  [{'name': 'dashboard',
+                    'url': url_for('bookcloud.project', project=project)},
+                   {'name': 'view master',
+                    'url': url_for('bookcloud.view', project=project,
+                                   branch='master', filename='index.html')},
+                   {'name': 'pdf',
+                    'url': url_for('bookcloud.pdf', project=project)},
+                  ]})
         if branch:
             left.append(
-                {   'name': branch,
-                    'sub_menu':
-                    [   {'name': 'dashboard', 'url': url_for('bookcloud.branch', project=project,
-                                                             branch=branch)},
-                        {'name': 'view', 'url': url_for('bookcloud.view', project=project,
-                                                        branch='master', filename='index.html')}
-                    ]})
-
+                { 'name': branch,
+                  'sub_menu':
+                      [ {'name': 'dashboard',
+                         'url': url_for('bookcloud.branch', project=project,
+                                        branch=branch)},
+                        {'name': 'view',
+                         'url': url_for('bookcloud.view', project=project,
+                                        branch='master', filename='index.html')}
+                      ]})
             if current_user.is_authenticated:
                 if current_user.username == get_branch_owner(project, branch):
                     if is_dirty(project, branch):
                         flash(_('You have uncommitted changes!!!'), 'error')
-                        right.append({'url': url_for('bookcloud.commit', project=project, branch=branch),
+                        right.append({'url': url_for('bookcloud.commit',
+                                                     project=project, branch=branch),
                                       'name': 'commit', 'style': 'attention'})
                     else:
                         if len(get_requests(project, branch)):
                             flash(_('You have unreviewed requests!!!'), 'error')
-                            right.append({'url': url_for('bookcloud.requests', project=project, branch=branch),
+                            right.append({'url': url_for('bookcloud.requests',
+                                                         project=project, branch=branch),
                                           'name': 'requests', 'style': 'attention'})
-                right.append({'name': current_user.username,
-                      'sub_menu':
-                      [   {'name': 'profile', 'url': url_for('users.profile')},
-                          {'name': 'logout', 'url': url_for('user.logout')}
-                      ]})
-            else:
-                right = [{'name': 'login', 'url': url_for('user.login')}]
 
+    if current_user.is_authenticated:
+        right.append({'name': current_user.username,
+                      'sub_menu':
+                          [ {'name': 'profile', 'url': url_for('users.profile')},
+                            {'name': 'logout', 'url': url_for('user.logout')}
+                          ]})
+    else:
+        right = [{'name': 'login', 'url': url_for('user.login')}]
 
     return { 'left': left, 'right': right}
 

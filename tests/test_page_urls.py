@@ -30,7 +30,7 @@ def test_page_urls(client):
 
     # Get user profile page
     response = client.get(url_for('users.profile'))
-    assert b'Hi foo' in response.data
+    assert b'Your branches' in response.data
 
     # Update profile
     response = client.post(url_for('users.update_profile'), follow_redirects=True,

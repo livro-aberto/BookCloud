@@ -25,20 +25,12 @@ def logout():
 @users.route('/profile')
 @login_required
 def profile():
-    menu = menu_bar('sabao', 'master')
-    projects = [d for d in Project.query.all()]
-    collection = []
-    for p in projects:
-        user_branches = [b for b in Branch.query.filter_by(project_id=p.id,
-                                                           owner_id=current_user.id)]
-        if user_branches:
-            collection.append({'project': p.name,
-                               'branches': user_branches})
-    threads = current_user.tagged_threads
-    return render_template('profile.html', user=current_user,
-                           profile_form=app.config['USER_PROPERTIES'],
-                           collection=collection, menu=menu, threads=threads,
-                           show_discussion=False)
+    menu = menu_bar()
+    projects = list(Project.query.all())
+    threads = current_user.threads
+    return render_template('profile.html', projects=projects, user=current_user,
+                           properties=app.config['USER_PROPERTIES'],
+                           menu=menu, threads=threads)
 
 @limiter.limit("10 per day")
 @users.route('/update_profile', methods = ['GET', 'POST'])
@@ -47,19 +39,18 @@ def update_profile():
     menu = menu_bar()
     if request.method == 'POST':
         for item in app.config['USER_PROPERTIES']:
-            user = User.query.filter(User.username == current_user.username).first()
             if request.form.has_key(item['variable']):
                 if item['type'] == 'boolean':
                     if request.form[item['variable']] == 'yes':
-                        setattr(user, item['variable'], True)
+                        setattr(current_user, item['variable'], True)
                     else:
-                        setattr(user, item['variable'], False)
+                        setattr(current_user, item['variable'], False)
                 if item['type'] == 'integer':
-                    setattr(user, item['variable'],
+                    setattr(current_user, item['variable'],
                             item['choices'].index(request.form[item['variable']]))
         db.session.commit()
         flash(_('Profile updated'), 'info')
         return redirect(url_for('users.profile'))
     return render_template('update_profile.html', user=current_user,
                            profile_form=app.config['USER_PROPERTIES'],
-                           menu=menu, show_discussion=False)
+                           menu=menu)

@@ -130,13 +130,9 @@ def get_branch_by_name(project, branch):
 
 
 @app.context_processor
-
-#def listat(obj):
-#    return obj.__dict__
-
 def package():
     sent_package = {}
-    if 'project' in request.view_args:
+    if (request.view_args) and ('project' in request.view_args):
         project = request.view_args['project']
         sent_package['project'] = project
         sent_package['project_owner'] = get_branch_owner(project, 'master')
