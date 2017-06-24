@@ -1,8 +1,8 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% from "_formhelpers.html" import render_field %}
 
-{% block title %}{{ _('Create new comment') }}{% endblock%}
+{% block title %}{{ _('New comment') }}{% endblock%}
 
 {% macro contents() %}
 <h1>{{ _('Create new comment') }}</h1>

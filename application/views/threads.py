@@ -1,6 +1,10 @@
+import re
+import urllib
+from datetime import datetime
+from os.path import join
+
 from flask import Blueprint, request, render_template, url_for, flash, redirect
 from flask_user import login_required
-
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
 from flask_mail import Message
@@ -9,21 +13,10 @@ from sqlalchemy import or_, desc
 from application import db, app, limiter, mail
 from application.users import User
 from application.threads import *
-from application.tools import load_file
-
-from ..utils import menu_bar
-from ..models import Project
-
-
-import json
-import re
-import urllib
-import os
-from os.path import join, isfile, splitext
-from datetime import datetime
+from application.utils import menu_bar, get_labels
+from application.models import Project
 
 threads = Blueprint('threads', __name__, url_prefix='/threads')
-
 
 @limiter.exempt
 @threads.route('/<project>/tagsthreads/<filetag>')
@@ -35,7 +28,8 @@ def tagthreads(project, filetag):
                .filter(File_Tag.filename.like('%' + filetag + '%'))
                .filter(Thread.project==project)
                .order_by(desc(Thread.posted_at)))
-    description = _('Threads with tag: ') + filetag
+    description = (_('Threads with tag: ') + '&nbsp <span class="uk-label">'
+                   + filetag + '</span>')
     return render_template('search_comments.html', menu=menu, threads=threads,
                            description=description)
 
@@ -47,13 +41,14 @@ def search_comments(project):
     if request.method == 'POST' and form.validate():
         if not form.search.data:
             form.search.data = ""
-        threads = (Thread.query.filter(Thread.project==project)
-                   .join(Comment)
-                   .filter(Comment.thread_id==Thread.id)
-                   .filter(or_(Comment.content.like('%' + form.search.data + '%'),
-                               Thread.title.like('%' + form.search.data + '%')))
-                   .order_by(desc(Thread.posted_at))
-                   .limit(100))
+        threads = (
+            Thread.query.filter(Thread.project==project)
+            .join(Comment)
+            .filter(Comment.thread_id==Thread.id)
+            .filter(or_(Comment.content.like('%' + form.search.data + '%'),
+                        Thread.title.like('%' + form.search.data + '%')))
+            .order_by(desc(Thread.posted_at))
+            .limit(100))
     else:
         threads = (Thread.query
                    .filter_by(project=project)
@@ -62,15 +57,13 @@ def search_comments(project):
     return render_template('search_comments.html', menu=menu, threads=threads,
                            form=form, show_discussion=True)
 
-
 @threads.route('/<project>/newthread', methods = ['GET', 'POST'])
 @login_required
 def newthread(project):
     menu = menu_bar(project)
-    project = Project.query.filter_by(name=project).first()
-    master_path = join('repos', project.name, 'master', 'source')
-    label_list = []
-    inputs = {'user_tags': '', 'file_tags': '', 'custom_tags': '', 'free_tags': ''}
+    project = Project.query.filter_by(name=project).first_or_404()
+    inputs = {'user_tags': '', 'file_tags': '',
+              'custom_tags': '', 'free_tags': ''}
     for t in inputs:
         inputs[t] = request.args.get(t) if request.args.get(t) else ''
     form = NewThreadForm(request.form,
@@ -78,13 +71,9 @@ def newthread(project):
                          file_tags=inputs['file_tags'].split(","),
                          custom_tags=inputs['custom_tags'].split(","),
                          free_tags=inputs['free_tags'])
-    form.user_tags.widget.choices = json.dumps([u.username for u in User.query.all()])
-    for f in os.listdir(master_path):
-        if (isfile(join(master_path, f)) and f[0] != '.'):
-            data = load_file(join(master_path, f))
-            label_list.extend([splitext(f)[0] + '#' + l
-                               for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
-    form.file_tags.widget.choices = json.dumps(label_list)
+    form.user_tags.widget.choices = json.dumps(
+        [u.username for u in User.query.all()])
+    form.file_tags.widget.choices = get_labels(project)
     form.custom_tags.widget.choices = json.dumps(
         [t.name for t in Named_Tag.query.filter_by(project=project).all()])
     if request.method == 'POST' and form.validate():
@@ -95,9 +84,14 @@ def newthread(project):
                             form.flag.data,
                             datetime.utcnow())
         # add tags
-        new_thread.user_tags = [User.get_by_name(n) for n in form.user_tags.data]
-        new_thread.file_tags = [File_Tag(new_thread.id, n) for n in form.file_tags.data]
-        new_thread.custom_tags = [Named_Tag.get_by_name(n) for n in form.custom_tags.data]
+        new_thread.user_tags = [User.get_by_name(n)
+                                for n in form.user_tags.data]
+        new_thread.file_tags = [File_Tag(new_thread.id, n)
+                                for n in form.file_tags.data]
+        new_thread.custom_tags = [Named_Tag.get_by_name(n)
+                                  for n in form.custom_tags.data]
+        new_thread.free_tags = [Free_Tag(new_thread.id, n)
+                            for n in form.free_tags.data]
         # add first comment
         new_comment = Comment('000000:',
                               new_thread.id,
@@ -110,20 +104,22 @@ def newthread(project):
         # send emails
         if not app.config['TESTING']:
             with mail.connect() as conn:
-                message_head = _('Thread: ') + request.form['title'] + '\n' +\
-                               _('Project: ') + project + '\n' +\
-                               _('Owner: ') + current_user.username + '\n' +\
-                               _('Type: ') + request.form['flag'] + '\n' +\
-                               _('Created at: ') + str(datetime.utcnow()) + '\n' +\
-                               _('Contents:') + '\n\n'
-                links = _('To comment on this thread: ') +\
-                        url_for('threads.newcomment',
-                                project=project,
-                                thread_id = new_thread.id,
-                                _external = True)
-                for user in json.loads(request.form['usertags']):
+                message_head = (
+                    + _('Thread: ') + request.form['title'] + '\n'
+                    + _('Project: ') + project + '\n'
+                    + _('Owner: ') + current_user.username + '\n'
+                    + _('Type: ') + request.form['flag'] + '\n'
+                    + _('Created at: ') + str(datetime.utcnow()) + '\n'
+                    + _('Contents:') + '\n\n')
+                links = (_('To comment on this thread: ')
+                         + url_for('threads.newcomment',
+                                   project=project,
+                                   thread_id = new_thread.id,
+                                   _external = True))
+                for user in form.user_tags.data:
                     user_obj = User.get_by_name(user)
-                    message = message_head + request.form['firstcomment'] + '\n\n' + links
+                    message = (message_head + request.form['firstcomment']
+                               + '\n\n' + links)
                     subject = _('Thread: ') + request.form['title']
                     msg = Message(recipients=[user_obj.email],
                                   body=message,
@@ -131,217 +127,190 @@ def newthread(project):
                     conn.send(msg)
         flash(_('New thread successfully created'), 'info')
         if 'return_url' in request.args:
-            print(urllib.unquote(request.args['return_url']))
             redirect(urllib.unquote(request.args['return_url']))
         else:
             return redirect(url_for('bookcloud.project', project=project.name))
-    return render_template('newthread.html',
-                           menu=menu, form=form, show_discussion=False)
+    return render_template('newthread.html', menu=menu,
+                           form=form, show_discussion=False)
 
 @threads.route('/<project>/editthread/<thread_id>', methods = ['GET', 'POST'])
 @login_required
 def editthread(project, thread_id):
     menu = menu_bar(project)
-    project_id = Project.query.filter_by(name=project).first().id
-    thread_obj = Thread.query.filter_by(id=thread_id).first()
-    if (current_user.username != thread_obj.owner.username and
+    project = Project.query.filter_by(name=project).first_or_404()
+    thread = Thread.get_by_id(thread_id)
+    if (current_user != thread.owner and
+        # Correct line below (remove username)!!!!!!!!!!!!!!!!!!!!!!!
         current_user.username != get_branch_owner(project, 'master')):
+        # Not allowed
         flash(_('You are not allowed to edit this thread'), 'error')
         return redirect(url_for('bookcloud.project', project=project))
-    form = ThreadForm(request.form)
-    form.title.default = thread_obj.title
-    form.flag.default = thread_obj.flag
-    form.usertags.choices = [(u.username, u.username) for u in User.query.all()]
-    form.usertags.default = [t.username for t in thread_obj.user_tags]# User_Tag.query.filter_by(thread_id=thread_id).all()]
-    master_path = join('repos', project, 'master', 'source')
-    label_list = []
-    for f in os.listdir(master_path):
-        if (isfile(join(master_path, f)) and f[0] != '.'):
-            data = load_file(join(master_path, f))
-            label_list.extend([(splitext(f)[0] + '#' + l, splitext(f)[0] + '#' + l)
-                               for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
-    form.filetags.choices = label_list
-    # form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
-    #                          for f in os.listdir(master_path)
-    #                          if isfile(join(master_path, f)) and f[0] != '.']
-    form.filetags.default = [t.filename for t in File_Tag.query.filter_by(thread_id=thread_id).all()]
-    form.namedtags.choices = [(t.name, t.name) for t in Named_Tag.query.filter_by(project_id=project_id).all()]
-    form.freetags.default = ', '.join([t.name for t in Free_Tag.query.filter_by(thread_id=thread_id).all()])
-
-    if request.method == 'POST':
-        if form.validate():
-            owner = User.query.filter_by(username=current_user.username).first()
-            # modify thread
-            thread_obj.title = request.form['title']
-            thread_obj.flag = request.form['flag']
-            db.session.commit()
-            # clear previous tags
-            thread_obj.user_tags = []
-            File_Tag.query.filter_by(thread_id=thread_id).delete()
-            thread_obj.named_tags = []#Custom_Tag.query.filter_by(thread_id=thread_id).delete()
-            Free_Tag.query.filter_by(thread_id=thread_id).delete()
-            db.session.commit()
-            # add user tags
-            for user in request.form.getlist('usertags'):
-                db.session.flush()
-                user = User.query.filter_by(username=user).first()
-                thread_obj.user_tags.append(user)
-                db.session.commit()
-            # add file tags
-            for file in request.form.getlist('filetags'):
-                new_filetag = File_Tag(thread_id, file)
-                db.session.add(new_filetag)
-            # add named tags
-            for tag in request.form.getlist('namedtags'):
-                db.session.flush()
-                namedtag_id = Named_Tag.query.filter_by(project_id=project_id, name=tag).first().id
-                new_namedtag = Custom_Tag(thread_id, namedtag_id)
-                db.session.add(new_namedtag)
-            # add free tags
-            for freetag in filter(None, re.findall(r"[\w']+", request.form['freetags'])):
-                new_freetag = Free_Tag(thread_id, freetag)
-                db.session.add(new_freetag)
-
-            db.session.commit()
-
-            flash(_('Thread successfully modified'), 'info')
-            if 'return_url' in request.args:
-                return redirect(urllib.unquote(request.args['return_url']))
+    form = ThreadForm(
+        request.form,
+        title=thread.title,
+        flag=thread.flag,
+        user_tags=[t.username for t in thread.user_tags],
+        file_tags=[t.filename for t in thread.file_tags],
+        custom_tags=[t.name for t in thread.custom_tags],
+        free_tags=[t.name for t in thread.free_tags])
+    form.user_tags.widget.choices = json.dumps(
+        [u.username for u in User.query.all()])
+    form.file_tags.widget.choices = get_labels(project)
+    form.custom_tags.widget.choices = json.dumps(
+        [t.name for t in Named_Tag.query.filter_by(project=project).all()])
+    master_path = join('repos', project.name, 'master', 'source')
+    if request.method == 'POST' and form.validate():
+        thread.title = form.title.data
+        thread.flag = form.flag.data
+        # add tags
+        thread.user_tags = [User.get_by_name(n)
+                            for n in form.user_tags.data]
+        thread.file_tags = [File_Tag(thread.id, n)
+                            for n in form.file_tags.data]
+        thread.custom_tags = [Named_Tag.get_by_name(n)
+                              for n in form.custom_tags.data]
+        thread.free_tags = [Free_Tag(thread.id, n)
+                            for n in form.free_tags.data]
+        db.session.commit()
+        flash(_('Thread successfully modified'), 'info')
+        if 'return_url' in request.args:
+            return redirect(urllib.unquote(request.args['return_url']))
         else:
-            form.title.default = request.form['title']
-            form.freetags.default = request.form['freetags']
-
-    form.process()
+            return redirect(url_for('bookcloud.project', project=project.name))
     return render_template('editthread.html', menu=menu, form=form)
 
-
 @threads.route('/<project>/newcomment/<thread_id>', methods = ['GET', 'POST'])
-@threads.route('/<project>/newcomment/<thread_id>/<parent_lineage>', methods = ['GET', 'POST'])
+@threads.route('/<project>/newcomment/<thread_id>/<parent_lineage>',
+               methods = ['GET', 'POST'])
 @login_required
 def newcomment(project, thread_id, parent_lineage=''):
     menu = menu_bar(project)
-    form = NewCommentForm(request.form)
-
-    if request.method == 'POST':
-        if form.validate():
-            project_id = Project.query.filter_by(name=project).first().id
-            owner = User.query.filter_by(username=current_user.username).first()
-            siblings_pattern = parent_lineage + '%'
-            decend_comments = (Comment.query.filter(Comment.thread_id==thread_id)
-                               .filter(Comment.lineage.like(siblings_pattern)).all())
-            number_siblings = len(decend_comments)
-            new_comment_lineage = parent_lineage + format(number_siblings, '06X') + ':'
-            new_comment = Comment(new_comment_lineage,
-                                  thread_id,
-                                  owner.id,
-                                  request.form['comment'],
-                                  datetime.utcnow())
-            db.session.add(new_comment)
-            db.session.commit()
-            # send emails
-            if not app.config['TESTING']:
-                with mail.connect() as conn:
-                    thread = Thread.query.filter_by(id=thread_id).first()
-                    list_of_users = [ tag.username for tag in thread.user_tags]#User_Tag.query.filter_by(thread_id=thread_id) ]
-                    message_head = _('Thread: ') + thread.title + '\n' +\
-                                   _('Project: ') + project + '\n' +\
-                                   _('Author: ') + owner.username + '\n' +\
-                                   _('Type: ') + thread.flag + '\n' +\
-                                   _('Created at: ') + str(datetime.utcnow()) + '\n' +\
-                                   _('Contents:') + '\n\n'
-                    links = _('To reply to this comment follow: ') +\
-                            url_for('threads.newcomment',
-                                    project=project,
-                                    thread_id=thread.id,
-                                    parent_lineage=new_comment_lineage,
-                                    _external=True)
-                    for user in list_of_users:
-                        user_obj = User.query.filter_by(username=user).first()
-                        message = message_head + request.form['comment'] + '\n\n' + links
-                        subject = _('Thread: ') + thread.title
-                        msg = Message(recipients=[user_obj.email],
-                                      body=message,
-                                      subject=subject)
-                        conn.send(msg)
-
-            flash(_('New comment successfully created'), 'info')
-            if 'return_url' in request.args:
-                return redirect(urllib.unquote(request.args['return_url']))
-        else:
-            form.comment.default = request.form['comment']
-
-    threads = Thread.query.filter_by(id=thread_id).order_by(desc(Thread.posted_at))
-    form.process()
-    return render_template('newcomment.html', menu=menu, form=form, threads=threads)
+    form = CommentForm(request.form)
+    if request.method == 'POST' and form.validate():
+        project = Project.query.filter_by(name=project).first_or_404()
+        siblings_pattern = parent_lineage + '%'
+        decend_comments = (Comment.query
+                           .filter(Comment.thread_id==thread_id)
+                           .filter(Comment.lineage.like(siblings_pattern)))
+        number_siblings = decend_comments.count()
+        new_comment_lineage = (parent_lineage
+                               + format(number_siblings, '06X') + ':')
+        new_comment = Comment(new_comment_lineage,
+                              thread_id,
+                              current_user.id,
+                              form.comment.data,
+                              datetime.utcnow())
+        db.session.add(new_comment)
+        db.session.commit()
+        # send emails
+        if not app.config['TESTING']:
+            with mail.connect() as conn:
+                thread = Thread.get_by_id(thread_id)
+                list_of_users = [ tag.username for tag in thread.user_tags]
+                message_head = (
+                    _('Thread: ') + thread.title + '\n' +\
+                    _('Project: ') + project.id + '\n' +\
+                    _('Author: ') + current_user.username + '\n' +\
+                    _('Type: ') + thread.flag + '\n' +\
+                    _('Created at: ') + str(datetime.utcnow()) + '\n' +\
+                    _('Contents:') + '\n\n')
+                links = (_('To reply to this comment follow: ')
+                         + url_for('threads.newcomment',
+                                   project=project.name,
+                                   thread_id=thread_id,
+                                   parent_lineage=new_comment_lineage,
+                                   _external=True))
+                for user in list_of_users:
+                    user_obj = User.query.filter_by(username=user).first()
+                    message = (message_head + request.form['comment']
+                               + '\n\n' + links)
+                    subject = _('Thread: ') + thread.title
+                    msg = Message(recipients=[user_obj.email],
+                                  body=message,
+                                  subject=subject)
+                    conn.send(msg)
+        flash(_('New comment successfully created'), 'info')
+        if 'return_url' in request.args:
+            return redirect(urllib.unquote(request.args['return_url']))
+    threads = (Thread.query.filter_by(id=thread_id)
+               .order_by(desc(Thread.posted_at)))
+    return render_template('newcomment.html', menu=menu,
+                           form=form, threads=threads)
 
 @threads.route('/<project>/editcomment/<comment_id>', methods = ['GET', 'POST'])
 @login_required
 def editcomment(project, comment_id):
     menu = menu_bar(project)
-    form = NewCommentForm(request.form)
-    comment_obj = Comment.query.filter_by(id=comment_id).first()
-    if current_user.username != comment_obj.owner.username:
+    comment = Comment.get_by_id(comment_id)
+    print(comment.content)
+    form = CommentForm(request.form,
+                       comment=comment.content)
+    if current_user != comment.owner:
         flash(_('You are not allowed to edit this comment'), 'error')
-        return redirect(url_for('bookcloud.project', project=project))
-    form.comment.default = comment_obj.content
-    if request.method == 'POST':
-        if form.validate():
-            comment_obj.content = request.form['comment']
+        if 'return_url' in request.args:
+            return redirect(urllib.unquote(request.args['return_url']))
+        else:
+            return redirect(url_for('bookcloud.project', project=project))
+    if request.method == 'POST' and form.validate():
+            comment.content = form.comment.data
             db.session.commit()
-
             flash(_('Comment modified successfully'), 'info')
             if 'return_url' in request.args:
                 return redirect(urllib.unquote(request.args['return_url']))
-        else:
-            form.comment.default = request.form['comment']
+            else:
+                return redirect(url_for('bookcloud.project', project=project))
+    threads = (Thread.query.filter_by(id=comment.thread.id)
+               .order_by(desc(Thread.posted_at)))
+    return render_template('newcomment.html', menu=menu, form=form,
+                           threads=threads)
 
-    threads = Thread.query.filter_by(id=comment_obj.thread_id).order_by(desc(Thread.posted_at))
-    form.process()
-    return render_template('newcomment.html', menu=menu, form=form, threads=threads)
-
-@threads.route('/<project>/deletethread')
+@threads.route('/<project>/deletethread/<int:thread_id>')
 @login_required
-def deletethread(project):
-    thread_id = request.args['thread_id']
+def deletethread(project, thread_id):
+    thread = Thread.get_by_id(thread_id)
     if Comment.query.filter_by(thread_id=thread_id).first():
         flash(_('Thread is not empty'), 'error')
     else:
         thread = Thread.query.filter_by(id=thread_id).first()
-        ownername = User.query.filter_by(id=thread.owner_id).first().username
         if not current_user.is_authenticated:
             flash(_('You must be logged in to delete a thread'), 'error')
         else:
-            if current_user.username == ownername or current_user.username == get_branch_owner(project, 'master'):
-                thread.user_tags = []
-                #User_Tag.query.filter_by(thread_id=thread_id).delete()
-                File_Tag.query.filter_by(thread_id=thread_id).delete()
-                thread.custom_tags = []
-                #Custom_Tag.query.filter_by(thread_id=thread_id).delete()
-                Free_Tag.query.filter_by(thread_id=thread_id).delete()
-                Thread.query.filter_by(id=thread_id).delete()
+            if (current_user != thread.owner
+                and current_user != get_branch_owner(project, 'master')):
+                # Not allowed
+                flash(_('You are not allowed to delete this thread'), 'error')
+            else:
+                thread.delete()
                 db.session.commit()
                 flash(_('Thread successfully deleted'), 'info')
-            else:
-                flash(_('You are not allowed to delete this thread'), 'error')
-    return redirect(urllib.unquote(request.args['return_url']))
+    if 'return_url' in request.args:
+        return redirect(urllib.unquote(request.args['return_url']))
+    else:
+        return redirect(url_for('bookcloud.project', project=project))
 
-@threads.route('/<project>/deletecomment')
+
+@threads.route('/<project>/deletecomment/<int:comment_id>')
 @login_required
-def deletecomment(project):
-    comment = Comment.get_by_id(request.args['comment_id'])
+def deletecomment(project, comment_id):
+    comment = Comment.get_by_id(comment_id)
     if comment.has_replies():
         flash(_('This comment has replies and cannot be deleted'), 'error')
     else:
         if not current_user.is_authenticated:
             flash(_('You must be logged in to delete a comment'), 'error')
         else:
-            ownername = User.query.filter_by(id=comment.owner_id).first().username
-            if current_user.username == ownername or current_user.username == get_branch_owner(project, 'master'):
-                comment.likes = []
+            if (current_user != comment.owner
+                and current_user != get_branch_owner(project, 'master')):
+                # Not allowed
+                flash(_('You are not allowed '
+                        'to delete this thread'), 'error')
+            else:
                 comment.delete()
                 db.session.commit()
                 flash(_('Comment successfully deleted'), 'info')
-            else:
-                flash(_('You are not allowed to delete this thread'), 'error')
-    return redirect(urllib.unquote(request.args['return_url']))
+    if 'return_url' in request.args:
+        return redirect(urllib.unquote(request.args['return_url']))
+    else:
+        return redirect(url_for('bookcloud.project', project=project))
+
 

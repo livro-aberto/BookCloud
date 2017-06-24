@@ -7,11 +7,12 @@
         {{ field(**kwargs)|safe }}
       {% endif %}
       {% if field.errors %}
-        <ul class="error">
+        <div class="uk-alert-danger" uk-alert>
           {% for error in field.errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
+            <a class="uk-alert-close" uk-close></a>
+            <p>{{ error }}</p>
+            {% endfor %}
+        </div>
       {% endif %}
     </dd>
   </dt>

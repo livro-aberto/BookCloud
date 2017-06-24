@@ -1,36 +1,72 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% from "_formhelpers.html" import render_field %}
 
-{% block title %}{{ _('Create new thread') }}{% endblock%}
+{% block title %}{{ _('New thread') }}{% endblock %}
+
+{% block scripts %}
+  <script src="/_static/tag/js/doc.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="{{ url_for('bookcloud.get_global_static',
+                               filename='tag/css/textext.core.css') }}" type="text/css" />
+  <link rel="stylesheet" href="{{ url_for('bookcloud.get_global_static',
+                               filename='tag/css/textext.plugin.tags.css') }}" type="text/css" />
+  <link rel="stylesheet" href="{{ url_for('bookcloud.get_global_static',
+                               filename='tag/css/textext.plugin.autocomplete.css') }}" type="text/css" />
+  <link rel="stylesheet" href="{{ url_for('bookcloud.get_global_static',
+                               filename='tag/css/textext.plugin.focus.css') }}" type="text/css" />
+  <link rel="stylesheet" href="{{ url_for('bookcloud.get_global_static',
+                               filename='tag/css/textext.plugin.prompt.css') }}" type="text/css" />
+  <link rel="stylesheet" href="{{ url_for('bookcloud.get_global_static',
+                               filename='tag/css/textext.plugin.arrow.css') }}" type="text/css" />
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.core.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.plugin.tags.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.plugin.autocomplete.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.plugin.suggestions.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.plugin.filter.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.plugin.focus.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.plugin.prompt.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.plugin.ajax.js') }}" type="text/javascript" charset="utf-8"></script>
+  <script src="{{ url_for('bookcloud.get_global_static',
+               filename='tag/js/textext.plugin.arrow.js') }}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}
 
 {% macro contents() %}
-<h1>{{ _('Create new thread') }}</h1>
 
-<ul id="navigation">
-
-  <p>
+  <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
     <form method="POST">
-      <dt>
-        {{ render_field(form.title, size='50') }}
-      </dt>
-      <div style="display: table-row">
-        <div style="display: table-cell; padding-right: 20px;">
-          {{ render_field(form.usertags) }}
+      <fieldset class="uk-fieldset">
+        <legend class="uk-legend">{{ _('New thread') }}</legend>
+        <div class="uk-margin">
+          {{ render_field(form.title, style="width: 500px;") }}
         </div>
-        <div style="display: table-cell; padding-right: 20px;">
-          {{ render_field(form.filetags) }}
+        <div class="uk-margin">
+          {{ render_field(form.flag) }}
         </div>
-        <div style="display: table-cell; padding-right: 20px;">
-          {{ render_field(form.flag, style="padding-left: 0px; list-style-type: none;") }}
-          {{ render_field(form.namedtags) }}
-          {{ render_field(form.freetags) }}
+        <div class="uk-margin">
+          {{ render_field(form.user_tags) }}
         </div>
-      </div>
-      <br>
-      <input type=submit value=Register>
+        <div class="uk-margin">
+          {{ render_field(form.file_tags) }}
+        </div>
+        <div class="uk-margin">
+          {{ render_field(form.custom_tags) }}
+        </div>
+        <div class="uk-margin">
+          {{ render_field(form.free_tags) }}
+        </div>
+        <div class="uk-margin">
+          <button class="uk-button uk-button-default">Submit</button>
+        </div>
     </form>
-  </p>
-</ul>
-{% endmacro %}
+  </div>
 
+{% endmacro %}

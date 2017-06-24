@@ -30,7 +30,8 @@ def test_page_urls(client):
 
     # Get user profile page
     response = client.get(url_for('users.profile'))
-    assert b'Your branches' in response.data
+    assert (b'Your branches' in response.data
+            or b'Seus ramos' in response.data)
 
     # Update profile
     response = client.post(url_for('users.update_profile'), follow_redirects=True,
@@ -109,7 +110,7 @@ def test_page_urls(client):
                                   branch='master',
                                   filename='index'))
     assert 'Title of test page' in response.data
-    assert 'login' in response.data
+    assert 'Login' in response.data
 
     # Login as collaborator
     response = client.post(url_for('user.login'), follow_redirects=True,
@@ -337,7 +338,9 @@ def test_page_urls(client):
     assert "Please!" in response.data
 
     # Try to delete thread
-    response = client.get(url_for('threads.deletethread', project=new_project_name),
+    response = client.get(url_for('threads.deletethread',
+                                  project=new_project_name,
+                                  thread_id=thread_id),
                           follow_redirects=True,
                           data=dict(thread_id=thread_id,
                                     return_url=url_for('bookcloud.home', _external=True)))

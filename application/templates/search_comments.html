@@ -10,7 +10,7 @@
     {{ project }}
   </h1>
 
-  {{ description }}
+  {{ description | safe }}
 
   <p>
     {% if form %}

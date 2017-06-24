@@ -33,10 +33,7 @@ import sphinx
 
 from creole import html2rest
 
-from application.threads import (
-    NewThreadForm,
-    ThreadForm, NewCommentForm
-)
+from application.threads import NewThreadForm
 
 # import special tools for this platform
 from application.tools import window, rst2html, Command, get_git, load_file,\

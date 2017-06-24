@@ -93,7 +93,7 @@
                 <p>{{ message}}</p>
               </div>
             {% else %}
-              <div class="uk-alert-promary" uk-alert>
+              <div class="uk-alert-primary" uk-alert>
                 <a class="uk-alert-close" uk-close></a>
                 <p>{{ message}}</p>
               </div>
@@ -192,9 +192,9 @@
                         <span class="uk-label">{{ custom.name }}</span>
                       {% endfor %} &emsp;
                     {% endif %}
-                    {% if t.free_tags.all() %}
+                    {% if t.free_tags.count() %}
                       {{ _('Others:') }}
-                      {% for free in t.free_tags %}
+                      {% for free in t.free_tags.all() %}
                         &nbsp
                         <span class="uk-label">{{ free.name }}</span>
                       {% endfor %}

@@ -24,22 +24,24 @@ class TextExtWidget(object):
         title = kwargs.pop('title', field.label.text or '')
         params = html_params(title=title, id=field.name, **kwargs)
         html = ('<textarea %s class="example"\n'
-                '          rows="1" cols="80" name="%s"\n'
-                '          placeholder="..."></textarea>\n') % (params, field.name)
+                '     rows="1" cols="80" name="%s"\n'
+                '     placeholder="..."></textarea>\n') % (params, field.name)
         if self.choices == '[]':
-            script_params = '            plugins : "tags",\n'
+            script_params = ('      plugins : "tags",\n'
+                             '      tagsItems: %s,\n') % json.dumps(field.data)
         else:
-            script_params = ('            tagsItems: %s,\n'
-                             '            plugins : "autocomplete suggestions filter tags",\n'
-                             '            filterItems: %s,\n'
-                             '            suggestions: %s,\n') % (json.dumps(field.data),
-                                                                  self.choices, self.choices)
-        script = ('          <script type="text/javascript">\n'
-                  '            $("#%s")\n'
-                  '            .textext({\n'
+            script_params = (
+                '      tagsItems: %s,\n'
+                '      plugins : "autocomplete suggestions filter tags",\n'
+                '      filterItems: %s,\n'
+                '      suggestions: %s,\n') % (json.dumps(field.data),
+                                               self.choices, self.choices)
+        script = ('     <script type="text/javascript">\n'
+                  '       $("#%s")\n'
+                  '       .textext({\n'
                   '%s'
-                  '            });\n'
-                  '          </script>') % (field.name, script_params)
+                  '       });\n'
+                  '     </script>') % (field.name, script_params)
         return HTMLString(html + script)
 
 class TextExtField(Field):
@@ -61,19 +63,21 @@ class TextExtField(Field):
 
 class ThreadForm(Form):
     title = StringField('Title', [ validators.Length(min=5, max=80)])
-    flag = RadioField('Flag', choices=[('discussion', 'disucussion'),
-                                         ('issue', 'issue')], default='discussion')
+    flag = RadioField('Flag', default='discussion',
+                      choices=[('discussion', 'disucussion'),
+                               ('issue', 'issue')])
     user_tags = TextExtField('Users')
     file_tags = TextExtField('Files')
     custom_tags = TextExtField('Tags')
     free_tags = TextExtField('Hash Tags')
-    #free_tags = StringField('Hash Tags', [ validators.Length(max=80)])
+
 
 class NewThreadForm(ThreadForm):
     # Extends the thread form to include a first comment
-    firstcomment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
+    firstcomment = TextAreaField('Content',
+                                 [validators.Length(min=3, max=2000)])
 
-class NewCommentForm(Form):
+class CommentForm(Form):
     comment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
 
 class CommentSearchForm(Form):

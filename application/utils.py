@@ -1,15 +1,18 @@
 from flask import url_for, flash
 
 from flask_user import current_user
+from flask_babel import gettext as _
+from wtforms.widgets import html_params
+
 from users import *
 from models import Project, Branch
 from application.threads import Comment, File_Tag, Free_Tag
-from application.tools import window, rst2html
+from application.tools import window, rst2html, load_file
 
-from flask_babel import gettext as _
-
+import os
+from os.path import join, isfile, splitext
 from tools import is_dirty, get_requests
-from wtforms.widgets import html_params
+import json
 
 def select_multi_checkbox(field, ul_class='', **kwargs):
     kwargs.setdefault('type', 'checkbox')
@@ -39,50 +42,71 @@ def menu_bar(project=None, branch=None):
     right = []
     #if current_user.is_authenticated:
     if project:
-        left.append(
-            { 'name': project,
-              'sub_menu':
-                  [{'name': 'dashboard',
-                    'url': url_for('bookcloud.project', project=project)},
-                   {'name': 'view master',
-                    'url': url_for('bookcloud.view', project=project,
-                                   branch='master', filename='index.html')},
-                   {'name': 'pdf',
-                    'url': url_for('bookcloud.pdf', project=project)},
-                  ]})
+        left.append({
+            'name': project,
+            'sub_menu': [{
+                'name': 'View master',
+                'url': url_for('bookcloud.view', project=project,
+                               branch='master', filename='index.html')
+            }, {
+                'name': 'Dashboard',
+                'url': url_for('bookcloud.project', project=project)
+            }, {
+                'name': 'Download pdf',
+                'url': url_for('bookcloud.pdf', project=project)
+            }]})
         if branch:
-            left.append(
-                { 'name': branch,
-                  'sub_menu':
-                      [ {'name': 'dashboard',
-                         'url': url_for('bookcloud.branch', project=project,
-                                        branch=branch)},
-                        {'name': 'view',
-                         'url': url_for('bookcloud.view', project=project,
-                                        branch='master', filename='index.html')}
-                      ]})
+            left.append({
+                'name': branch,
+                'sub_menu': [{
+                    'name': 'View',
+                    'url': url_for('bookcloud.view', project=project,
+                                   branch='master', filename='index.html')
+                }, {
+                    'name': 'Dashboard',
+                    'url': url_for('bookcloud.branch', project=project,
+                                   branch=branch)
+                }]})
             if current_user.is_authenticated:
                 if current_user.username == get_branch_owner(project, branch):
                     if is_dirty(project, branch):
                         flash(_('You have uncommitted changes!!!'), 'error')
-                        right.append({'url': url_for('bookcloud.commit',
-                                                     project=project, branch=branch),
-                                      'name': 'commit', 'style': 'attention'})
+                        right.append({
+                            'url': url_for('bookcloud.commit',
+                                           project=project,
+                                           branch=branch),
+                            'name': 'Commit', 'style': 'attention'
+                        })
                     else:
                         if len(get_requests(project, branch)):
                             flash(_('You have unreviewed requests!!!'), 'error')
-                            right.append({'url': url_for('bookcloud.requests',
-                                                         project=project, branch=branch),
-                                          'name': 'requests', 'style': 'attention'})
+                            right.append({
+                                'url': url_for('bookcloud.requests',
+                                               project=project,
+                                               branch=branch),
+                                'name': 'Requests',
+                                'style': 'attention'
+                            })
 
     if current_user.is_authenticated:
         right.append({'name': current_user.username,
-                      'sub_menu':
-                          [ {'name': 'profile', 'url': url_for('users.profile')},
-                            {'name': 'logout', 'url': url_for('user.logout')}
-                          ]})
+                      'sub_menu': [{
+                          'name': 'Profile',
+                          'url': url_for('users.profile')
+                      }, {
+                          'name': 'Logout',
+                          'url': url_for('user.logout')}]})
     else:
-        right = [{'name': 'login', 'url': url_for('user.login')}]
+        right = [{'name': 'Login', 'url': url_for('user.login')}]
 
     return { 'left': left, 'right': right}
 
+def get_labels(project):
+    master_path = join('repos', project.name, 'master', 'source')
+    label_list = []
+    for f in os.listdir(master_path):
+        if (isfile(join(master_path, f)) and f[0] != '.'):
+            data = load_file(join(master_path, f))
+            label_list.extend([splitext(f)[0] + '#' + l
+                               for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
+    return json.dumps(label_list)
