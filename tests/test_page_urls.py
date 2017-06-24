@@ -13,6 +13,7 @@ import os
 import re
 
 from flask_babel import Babel, gettext as _
+from application.threads import Comment
 
 char_set = string.ascii_uppercase + string.digits
 
@@ -30,11 +31,11 @@ def test_page_urls(client):
 
     # Get user profile page
     response = client.get(url_for('users.profile'))
-    assert (b'Your branches' in response.data
-            or b'Seus ramos' in response.data)
+    assert (_('Your branches').encode('utf8') in response.data)
 
     # Update profile
-    response = client.post(url_for('users.update_profile'), follow_redirects=True,
+    response = client.post(url_for('users.update_profile'),
+                           follow_redirects=True,
                            data=dict(integer_property_01='NY'))
     assert b'NY' in response.data
 
@@ -72,13 +73,14 @@ def test_page_urls(client):
     assert 'math' in response.data
 
     # Save index page in master branch
-    response = client.post(url_for('bookcloud.edit',
-                                   project=new_project_name,
-                                   branch='master',
-                                   filename='index'),
-                           follow_redirects=True,
-                           data=dict(code='Title of test page\n==================',
-                                     html_scroll=0, edit_scroll=0))
+    response = client.post(
+        url_for('bookcloud.edit',
+                project=new_project_name,
+                branch='master',
+                filename='index'),
+        follow_redirects=True,
+        data=dict(code='Title of test page\n==================',
+                  html_scroll=0, edit_scroll=0))
     response = client.get(url_for('bookcloud.view',
                               project=new_project_name,
                               branch='master',
@@ -129,7 +131,8 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   filename='index'), follow_redirects=True)
-    assert _('You are not the owner of this branch').encode('utf8') in response.data
+    assert (_('You are not the owner of this branch').encode('utf8')
+            in response.data)
 
     # Clone project
     response = client.post(url_for('bookcloud.clone',
@@ -145,7 +148,8 @@ def test_page_urls(client):
                                    branch='feature',
                                    filename='index'),
                            follow_redirects=True,
-                           data=dict(code=u'Title of test page\n==================\n\nSome contents\n'
+                           data=dict(code=u'Title of test page\n'
+                                     '==================\n\nSome contents\n'
                                      + u'\u0420\u043e\u0441\u0441\u0438\u044f',
                                      html_scroll=0, edit_scroll=0))
 
@@ -154,7 +158,8 @@ def test_page_urls(client):
                                    project=new_project_name,
                                    branch='feature'), follow_redirects=True,
                            data=dict(message="For you!!!"))
-    assert (_('Page submitted to _%s') % 'master').encode('utf8') in response.data
+    assert ((_('Page submitted to _%s') % 'master').encode('utf8')
+            in response.data)
 
     # Log as project creator again
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -176,13 +181,15 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   filename='index.rst'), follow_redirects=True)
-    assert _('You have finished all the reviews').encode('utf8') in response.data
+    assert (_('You have finished all the reviews').encode('utf8')
+            in response.data)
 
     # Finishing merge
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
                                   branch='master'), follow_redirects=True)
-    assert (_('You have finished merging _%s') % 'feature').encode('utf8') in response.data
+    assert ((_('You have finished merging _%s') % 'feature').encode('utf8')
+            in response.data)
 
     # Check changes took place
     response = client.get(url_for('bookcloud.view',
@@ -221,7 +228,8 @@ def test_page_urls(client):
                                    project=new_project_name,
                                    branch='typo'), follow_redirects=True,
                            data=dict(message="For you!!!"))
-    assert (_('Page submitted to _%s') % 'feature').encode('utf8') in response.data
+    assert ((_('Page submitted to _%s') % 'feature').encode('utf8')
+            in response.data)
 
     # Log as project creator again
     response = client.get(url_for('user.logout'), follow_redirects=True)
@@ -254,12 +262,15 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='feature',
-                                  filename='another.rst'), follow_redirects=True)
-    assert _('You have finished all the reviews').encode('utf8') in response.data
+                                  filename='another.rst'),
+                          follow_redirects=True)
+    assert (_('You have finished all the reviews').encode('utf8')
+            in response.data)
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
                                   branch='feature'), follow_redirects=True)
-    assert (_('You have finished merging _%s') % 'typo').encode('utf8') in response.data
+    assert ((_('You have finished merging _%s') % 'typo').encode('utf8')
+            in response.data)
     response = client.get(url_for('bookcloud.view',
                                   project=new_project_name,
                                   branch='feature',
@@ -282,13 +293,16 @@ def test_page_urls(client):
     response = client.get(url_for('bookcloud.accept',
                                   project=new_project_name,
                                   branch='master',
-                                  filename='another.rst'), follow_redirects=True)
+                                  filename='another.rst'),
+                          follow_redirects=True)
 
-    assert _('You have finished all the reviews').encode('utf8') in response.data
+    assert (_('You have finished all the reviews').encode('utf8')
+            in response.data)
     response = client.get(url_for('bookcloud.finish',
                                   project=new_project_name,
                                   branch='master'), follow_redirects=True)
-    assert (_('You have finished merging _%s') % 'feature').encode('utf8') in response.data
+    assert ((_('You have finished merging _%s') % 'feature').encode('utf8')
+            in response.data)
     response = client.get(url_for('bookcloud.view',
                                   project=new_project_name,
                                   branch='master',
@@ -303,7 +317,8 @@ def test_page_urls(client):
     assert 'index' in response.data
 
     # POST newthread
-    response = client.post(url_for('threads.newthread', project=new_project_name),
+    response = client.post(url_for('threads.newthread',
+                                   project=new_project_name),
                            follow_redirects=True,
                            data=dict(title="Hi there!",
                                      flag="discussion",
@@ -320,6 +335,9 @@ def test_page_urls(client):
                               project=new_project_name))
     match = re.search(r'newcomment/(\d+)/000000:', response.data)
     thread_id = match.group(1)
+    comment = (Comment.query
+               .filter(Comment.content.like('%attention%'))
+               .first())
     assert "Give me some attention!" in response.data
 
     # POST reply
@@ -329,6 +347,9 @@ def test_page_urls(client):
                                    parent_lineage="000000:"),
                            follow_redirects=True,
                            data=dict(comment="Please!"))
+    reply = (Comment.query
+             .filter(Comment.content.like('%Please!%'))
+             .first())
     assert (("criado com sucesso" in response.data)
             or ("successfully created" in response.data))
 
@@ -342,11 +363,49 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   thread_id=thread_id),
                           follow_redirects=True,
-                          data=dict(thread_id=thread_id,
-                                    return_url=url_for('bookcloud.home', _external=True)))
-    # print(response.data, thread_id, url_for('bookcloud.home', _external=True))
-    # Not working!!!
-    # assert "vazio" in response.data
+                          data=dict(return_url=url_for('bookcloud.home',
+                                                       _external=True)))
+    assert "vazio" in response.data
+
+    # Try to delete comment
+    response = client.get(url_for('threads.deletecomment',
+                                  project=new_project_name,
+                                  comment_id=comment.id),
+                          follow_redirects=True,
+                          data=dict(return_url=url_for('bookcloud.home',
+                                                       _external=True)))
+    assert (_('This comment has replies and cannot be deleted').encode('utf8')
+            in response.data)
+
+    # Delete reply
+    response = client.get(url_for('threads.deletecomment',
+                                  project=new_project_name,
+                                  comment_id=reply.id),
+                          follow_redirects=True,
+                          data=dict(return_url=url_for('bookcloud.home',
+                                                       _external=True)))
+    assert (_('Comment successfully deleted').encode('utf8')
+            in response.data)
+
+    # Delete first comment
+    response = client.get(url_for('threads.deletecomment',
+                                  project=new_project_name,
+                                  comment_id=comment.id),
+                          follow_redirects=True,
+                          data=dict(return_url=url_for('bookcloud.home',
+                                                       _external=True)))
+    assert (_('Comment successfully deleted').encode('utf8')
+            in response.data)
+
+    # Delete thread
+    response = client.get(url_for('threads.deletethread',
+                                  project=new_project_name,
+                                  thread_id=thread_id),
+                          follow_redirects=True,
+                          data=dict(return_url=url_for('bookcloud.home',
+                                                       _external=True)))
+    assert (_('Thread successfully deleted').encode('utf8')
+            in response.data)
 
     shutil.rmtree(os.path.abspath(os.path.join('repos', new_project_name)))
 
