@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% from "_formhelpers.html" import render_field %}
 
@@ -7,10 +7,10 @@
 {% macro contents() %}
 
   <h1>
-    {{ _('Search comments in: %(project)s') | format(project=project) }}
+    {{ project }}
   </h1>
 
-  <ul id="navigation">
+  {{ description }}
 
   <p>
     {% if form %}

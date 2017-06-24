@@ -258,6 +258,8 @@ from .users import users
 app.register_blueprint(users)
 
 
+# Bring these three next views to views/projects.py, make its own model and forms
+
 @limiter.exempt
 @bookcloud.route('/')
 def home():
@@ -781,8 +783,11 @@ def get_image(project, filename):
 @limiter.exempt
 @app.errorhandler(404)
 def page_not_found(e):
-    menu = menu_bar()
-    return render_template('404.html', menu=menu), 404
+    message = e.description
+    trace = traceback.format_exc()
+    trace = string.split(trace, '\n')
+    return render_template('404.html', message=message,
+                           trace=trace), 500
 
 #@bookcloud.errorhandler(500)
 @limiter.exempt

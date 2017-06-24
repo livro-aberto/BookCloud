@@ -24,18 +24,20 @@ from datetime import datetime
 
 threads = Blueprint('threads', __name__, url_prefix='/threads')
 
-#@limiter.exempt
-#@threads.route('/<project>/tagsthreads/<filetag>')
-#def tagthreads(project, filetag):
-#    # Find threads with a certain filetag
-#    menu = menu_bar(project)
-#    project_id = Project.query.filter_by(name=project).first().id
-#    threads = (Thread.query.join(File_Tag)
-#               .filter(File_Tag.filename.like('%' + filetag + '%'))
-#               .filter(Thread.project_id==project_id)
-#               .order_by(desc(Thread.posted_at)))
-#    return render_template('comments.html', menu=menu, threads=threads,
-#                           show_discussion=True)
+
+@limiter.exempt
+@threads.route('/<project>/tagsthreads/<filetag>')
+def tagthreads(project, filetag):
+    # Find threads with a certain filetag
+    menu = menu_bar(project)
+    project = Project.query.filter_by(name=project).first_or_404()
+    threads = (Thread.query.join(File_Tag)
+               .filter(File_Tag.filename.like('%' + filetag + '%'))
+               .filter(Thread.project==project)
+               .order_by(desc(Thread.posted_at)))
+    description = _('Threads with tag: ') + filetag
+    return render_template('search_comments.html', menu=menu, threads=threads,
+                           description=description)
 
 @threads.route('/<project>/search_comments', methods = ['GET', 'POST'])
 def search_comments(project):
@@ -60,110 +62,81 @@ def search_comments(project):
     return render_template('search_comments.html', menu=menu, threads=threads,
                            form=form, show_discussion=True)
 
+
 @threads.route('/<project>/newthread', methods = ['GET', 'POST'])
 @login_required
 def newthread(project):
     menu = menu_bar(project)
-    project_id = Project.query.filter_by(name=project).first().id
-    filters = {}
-    default = {}
-    filters["usertags"] = json.dumps([u.username for u in User.query.all()])
-    master_path = join('repos', project, 'master', 'source')
+    project = Project.query.filter_by(name=project).first()
+    master_path = join('repos', project.name, 'master', 'source')
     label_list = []
+    inputs = {'user_tags': '', 'file_tags': '', 'custom_tags': '', 'free_tags': ''}
+    for t in inputs:
+        inputs[t] = request.args.get(t) if request.args.get(t) else ''
+    form = NewThreadForm(request.form,
+                         user_tags=inputs['user_tags'].split(","),
+                         file_tags=inputs['file_tags'].split(","),
+                         custom_tags=inputs['custom_tags'].split(","),
+                         free_tags=inputs['free_tags'])
+    form.user_tags.widget.choices = json.dumps([u.username for u in User.query.all()])
     for f in os.listdir(master_path):
         if (isfile(join(master_path, f)) and f[0] != '.'):
             data = load_file(join(master_path, f))
             label_list.extend([splitext(f)[0] + '#' + l
                                for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
-    filters["filetags"] = json.dumps(label_list)
-    #    form.filetags.choices = [(splitext(f)[0], splitext(f)[0])
-    #                             for f in os.listdir(master_path)
-    #                             if isfile(join(master_path, f)) and f[0] != '.']
-    if request.args.get('filetags', ''):
-        default["filetags"] = json.dumps([request.args.get('filetags', '')])
-    else:
-        default["filetags"] = [""]
-    filters["namedtags"] = json.dumps([t.name for t in Named_Tag.query.filter_by(project_id=project_id).all()])
-
-    if request.method == 'POST':
-
-        if ((request.form["title"] == "") or (request.form["firstcomment"] == "")):
-            # Trying to recover when one entry was invalid
-            # form.firstcomment.default = request.form['firstcomment']
-            # form.title.default = request.form['title']
-            # form.freetags.default = request.form['freetags']
-            return render_template('newthread.html', filters=filters, default=default,
-                                   menu=menu, show_discussion=False)
+    form.file_tags.widget.choices = json.dumps(label_list)
+    form.custom_tags.widget.choices = json.dumps(
+        [t.name for t in Named_Tag.query.filter_by(project=project).all()])
+    if request.method == 'POST' and form.validate():
+        # create thread
+        new_thread = Thread(form.title.data,
+                            current_user.id,
+                            project.id,
+                            form.flag.data,
+                            datetime.utcnow())
+        # add tags
+        new_thread.user_tags = [User.get_by_name(n) for n in form.user_tags.data]
+        new_thread.file_tags = [File_Tag(new_thread.id, n) for n in form.file_tags.data]
+        new_thread.custom_tags = [Named_Tag.get_by_name(n) for n in form.custom_tags.data]
+        # add first comment
+        new_comment = Comment('000000:',
+                              new_thread.id,
+                              current_user.id,
+                              form.firstcomment.data,
+                              datetime.utcnow())
+        new_thread.comments = [new_comment]
+        db.session.add(new_thread)
+        db.session.commit()
+        # send emails
+        if not app.config['TESTING']:
+            with mail.connect() as conn:
+                message_head = _('Thread: ') + request.form['title'] + '\n' +\
+                               _('Project: ') + project + '\n' +\
+                               _('Owner: ') + current_user.username + '\n' +\
+                               _('Type: ') + request.form['flag'] + '\n' +\
+                               _('Created at: ') + str(datetime.utcnow()) + '\n' +\
+                               _('Contents:') + '\n\n'
+                links = _('To comment on this thread: ') +\
+                        url_for('threads.newcomment',
+                                project=project,
+                                thread_id = new_thread.id,
+                                _external = True)
+                for user in json.loads(request.form['usertags']):
+                    user_obj = User.get_by_name(user)
+                    message = message_head + request.form['firstcomment'] + '\n\n' + links
+                    subject = _('Thread: ') + request.form['title']
+                    msg = Message(recipients=[user_obj.email],
+                                  body=message,
+                                  subject=subject)
+                    conn.send(msg)
+        flash(_('New thread successfully created'), 'info')
+        if 'return_url' in request.args:
+            print(urllib.unquote(request.args['return_url']))
+            redirect(urllib.unquote(request.args['return_url']))
         else:
-            #owner = User.get_by_name(current_user.username)
-            owner = User.query.filter_by(username=current_user.username).first()
-            # add thread
-            new_thread = Thread(request.form['title'],
-                                owner.id,
-                                project_id,
-                                request.form['flag'],
-                                datetime.utcnow())
-            db.session.add(new_thread)
-            db.session.commit()
-            # add first comment
-            new_comment = Comment('000000:',
-                                  new_thread.id,
-                                  owner.id,
-                                  request.form['firstcomment'],
-                                  datetime.utcnow())
-            db.session.add(new_comment)
-            # add user tags
-            for user in json.loads(request.form['usertags']):
-                db.session.flush()
-                user = User.query.filter_by(username=user).first()
-                #new_usertag = User_Tag(new_thread.id, user_id)
-                new_thread.user_tags.append(user)
-                db.session.commit()#session.add(new_usertag)
-            # add file tags
-            for file in json.loads(request.form['filetags']):
-                new_filetag = File_Tag(new_thread.id, file)
-                db.session.add(new_filetag)
-            # add named tags
-            for tag in json.loads(request.form['namedtags']):
-                db.session.flush()
-                namedtag = Named_Tag.query.filter_by(project_id=project_id, name=tag).first()
-                new_thread.custom_tags.append(namedtag)#new_namedtag = Custom_Tag(new_thread.id, namedtag_id)
-                db.session.commit()#add(new_namedtag)
-            # add free tags
-            for freetag in filter(None, re.findall(r"[\w']+", request.form['freetags'])):
-                new_freetag = Free_Tag(new_thread.id, freetag)
-                db.session.add(new_freetag)
-
-            db.session.commit()
-            # send emails
-            if not app.config['TESTING']:
-                with mail.connect() as conn:
-                    message_head = _('Thread: ') + request.form['title'] + '\n' +\
-                                   _('Project: ') + project + '\n' +\
-                                   _('Owner: ') + owner.username + '\n' +\
-                                   _('Type: ') + request.form['flag'] + '\n' +\
-                                   _('Created at: ') + str(datetime.utcnow()) + '\n' +\
-                                   _('Contents:') + '\n\n'
-                    links = _('To comment on this thread: ') +\
-                            url_for('threads.newcomment',
-                                    project=project,
-                                    thread_id = new_thread.id,
-                                    _external = True)
-                    for user in json.loads(request.form['usertags']):
-                        user_obj = User.query.filter_by(username=user).first()
-                        message = message_head + request.form['firstcomment'] + '\n\n' + links
-                        subject = _('Thread: ') + request.form['title']
-                        msg = Message(recipients=[user_obj.email],
-                                      body=message,
-                                      subject=subject)
-                        conn.send(msg)
-
-            flash(_('New thread successfully created'), 'info')
-            if 'return_url' in request.args:
-                return redirect(urllib.unquote(request.args['return_url']))
-
-    return render_template('newthread.html', filters=filters, default=default,
-                           menu=menu, show_discussion=False)
+            return redirect(url_for('bookcloud.project', project=project.name))
+    return render_template('newthread.html',
+                           menu=menu, form=form, show_discussion=False)
 
 @threads.route('/<project>/editthread/<thread_id>', methods = ['GET', 'POST'])
 @login_required

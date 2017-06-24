@@ -87,7 +87,7 @@ class Comment(CRUDMixin, db.Model):
                            .filter(Comment.lineage.like(decendants)).all())
         return len(decend_comments) > 1
 
-class File_Tag(db.Model):
+class File_Tag(CRUDMixin, db.Model):
     # Associates a file to a thread
     __tablename__ = 'file_tag'
     id = db.Column(db.Integer, primary_key=True)
@@ -99,7 +99,7 @@ class File_Tag(db.Model):
         self.thread_id = thread_id
         self.filename = filename
 
-class Named_Tag(db.Model):
+class Named_Tag(CRUDMixin, db.Model):
     # Tags that are created by moderators
     __tablename__ = 'named_tag'
     id = db.Column(db.Integer, primary_key=True)
@@ -111,7 +111,7 @@ class Named_Tag(db.Model):
         self.name = name
         self.project_id = project_id
 
-class Free_Tag(db.Model):
+class Free_Tag(CRUDMixin, db.Model):
     # Associates a free-named tag to a thread
     __tablename__ = 'free_tag'
     id = db.Column(db.Integer, primary_key=True)

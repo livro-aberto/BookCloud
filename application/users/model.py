@@ -5,7 +5,7 @@ from application.threads import *
 from application.models import CRUDMixin
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
-class User(db.Model, UserMixin):
+class User(CRUDMixin, UserMixin, db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     # User authentication information
@@ -60,5 +60,10 @@ class User(db.Model, UserMixin):
                               lazy='dynamic')
     comments = db.relationship('Comment', backref='author',
                               lazy='dynamic')
+
+    @classmethod
+    def get_by_name(cls, name):
+        print(name)
+        return cls.query.filter_by(username=name).first_or_404()
 
 
