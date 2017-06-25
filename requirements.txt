@@ -4,7 +4,7 @@ flask>=0.11.1
 flask-mail>=0.9.1
 flask_sqlalchemy>=2.1
 flask_user==0.6.8
-flask-login>=0.3.2
+flask-login==0.3.2
 flask-wtf>=0.12
 flask-pytest>=0.0.5
 pytest-flask>=0.10.0
