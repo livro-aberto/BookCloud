@@ -5,8 +5,9 @@ from flask_babel import gettext as _
 from wtforms.widgets import html_params
 
 from users import *
-from models import Project, Branch
+from models import Branch
 from application.threads import Comment, File_Tag, Free_Tag
+from application.projects import Project
 from application.tools import window, rst2html, load_file
 
 import os

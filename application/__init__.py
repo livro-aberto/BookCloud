@@ -32,7 +32,7 @@ db = SQLAlchemy(app)
 # Setup Flask-Mail
 mail = Mail(app)
 
-from models import Project, Branch
+from models import Branch
 from users import User
 from threads import Thread, Comment, File_Tag, Named_Tag, Free_Tag
 

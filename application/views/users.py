@@ -6,10 +6,12 @@ from sqlalchemy import or_, desc
 from application import db
 from application.threads import Thread
 from application.users import User
+from application.projects import Project
 from application import app, limiter
 
-from ..utils import menu_bar
-from ..models import Project, Branch
+from application.utils import menu_bar
+from application.models import Branch
+
 
 users = Blueprint('users', __name__, url_prefix='/users')
 

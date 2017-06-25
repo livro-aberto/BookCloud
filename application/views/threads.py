@@ -3,8 +3,10 @@ import urllib
 from datetime import datetime
 from os.path import join
 
-from flask import Blueprint, request, render_template, url_for, flash, redirect
-from flask_user import login_required
+from flask import (
+    Blueprint, request, render_template,
+    url_for, flash, redirect
+)
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
 from flask_mail import Message
@@ -14,12 +16,12 @@ from application import db, app, limiter, mail
 from application.users import User
 from application.threads import *
 from application.utils import menu_bar, get_labels
-from application.models import Project
+from application.projects import Project
 
 threads = Blueprint('threads', __name__, url_prefix='/threads')
 
 @limiter.exempt
-@threads.route('/<project>/tagsthreads/<filetag>')
+@threads.route('/<project>/tagged_threads/<filetag>')
 def tagthreads(project, filetag):
     # Find threads with a certain filetag
     menu = menu_bar(project)
@@ -57,7 +59,7 @@ def search_comments(project):
     return render_template('search_comments.html', menu=menu, threads=threads,
                            form=form, show_discussion=True)
 
-@threads.route('/<project>/newthread', methods = ['GET', 'POST'])
+@threads.route('/<project>/new_thread', methods = ['GET', 'POST'])
 @login_required
 def newthread(project):
     menu = menu_bar(project)
@@ -133,7 +135,7 @@ def newthread(project):
     return render_template('newthread.html', menu=menu,
                            form=form, show_discussion=False)
 
-@threads.route('/<project>/editthread/<thread_id>', methods = ['GET', 'POST'])
+@threads.route('/<project>/edit_thread/<thread_id>', methods = ['GET', 'POST'])
 @login_required
 def editthread(project, thread_id):
     menu = menu_bar(project)
@@ -179,8 +181,8 @@ def editthread(project, thread_id):
             return redirect(url_for('bookcloud.project', project=project.name))
     return render_template('editthread.html', menu=menu, form=form)
 
-@threads.route('/<project>/newcomment/<thread_id>', methods = ['GET', 'POST'])
-@threads.route('/<project>/newcomment/<thread_id>/<parent_lineage>',
+@threads.route('/<project>/new_comment/<thread_id>', methods = ['GET', 'POST'])
+@threads.route('/<project>/new_comment/<thread_id>/<parent_lineage>',
                methods = ['GET', 'POST'])
 @login_required
 def newcomment(project, thread_id, parent_lineage=''):
@@ -237,7 +239,8 @@ def newcomment(project, thread_id, parent_lineage=''):
     return render_template('newcomment.html', menu=menu,
                            form=form, threads=threads)
 
-@threads.route('/<project>/editcomment/<comment_id>', methods = ['GET', 'POST'])
+@threads.route('/<project>/edit_comment/<comment_id>',
+               methods = ['GET', 'POST'])
 @login_required
 def editcomment(project, comment_id):
     menu = menu_bar(project)
@@ -264,7 +267,7 @@ def editcomment(project, comment_id):
     return render_template('newcomment.html', menu=menu, form=form,
                            threads=threads)
 
-@threads.route('/<project>/deletethread/<int:thread_id>')
+@threads.route('/<project>/delete_thread/<int:thread_id>')
 @login_required
 def deletethread(project, thread_id):
     thread = Thread.get_by_id(thread_id)
@@ -288,8 +291,7 @@ def deletethread(project, thread_id):
     else:
         return redirect(url_for('bookcloud.project', project=project))
 
-
-@threads.route('/<project>/deletecomment/<int:comment_id>')
+@threads.route('/<project>/delete_comment/<int:comment_id>')
 @login_required
 def deletecomment(project, comment_id):
     comment = Comment.get_by_id(comment_id)

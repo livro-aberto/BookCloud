@@ -23,7 +23,8 @@ custom_tags = db.Table('custom_tag',
 )
 
 class Thread(CRUDMixin, db.Model):
-    # One thread holds several comments and is associated to a project
+    # One thread holds several comments
+    # and is associated to a project
     __tablename__ = 'thread'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Unicode(80), nullable=False, unique=False)
