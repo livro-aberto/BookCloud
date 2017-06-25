@@ -15,11 +15,13 @@ app = create_app(dict(
     TESTING=True,  # Propagate exceptions
     LOGIN_DISABLED=False,  # Enable @register_required
     MAIL_SUPPRESS_SEND=True,  # Disable Flask-Mail send
-    SQLALCHEMY_DATABASE_URI='mysql://gutosurrex:8yutjgusuii3hf9kd9d99@localhost/bookcloud',
+    SQLALCHEMY_DATABASE_URI=( 'mysql://gutosurrex:8yutjgusuii3hf9kd9d99'
+                              '@localhost/bookcloud',
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
     BOOKCLOUD_URL_PREFIX = '',
     SQLALCHEMY_TRACK_MODIFICATIONS = True
-    #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'              # v0.5.3 and up
+    #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'
+    # v0.5.3 and up
 ))
 
 def find_or_create_user(name, email, password):
