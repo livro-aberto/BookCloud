@@ -262,7 +262,7 @@ def create_app(extra_config_settings={}):
     mail = Mail(app)
 
     # Create all database tables
-    db.create_all()
+    # db.create_all()
 
     # Setup Flask-User
     db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
