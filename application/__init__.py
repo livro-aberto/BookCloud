@@ -244,7 +244,7 @@ def create_app(extra_config_settings={}):
     """
     import application.views
 
-    app.config.from_object('config')
+    app.config.from_object('application.config')
 
     # Read extra config settings from function parameter 'extra_config_settings'
     app.config.update(extra_config_settings)  # Overwrite with 'extra_config_settings' parameter

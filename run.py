@@ -8,7 +8,7 @@ app = create_app(dict(
                              '@localhost/bookcloud'),
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
     BOOKCLOUD_URL_PREFIX = '',
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    #SQLALCHEMY_TRACK_MODIFICATIONS = True
     #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'
     # v0.5.3 and up
 ))
