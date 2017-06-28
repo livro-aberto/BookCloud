@@ -12,6 +12,7 @@ Create new revision
 
 Check if the generated file is correct.
 
+    alembic upgrade head
 
 ## Init translations
 
