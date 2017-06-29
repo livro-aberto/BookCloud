@@ -1,9 +1,9 @@
 application/migrations/*
 sphinx_edit/static/sphinx_static/*
 trash/*
-application/instance/*
-!application/instance/instance_config_default.py
-!application/instance/README.md
+instance/*
+!instance/instance_config_default.py
+!instance/README.md
 
 repos/*
 !repos/README.md
