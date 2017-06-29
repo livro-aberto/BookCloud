@@ -575,9 +575,7 @@ def accept(project, branch, filename):
     return redirect(url_for('.merge', project=project, branch=branch, other=merging['branch']))
 
 from .threads import threads
-
 app.register_blueprint(threads)
-
 
 @limiter.exempt
 @bookcloud.route('/<project>/<branch>/view/<path:filename>')

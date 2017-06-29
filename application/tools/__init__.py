@@ -1,5 +1,7 @@
 from flask import redirect, url_for, flash
 
+from flask_babel import gettext as _
+
 def window(iterable):
     # Turns an iterable into a moving window
     # [0, ..., 10] -> [(None, 0, 1), (0, 1, 2), ..., (8, 9, None), (9, None, None)]

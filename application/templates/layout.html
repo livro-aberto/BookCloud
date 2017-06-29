@@ -90,6 +90,32 @@
             margin-bottom: 15px;
             }
 
+            .info, .error {
+                -moz-animation: cssAnimation 0s ease-in 5s forwards;
+                /* Firefox */
+                -webkit-animation: cssAnimation 0s ease-in 5s forwards;
+                /* Safari and Chrome */
+                -o-animation: cssAnimation 0s ease-in 5s forwards;
+                /* Opera */
+                animation: cssAnimation 0s ease-in 5s forwards;
+                -webkit-animation-fill-mode: forwards;
+                animation-fill-mode: forwards;
+            }
+            @keyframes cssAnimation {
+                to {
+               position: absolute;
+               top: -9999px;
+               left: -9999px;
+                }
+            }
+            @-webkit-keyframes cssAnimation {
+                to {
+               position: absolute;
+               top: -9999px;
+               left: -9999px;
+                }
+            }
+
             .info {
             padding: 20px;
             background-color: #1abc9c;
@@ -215,7 +241,7 @@
 
               {% if threads_by_tag %}
                 {% for t in threads_by_tag %}
-                <div id="disucussion_from-{{ t['name'] }}"
+                <div id="discussion_from-{{ t['name'] }}"
                      style="background-color: #d5e3f1">
                   <div title="{{ '\n'.join(t['titles']) }}">
                     Discussions ({{ len(t['titles']) }})
@@ -227,14 +253,15 @@
                               project=project) }}?file_tags={{ t['fullname'] }}"
                         target="_blank">new</a>)
                   </div>
+                  </div>
                 {% endfor %}
                 <script>
                   $(document).ready(function() {
                   {% for t in threads_by_tag %}
                     if ($("span#{{ t['name'] }}").length) {
-                    $("#disucussion_from-{{ t['name'] }}").appendTo($("#{{ t['name'] }}").parent());
+                    $("#discussion_from-{{ t['name'] }}").insertAfter($("#{{ t['name'] }}").next("a, h1, h2, h3, h4, h5"));
                     } else {
-                    $("#disucussion_from-{{ t['name'] }}").appendTo($("#{{ t['name'] }}"));
+                    $("#discussion_from-{{ t['name'] }}").insertAfter($("#{{ t['name'] }}"));
                     }
                   {% endfor %}
                   });

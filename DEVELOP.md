@@ -4,11 +4,15 @@
 You may need:
 
     source vir/bin/activate
+    cd migrations
 
-Then:
+Create new revision
 
-    python manage.py db upgrade
-    python manage.py db migrate
+    alembic revision --autogenerate -m "Message"
+
+Check if the generated file is correct.
+
+    alembic upgrade head
 
 ## Init translations
 

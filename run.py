@@ -13,15 +13,11 @@ for extra_dir in extra_dirs:
 
 app = create_app(dict(
     TESTING=True,  # Propagate exceptions
+    DEBUG=True,
     LOGIN_DISABLED=False,  # Enable @register_required
     MAIL_SUPPRESS_SEND=True,  # Disable Flask-Mail send
-    SQLALCHEMY_DATABASE_URI=( 'mysql://gutosurrex:8yutjgusuii3hf9kd9d99'
-                              '@localhost/bookcloud',
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
-    BOOKCLOUD_URL_PREFIX = '',
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
-    #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'
-    # v0.5.3 and up
+    BOOKCLOUD_URL_PREFIX = ''
 ))
 
 def find_or_create_user(name, email, password):
@@ -40,7 +36,7 @@ def create_users():
     """ Create users when app starts """
 
     # Create all tables
-    the_db.create_all()
+    #the_db.create_all()
 
     # Add users
     user = find_or_create_user(u'foo', 'foo@example.com', 'Foo123')

@@ -3,6 +3,22 @@
   - in discussions:
     - put example tags to help user start typing (using random elements from sql)
     - put link to view discussions and to add discussion on that topic
+
+  - syntax highlight for sphinx with block highlight
+
+        https://codemirror.net/doc/manual.html#modeapi
+        https://codemirror.net/demo/simplemode.html
+        https://github.com/codemirror/CodeMirror/blob/master/mode/rst/rst.js
+
+  - implement progress bar
+
+        <table><tr><td>Sabonete </td>
+        <td width=150 style="border: 2px solid silver;padding:none">
+        <hr style="color:#00c;background-color:#00c;height:15px; border:none;margin:0;" align="left" width=100% />
+        </td>
+        </tr></table>
+
+  - implement edit comment for owner
   - implement follow thread
   - implement tags for labels (remove the file from the name?)
   - make security improvements on sphinx:

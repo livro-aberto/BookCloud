@@ -17,6 +17,17 @@ from application.threads import Comment
 
 char_set = string.ascii_uppercase + string.digits
 
+test_page = (u'Title of test page\n'
+              '==================\n'
+              '\n'
+              'Contents:\n'
+              '\n'
+              '.. toctree::\n'
+              '   :maxdepth: 1\n'
+              '   :glob:\n'
+              '\n'
+              '   *\n')
+
 def test_page_urls(client):
     # Visit home page
     response = client.get(url_for('projects.home'))
@@ -73,14 +84,13 @@ def test_page_urls(client):
     assert 'math' in response.data
 
     # Save index page in master branch
-    response = client.post(
-        url_for('bookcloud.edit',
-                project=new_project_name,
-                branch='master',
-                filename='index'),
-        follow_redirects=True,
-        data=dict(code='Title of test page\n==================',
-                  html_scroll=0, edit_scroll=0))
+    response = client.post(url_for('bookcloud.edit',
+                                   project=new_project_name,
+                                   branch='master',
+                                   filename='index'),
+                           follow_redirects=True,
+                           data=dict(code=test_page,
+                                     html_scroll=0, edit_scroll=0))
     response = client.get(url_for('bookcloud.view',
                               project=new_project_name,
                               branch='master',
@@ -148,8 +158,7 @@ def test_page_urls(client):
                                    branch='feature',
                                    filename='index'),
                            follow_redirects=True,
-                           data=dict(code=u'Title of test page\n'
-                                     '==================\n\nSome contents\n'
+                           data=dict(code=test_page + u'\nSome contents\n'
                                      + u'\u0420\u043e\u0441\u0441\u0438\u044f',
                                      html_scroll=0, edit_scroll=0))
 

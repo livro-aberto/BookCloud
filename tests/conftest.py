@@ -1,11 +1,3 @@
-# This file contains pytest 'fixtures'.
-# If a test functions specifies the name of a fixture function as a parameter,
-# the fixture function is called and its result is passed to the test function.
-#
-# Copyright 2014 SolidBuilds.com. All rights reserved
-#
-# Authors: Ling Thio <ling.thio@gmail.com>
-
 import pytest
 
 from application import create_app, db as the_db
@@ -16,16 +8,8 @@ the_app = create_app(dict(
     MAIL_SUPPRESS_SEND=False,  # Disable Flask-Mail send
     SERVER_NAME='localhost',  # Enable url_for() without request context
     SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',  # In-memory SQLite DB
-    WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
-    USER_ENABLE_EMAIL =          False,
-    USER_ENABLE_CONFIRM_EMAIL =  False,
-    USER_SEND_REGISTERED_EMAIL = False,
-    USER_ENABLE_LOGIN_WITHOUT_CONFIRM_EMAIL = False
-    #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'              # v0.5.3 and up
+    WTF_CSRF_ENABLED=False  # Disable CSRF form validation
 ))
-
-#import application.views as views
-#views.set_lang('en_US')
 
 def find_or_create_user(name, email, password):
     """ Find existing user or create new user """
@@ -54,10 +38,6 @@ def create_users():
     the_db.session.commit()
 
 create_users()
-
-# Setup an application context (since the tests run outside of the webserver context)
-the_app.app_context().push()
-
 
 @pytest.fixture(scope='session')
 def app():

@@ -4,7 +4,7 @@ import os
 SECRET_KEY =              os.getenv('SECRET_KEY',       'THIS IS AN INSECURE SECRET')
 SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL',     'mysql://username:password@localhost/db_name')
 CSRF_ENABLED = True
-SQLALCHEMY_TRACK_MODIFICATIONS = True
+SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Flask-Mail settings
 USER_ENABLE_EMAIL =          False
