@@ -19,18 +19,18 @@ def get_identifier():
     return get_remote_address()
 
 # Setup Flask app and app.config
-app = Flask(__name__)
+app = Flask(__name__, instance_relative_config=True)
+
 limiter = Limiter(
     app,
     key_func=get_identifier,
-    global_limits=["200 per day", "50 per hour"]
-)
+    global_limits=["200 per day", "50 per hour"])
 
 # Initialize Flask-SQLAlchemy
 db = SQLAlchemy(app)
 
 # Setup Flask-Mail
-mail = Mail(app)
+mail = Mail()
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
 class User(db.Model, UserMixin):
@@ -235,9 +235,6 @@ class Free_Tag(db.Model):
         self.thread_id = thread_id
         self.name = name
 
-
-
-
 def create_app(extra_config_settings={}):
     """
     Initialize Flask applicaton
@@ -245,13 +242,18 @@ def create_app(extra_config_settings={}):
     import application.views
 
     app.config.from_object('config')
+    app.config.from_pyfile('instance_config.py')
 
-    # Read extra config settings from function parameter 'extra_config_settings'
-    app.config.update(extra_config_settings)  # Overwrite with 'extra_config_settings' parameter
+    # Read extra config settings from function parameter
+    # 'extra_config_settings'
+
+    # Overwrite with 'extra_config_settings' parameter
+    app.config.update(extra_config_settings)
 
     app.config['LANGUAGE'] = 'pt_BR'
     if app.testing or app.config['TESTING']:
-        app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF checks while testing
+        # Disable CSRF checks while testing
+        app.config['WTF_CSRF_ENABLED'] = False
         app.config['LANGUAGE'] = 'en_US'
         app.config['BOOKCLOUD_URL_PREFIX'] = ''
 
@@ -259,10 +261,7 @@ def create_app(extra_config_settings={}):
                            url_prefix=app.config['BOOKCLOUD_URL_PREFIX'])
 
     # Setup Flask-Mail
-    mail = Mail(app)
-
-    # Create all database tables
-    # db.create_all()
+    mail.init_app(app)
 
     # Setup Flask-User
     db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
