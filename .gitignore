@@ -1,15 +1,19 @@
 application/migrations/*
 sphinx_edit/static/sphinx_static/*
 trash/*
-images/*
+application/instance/*
+!application/instance/instance_config_default.py
+!application/instance/README.md
 
 repos/*
-!repos/README.md 
+!repos/README.md
 
-*.sqlite
 config.py
 manage.py
+
+# virtualenv
 vir/*
+
 conf/conf.py
 
 # Byte-compiled / optimized / DLL files
@@ -63,25 +67,14 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
-*.log
-local_settings.py
-
 # Flask stuff:
-instance/
 .webassets-cache
-
-# Scrapy stuff:
-.scrapy
 
 # Sphinx documentation
 docs/_build/
 
 # PyBuilder
 target/
-
-# IPython Notebook
-.ipynb_checkpoints
 
 # pyenv
 .python-version
@@ -92,12 +85,5 @@ celerybeat-schedule
 # dotenv
 .env
 
-# virtualenv
-venv/
-ENV/
 
-# Spyder project settings
-.spyderproject
 
-# Rope project settings
-.ropeproject
