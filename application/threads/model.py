@@ -1,8 +1,6 @@
 from application import db
 from sqlalchemy.orm import relationship
-import application.users
 
-from application.tools import window, rst2html
 from application.models import CRUDMixin
 
 # Classes for threads and comments

@@ -1,8 +1,8 @@
 from wtforms import (
     Form, StringField, validators, RadioField,
-    TextAreaField, SelectField, Field
+    TextAreaField, Field
 )
-from wtforms.widgets.core import HTMLString, html_params, escape
+from wtforms.widgets.core import HTMLString, html_params
 
 from application.utils import create_message
 

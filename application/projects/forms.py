@@ -1,4 +1,4 @@
-from wtforms import Form, StringField, validators
+from wtforms import Form
 
 from application.utils import create_identifier
 
