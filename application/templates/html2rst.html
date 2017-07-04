@@ -28,7 +28,7 @@
         {% endif %}
       </div>
       <div class="row">
-	<form class="span12" id="postForm" action="{{ url_for('.html2rst') }}" method="POST" enctype="multipart/form-data" onsubmit="return postForm()">
+	<form class="span12" id="postForm" action="{{ url_for('branches.html2rst') }}" method="POST" enctype="multipart/form-data" onsubmit="return postForm()">
 	  <fieldset>
 	    <legend>Type your text and convert to sphinx</legend>
 	    <p class="container">

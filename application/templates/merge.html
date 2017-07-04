@@ -22,9 +22,9 @@
   <li>
     {{ f }}
     <ul>
-      <li><a href="{{ url_for('.review', project=project, branch=branch, filename=f) }}">{{ _('Review file') }}</a></li>
-      <li><a href="{{ url_for('.diff', project=project, branch=branch, filename=f) }}">{{  _('View differences') }}</a></li>
-      <li><a href="{{ url_for('.accept', project=project, branch=branch, filename=f) }}">{{ _('Accept suggestions') }}</a></li>
+      <li><a href="{{ url_for('branches.review', project=project, branch=branch, filename=f) }}">{{ _('Review file') }}</a></li>
+      <li><a href="{{ url_for('branches.diff', project=project, branch=branch, filename=f) }}">{{  _('View differences') }}</a></li>
+      <li><a href="{{ url_for('branches.accept', project=project, branch=branch, filename=f) }}">{{ _('Accept suggestions') }}</a></li>
       </li>
     </ul>
   </li>
@@ -37,7 +37,7 @@
 <ul id="navigation">
   {% for f in reviewed %}
   <li>
-    <a href="{{ url_for('.review', project=project, branch=branch, filename=f) }}">{{ f }}</a>
+    <a href="{{ url_for('branches.review', project=project, branch=branch, filename=f) }}">{{ f }}</a>
   </li>
   {% endfor %}
 </ul>
@@ -45,7 +45,7 @@
 
 {% if not modified %}
 <h2>{{ _('You have finished all the reviews') }}</h2>
-<a href="{{ url_for('.finish', project=project, branch=branch) }}">{{ _('Finish merge') }}</a>
+<a href="{{ url_for('branches.finish', project=project, branch=branch) }}">{{ _('Finish merge') }}</a>
 {% endif %}
 
 {% endmacro %}

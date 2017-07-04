@@ -4,6 +4,8 @@ from wtforms import (
 )
 from wtforms.widgets.core import HTMLString, html_params, escape
 
+from application.utils import create_message
+
 import json
 import re
 
@@ -62,7 +64,7 @@ class TextExtField(Field):
             self.data = []
 
 class ThreadForm(Form):
-    title = StringField('Title', [ validators.Length(min=5, max=80)])
+    title = create_message('Title')
     flag = RadioField('Flag', default='discussion',
                       choices=[('discussion', 'disucussion'),
                                ('issue', 'issue')])

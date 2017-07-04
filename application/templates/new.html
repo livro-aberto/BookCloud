@@ -1,21 +1,23 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% from "_formhelpers.html" import render_field %}
 
 {% block title %}{{ _('Create new project') }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ _('Create new project') }}</h1>
-
-<ul id="navigation">
-
-  <p>
+  <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
     <form method="POST">
-      {{ render_field(form.name) }}
-      <br>
-      <input type=submit value=Register>
+      <fieldset class="uk-fieldset">
+        <legend class="uk-legend">{{ _('Create new project') }}</legend>
+        <div class="uk-margin">
+          {{ render_field(form.name) }}
+        </div>
+        <div class="uk-margin">
+          <button class="uk-button uk-button-default">Submit</button>
+        </div>
     </form>
-  </p>
-</ul>
+  </div>
+
+
 {% endmacro %}
 

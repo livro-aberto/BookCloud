@@ -1,11 +1,15 @@
 from wtforms import Form, StringField, validators
 
+from application.utils import create_identifier
+
+from flask_babel import gettext as _
+
+
 class ProjectForm(Form):
-    name = StringField('Identifier', [
-        validators.Length(min=4, max=25),
-        validators.Regexp(
-            '^[\w-]+$',
-            message="Identifiers must contain only a-zA-Z0-9_-"),])
+    name = create_identifier(_('Project name'))
+
+class FileForm(Form):
+    name = create_identifier(_('File name'))
 
 
 

@@ -2,15 +2,6 @@ from application import create_app, db as the_db
 
 import os
 
-extra_dirs = ['application/templates',]
-extra_files = extra_dirs[:]
-for extra_dir in extra_dirs:
-    for dirname, dirs, files in os.walk(extra_dir):
-        for filename in files:
-            filename = os.path.join(dirname, filename)
-            if os.path.isfile(filename):
-                extra_files.append(filename)
-
 app = create_app(dict(
     TESTING=True,  # Propagate exceptions
     DEBUG=True,
@@ -19,6 +10,16 @@ app = create_app(dict(
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
     BOOKCLOUD_URL_PREFIX = ''
 ))
+
+# Watch changes in template files
+extra_dirs = ['application/templates',]
+extra_files = extra_dirs[:]
+for extra_dir in extra_dirs:
+    for dirname, dirs, files in os.walk(extra_dir):
+        for filename in files:
+            filename = os.path.join(dirname, filename)
+            if os.path.isfile(filename):
+                extra_files.append(filename)
 
 def find_or_create_user(name, email, password):
     """ Find existing user or create new user """

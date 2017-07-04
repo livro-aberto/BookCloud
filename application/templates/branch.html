@@ -7,11 +7,11 @@
 
   <br>
 
-  <a href="{{ url_for('.view', project=project, branch=branch, filename='index.html') }}">{{ _('Visit branch') }}</a>
+  <a href="{{ url_for('branches.view', project=project, branch=branch, filename='index.html') }}">{{ _('Visit branch') }}</a>
 
   <br>
 
-  <a href="{{ url_for('.newfile', project=project, branch=branch) }}">{{ _('Create a new file') }}</a>
+  <a href="{{ url_for('projects.newfile', project=project, branch=branch) }}">{{ _('Create a new file') }}</a>
 
   <br>
 

@@ -108,17 +108,17 @@ div.bodywrapper {
           <textarea id="new_file" style="display:none">{{ new }}</textarea>
           <textarea id="old_file" style="display:none">{{ old }}</textarea>
 
-        <form method="post" id="myform" name="myform" action="{{ url_for('.commit', project=project, branch=branch, filename=filename) }}">
+        <form method="post" id="myform" name="myform" action="{{ url_for('branches.commit', project=project, branch=branch, filename=filename) }}">
           <div id="view" name="view"></div>
 
           <input type="hidden" id="hidden" name="code"/>
 
           <div align="right">
-            <a href="{{ url_for('.merge', project=project,
+            <a href="{{ url_for('branches.merge', project=project,
                branch=branch, other=other) }}" style="text-decoration:none">
             <input type="button" value="exit"/>
           </a>
-            <input id="save" name="save" type="submit" formaction="{{ url_for('.review',
+            <input id="save" name="save" type="submit" formaction="{{ url_for('branches.review',
                    project=project, branch=branch, filename=filename) }}"
                    value="aceitar texto da direita!" onclick="sendIt()">
           </div>

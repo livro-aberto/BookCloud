@@ -7,10 +7,9 @@ from application import db
 from application.threads import Thread
 from application.users import User
 from application.projects import Project
+from application.branches import Branch
 from application import app, limiter
-
-from application.utils import menu_bar
-from application.models import Branch
+import application
 
 
 users = Blueprint('users', __name__, url_prefix='/users')
@@ -27,7 +26,7 @@ def logout():
 @users.route('/profile')
 @login_required
 def profile():
-    menu = menu_bar()
+    menu = application.views.menu_bar()
     projects = list(Project.query.all())
     threads = current_user.threads
     return render_template('profile.html', projects=projects, user=current_user,
@@ -38,7 +37,7 @@ def profile():
 @users.route('/update_profile', methods = ['GET', 'POST'])
 @login_required
 def update_profile():
-    menu = menu_bar()
+    menu = application.views.menu_bar()
     if request.method == 'POST':
         for item in app.config['USER_PROPERTIES']:
             if request.form.has_key(item['variable']):

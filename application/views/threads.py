@@ -15,8 +15,8 @@ from sqlalchemy import or_, desc
 from application import db, app, limiter, mail
 from application.users import User
 from application.threads import *
-from application.utils import menu_bar, get_labels
-from application.projects import Project
+from application.projects import *
+
 
 threads = Blueprint('threads', __name__, url_prefix='/threads')
 
@@ -24,7 +24,7 @@ threads = Blueprint('threads', __name__, url_prefix='/threads')
 @threads.route('/<project>/tagged_threads/<filetag>')
 def tagthreads(project, filetag):
     # Find threads with a certain filetag
-    menu = menu_bar(project)
+    menu = application.views.menu_bar(project)
     project = Project.query.filter_by(name=project).first_or_404()
     threads = (Thread.query.join(File_Tag)
                .filter(File_Tag.filename.like('%' + filetag + '%'))
@@ -37,7 +37,7 @@ def tagthreads(project, filetag):
 
 @threads.route('/<project>/search_comments', methods = ['GET', 'POST'])
 def search_comments(project):
-    menu = menu_bar(project)
+    menu = application.views.menu_bar(project)
     project = Project.query.filter_by(name=project).first_or_404()
     form = CommentSearchForm(request.form)
     if request.method == 'POST' and form.validate():
@@ -62,7 +62,7 @@ def search_comments(project):
 @threads.route('/<project>/new_thread', methods = ['GET', 'POST'])
 @login_required
 def newthread(project):
-    menu = menu_bar(project)
+    menu = application.views.menu_bar(project)
     project = Project.query.filter_by(name=project).first_or_404()
     inputs = {'user_tags': '', 'file_tags': '',
               'custom_tags': '', 'free_tags': ''}
@@ -131,14 +131,14 @@ def newthread(project):
         if 'return_url' in request.args:
             redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('bookcloud.project', project=project.name))
+            return redirect(url_for('projects.project', project=project.name))
     return render_template('newthread.html', menu=menu,
                            form=form, show_discussion=False)
 
 @threads.route('/<project>/edit_thread/<thread_id>', methods = ['GET', 'POST'])
 @login_required
 def editthread(project, thread_id):
-    menu = menu_bar(project)
+    menu = application.views.menu_bar(project)
     project = Project.query.filter_by(name=project).first_or_404()
     thread = Thread.get_by_id(thread_id)
     if (current_user != thread.owner and
@@ -146,7 +146,7 @@ def editthread(project, thread_id):
         current_user.username != get_branch_owner(project, 'master')):
         # Not allowed
         flash(_('You are not allowed to edit this thread'), 'error')
-        return redirect(url_for('bookcloud.project', project=project))
+        return redirect(url_for('projects.project', project=project))
     form = ThreadForm(
         request.form,
         title=thread.title,
@@ -178,7 +178,7 @@ def editthread(project, thread_id):
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('bookcloud.project', project=project.name))
+            return redirect(url_for('projects.project', project=project.name))
     return render_template('editthread.html', menu=menu, form=form)
 
 @threads.route('/<project>/new_comment/<thread_id>', methods = ['GET', 'POST'])
@@ -186,7 +186,7 @@ def editthread(project, thread_id):
                methods = ['GET', 'POST'])
 @login_required
 def newcomment(project, thread_id, parent_lineage=''):
-    menu = menu_bar(project)
+    menu = application.views.menu_bar(project)
     form = CommentForm(request.form)
     if request.method == 'POST' and form.validate():
         project = Project.query.filter_by(name=project).first_or_404()
@@ -243,7 +243,7 @@ def newcomment(project, thread_id, parent_lineage=''):
                methods = ['GET', 'POST'])
 @login_required
 def editcomment(project, comment_id):
-    menu = menu_bar(project)
+    menu = application.views.menu_bar(project)
     comment = Comment.get_by_id(comment_id)
     print(comment.content)
     form = CommentForm(request.form,
@@ -253,7 +253,7 @@ def editcomment(project, comment_id):
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('bookcloud.project', project=project))
+            return redirect(url_for('projects.project', project=project))
     if request.method == 'POST' and form.validate():
             comment.content = form.comment.data
             db.session.commit()
@@ -261,7 +261,7 @@ def editcomment(project, comment_id):
             if 'return_url' in request.args:
                 return redirect(urllib.unquote(request.args['return_url']))
             else:
-                return redirect(url_for('bookcloud.project', project=project))
+                return redirect(url_for('projects.project', project=project))
     threads = (Thread.query.filter_by(id=comment.thread.id)
                .order_by(desc(Thread.posted_at)))
     return render_template('newcomment.html', menu=menu, form=form,
@@ -289,7 +289,7 @@ def deletethread(project, thread_id):
     if 'return_url' in request.args:
         return redirect(urllib.unquote(request.args['return_url']))
     else:
-        return redirect(url_for('bookcloud.project', project=project))
+        return redirect(url_for('projects.project', project=project))
 
 @threads.route('/<project>/delete_comment/<int:comment_id>')
 @login_required
@@ -313,6 +313,6 @@ def deletecomment(project, comment_id):
     if 'return_url' in request.args:
         return redirect(urllib.unquote(request.args['return_url']))
     else:
-        return redirect(url_for('bookcloud.project', project=project))
+        return redirect(url_for('projects.project', project=project))
 
 

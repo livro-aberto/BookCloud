@@ -32,7 +32,6 @@ db = SQLAlchemy(app)
 # Setup Flask-Mail
 mail = Mail()
 
-from models import Branch
 from users import User
 from threads import Thread, Comment, File_Tag, Named_Tag, Free_Tag
 
@@ -41,6 +40,11 @@ def create_app(extra_config_settings={}):
     Initialize Flask applicaton
     """
     import application.views
+
+    app.register_blueprint(application.views.users.users)
+    app.register_blueprint(application.views.projects.projects)
+    app.register_blueprint(application.views.threads.threads)
+    app.register_blueprint(application.views.branches.branches)
 
     app.config.from_object('config')
     app.config.from_pyfile('instance_config.py')

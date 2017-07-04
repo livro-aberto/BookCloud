@@ -8,7 +8,7 @@
     <ul id="navigation">
     {% for b in unmerged %}
     <li>
-      Request from <a href="{{ url_for('.merge', project=project, branch=branch, other=b) }}">{{ b }}</a>, by @{{ get_branch_by_name(project, b).owner.username }}
+      Request from <a href="{{ url_for('branches.merge', project=project, branch=branch, other=b) }}">{{ b }}</a>, by @{{ get_branch_by_name(project, b).owner.username }}
     </li>
       <div class="code highlight-default">
         <div class="highlight">

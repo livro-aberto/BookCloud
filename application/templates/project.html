@@ -11,7 +11,7 @@
   </p>
 
     <p>
-      <a href="{{ url_for('.view', project=project, branch='master',
+      <a href="{{ url_for('branches.view', project=project, branch='master',
                filename='index.html') }}">master</a>,
                (by @{{ tree[0]['branch'].owner.username }})
                {% if is_dirty(project, 'master') %}
@@ -20,7 +20,7 @@
                {% if has_requests(project, 'master') %}
                  <b>(has requests)</b>
                {% endif %}
-               - <a href="{{ url_for('.pdf', project=project,
+               - <a href="{{ url_for('branches.pdf', project=project,
                branch='master') }}">pdf</a>
     </p>
 
@@ -32,13 +32,13 @@
       <ul>
         {% for item in tree[0].subtree recursive %}
           <li>
-            <a href="{{ url_for('.view', project=project, branch=item['branch'].name,
+            <a href="{{ url_for('branches.view', project=project, branch=item['branch'].name,
                      filename='index.html') }}">{{ item['branch'].name }}</a>,
                      (by @{{ item['branch'].owner.username }})
                      {% if is_dirty(project, item['branch'].name) %}
                        <b>(modified {{ last_modified(project, item['branch'].name) }})</b>
                        {% if current_user.username == project_owner %}
-                         - <a href="{{ url_for('.commit', project=project,
+                         - <a href="{{ url_for('branches.commit', project=project,
                                                branch=item['branch'].name) }}">
                              commit
                            </a>
@@ -48,7 +48,7 @@
                      {% if has_requests(project, item['branch'].name) %}
                        <b>(has requests)</b>
                      {% endif %}
-                     - <a href="{{ url_for('.pdf', project=project,
+                     - <a href="{{ url_for('branches.pdf', project=project,
                      branch=item['branch'].name) }}">pdf</a>
                      {% if item['branch'].expires %}
                        expires ({{ item['branch'].expiration }})
@@ -77,10 +77,10 @@
             <hr style="color:#00c;background-color:#00c;height:15px; border:none;margin:0;" align="left" width={{ file[2] }}% />
           </td>
           <td>
-            <a href="{{ url_for('.view', project=project, branch='master', filename=file[0]) }}.html">view</a>
+            <a href="{{ url_for('branches.view', project=project, branch='master', filename=file[0]) }}.html">view</a>
             {% if current_user.username == project_owner %}
-              , <a href="{{ url_for('.renamefile', project=project, oldfilename=file[0]) }}">rename</a>
-              , <a href="{{ url_for('.deletefile', project=project, filename=file[0]) }}">delete</a>
+              , <a href="{{ url_for('projects.renamefile', project=project, oldfilename=file[0]) }}">rename</a>
+              , <a href="{{ url_for('projects.deletefile', project=project, filename=file[0]) }}">delete</a>
             {% endif %}
           </td>
         </tr>

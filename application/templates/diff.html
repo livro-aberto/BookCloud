@@ -40,8 +40,8 @@ margin: 0 0 0 20px;
 <br>
 
 <div style="text-align: right;">
-<a href="{{ url_for('.merge', project=project, branch=branch, other=other) }}">Cancel</a>
-<a href="{{ url_for('.accept', project=project, branch=branch, filename=filename) }}">Accept</a>
+<a href="{{ url_for('branches.merge', project=project, branch=branch, other=other) }}">Cancel</a>
+<a href="{{ url_for('branches.accept', project=project, branch=branch, filename=filename) }}">Accept</a>
 </div>
 
 {% endmacro %}
