@@ -1,25 +1,9 @@
-import os
-from os.path import join, isfile, splitext
-import json
-
-import git
-
-from flask import url_for, flash
-
-from flask_user import current_user
-from flask_babel import gettext as _
 from wtforms.widgets import html_params
 from wtforms import (
     StringField, validators
 )
 
-from users import *
-#from application.branches import *
-from application.threads import Comment, File_Tag, Free_Tag
-#from application.projects import Project
-from application.tools import Command, window, rst2html, load_file
 
-from shutil import copyfile
 
 # import special tools for this platform
 #from application.tools import window, rst2html, Command, get_git, load_file,\

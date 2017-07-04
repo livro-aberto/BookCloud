@@ -1,5 +1,5 @@
-import re
 import urllib
+import json
 from datetime import datetime
 from os.path import join
 
@@ -12,10 +12,14 @@ from flask_babel import gettext as _
 from flask_mail import Message
 from sqlalchemy import or_, desc
 
+import application
 from application import db, app, limiter, mail
 from application.users import User
-from application.threads import *
-from application.projects import *
+from application.threads import (
+    Thread, Comment, File_Tag, Named_Tag, CommentSearchForm, NewThreadForm,
+    CommentForm
+)
+from application.projects import Project, get_labels
 
 
 threads = Blueprint('threads', __name__, url_prefix='/threads')

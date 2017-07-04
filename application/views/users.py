@@ -1,13 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
-from sqlalchemy import or_, desc
 
 from application import db
-from application.threads import Thread
-from application.users import User
 from application.projects import Project
-from application.branches import Branch
 from application import app, limiter
 import application
 

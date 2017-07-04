@@ -33,29 +33,22 @@ db = SQLAlchemy(app)
 mail = Mail()
 
 from users import User
-from threads import Thread, Comment, File_Tag, Named_Tag, Free_Tag
 
 def create_app(extra_config_settings={}):
     """
     Initialize Flask applicaton
     """
     import application.views
-
     app.register_blueprint(application.views.users.users)
     app.register_blueprint(application.views.projects.projects)
     app.register_blueprint(application.views.threads.threads)
     app.register_blueprint(application.views.branches.branches)
-
+    # Configure app
     app.config.from_object('config')
     app.config.from_pyfile('instance_config.py')
-
-    # Read extra config settings from function parameter
-    # 'extra_config_settings'
-
-    # Overwrite with 'extra_config_settings' parameter
+    # Read extra config settings from extra arguments
     app.config.update(extra_config_settings)
-
-
+    # Set languange
     app.config['LANGUAGE'] = 'pt_BR'
     if app.testing or app.config['TESTING']:
         # Disable CSRF checks while testing

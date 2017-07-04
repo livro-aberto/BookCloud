@@ -1,7 +1,6 @@
 from flask_user import UserMixin
 
 from application import db
-from application.threads import *
 from application.models import CRUDMixin
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!

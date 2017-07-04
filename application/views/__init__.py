@@ -9,7 +9,11 @@ from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
 from sqlalchemy import or_, desc
-from application import app, db, User, Thread, Comment, File_Tag, Named_Tag, Free_Tag, limiter, mail
+
+
+from application import app, db, mail, limiter
+
+
 from application.projects import Project
 from application.branches import *
 import string

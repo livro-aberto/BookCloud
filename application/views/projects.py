@@ -1,4 +1,5 @@
 import os
+import git
 from os.path import join, isdir, isfile, splitext
 
 from flask import (
@@ -11,10 +12,16 @@ from sqlalchemy import desc
 
 from application import limiter
 from application.users import User
-from application.threads import *
-from application.branches import *
+from application.threads import Thread
+from application.branches import (
+    Branch, get_sub_branches, get_log, get_branch_owner, get_merge_pendencies,
+    get_git, build
+)
 
-from application.projects import *
+from application.projects import (
+    Project, ProjectForm, create_project, FileForm
+)
+
 import application.views
 
 from application.tools import write_file
