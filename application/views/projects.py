@@ -48,8 +48,8 @@ projects.add_url_rule('/aaa', view_func=CommitView.as_view('commit', 'commit'))
 
 @limiter.exempt
 @projects.route('/<project>')
-def dashboard():
-    path = join('repos', g.project.name)
+def dashboard(project):
+    path = join('repos', project)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     menu = application.views.menu_bar(project)
     project_id = Project.query.filter_by(name=project).first().id

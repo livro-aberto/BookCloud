@@ -390,7 +390,7 @@ def test_page_urls(client):
                           follow_redirects=True,
                           data=dict(return_url=url_for('bookcloud.home',
                                                        _external=True)))
-    assert "vazio" in response.data
+    assert (_('Thread is not empty')).encode('utf8') in response.data
 
     # Try to delete comment
     response = client.get(url_for('threads.deletecomment',

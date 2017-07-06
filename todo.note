@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<note version="0.3" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+	<title>Plataforma</title>
+	<text xml:space="preserve"><note-content version="0.1">Plataforma
+
+Projeto com varios repositorios?
+   - um projeto=um repo=um volume
+O que eh um projeto?
+   - um repo
+   - discussoes/issues
+   - arquivos internos fora do git: png...
+Como facilitar scratch-type?
+  - ver bem as diferencas
+Linguagem markup?
+   - sphinx
+Tamanho dos arquivos?
+Atividades eletronicas?
+Implementar gitflow na plataforma?
+Integrar issues com redmine ou outro?
+   - acho que nao
+Integrar discussoes com irc ou outro?
+Fazer app abdroid pra plataforma?
+Como conectar SQL com git/arquivos...?
+  - usandos models para arquivos
+
+Checklist modelos:
+  - criar pkuggable views:
+    Por exemplo pra evitar de ficar verificando
+    se o metodo e post ou get
+  - criar erros e excecoes personalizados
+  - fazer testes para cada view
+  - otimizar codigo pra velocidade
+    https://damyanon.net/flask-series-optimizations/
+  - usar try/except sempre que preciso.
+    Por o log so no email pro admin
+  - usar flash sempre que preciso
+  - usar next para redirecionar corretamente
+    https://stackoverflow.com/questions/43128919/get-next-url-using-flask-redirect
+  - usar form.populate_obj ao invez de
+    preencher cada parametro. Sera que isso
+    pode ser feito na CRUD base class?
+  - uikit, ver os elementos que podem
+    ser uteis nos views especificos
+  - forms estao isolados nas pastas especif.
+  - melhorar o uso de whitespace
+    no python e ni jinja
+  - usar funcoes em forms e models
+    exemplos, save, check...
+  - integrar sql e fs. Isso pode ser feito
+    nas funcoes que sao definidas dentro
+    do modelo!
+  - usar relacoes sqlalchemy.
+    - back_populate!!!
+    - tabelas simples para many2many
+    - lazy dynamic para coisas grandes
+
+Tarefas:
+  - separar config em config e local config.
+    So o segundo tem default e deve ser
+    copiado. Como em flask user example
+  - usar try-except na hora de importar config.
+    Isso ajuda a lembrar o usuario que tem
+    que copiar config_default
+    Como em flask user example ou em
+    https://damyanon.net/flask-series-logging/
+  - remover get_comments
+  - reduzir muito o tamanho de package
+    passado para os templates
+  - exportar tex
+  - pagination
+    https://pypi.python.org/pypi/SQLAlchemy-Paginator
+  - middleware for put and delete?
+  - flask assets?
+  - implementar user roles
+    (Tem suporte no flask-user, mas nao
+    eh bom pois temos que usar papeis
+    que dependam do projeto, tipo:
+    administrador do sabonete)
+  - pedir nome e sobrenome no registro:
+    https://github.com/lingthio/Flask-User-starter-app/blob/master/app/models.py
+  - criar campo updated_at para threads
+    e sempre atualiza-lo ao editar a thread
+    ou um de seus comentarios. Isso
+    pode ajudar a criar uma lista de ultimas
+    discussoes
+  - passar a importacao de blueprints para
+    o factory em create_app
+  - create a separate conf for sphinx in
+    instance folder for specific deplouments
+  - send find_or_create_user to utils
+  - checkup de seguranca
+    https://damyanon.net/flask-series-security/
+  - implementar monitoramento do servidor
+    https://damyanon.net/flask-series-monitoring/
+  - colocar canvas pra desenhar
+    http://literallycanvas.com/
+
+Para depois:
+   - flas admin ou super admin
+   - usage tracking (analytics)
+   - gravatar?
+   - flask script?
+   - livro digital com paginas
+     http://www.turnjs.com/#samples/magazine2
+
+Projetos terceirizados:
+  - editor tikz?
+  - editor png?
+  - extensoes sphinx
+  - editor sphinx
+  - app celular
+
+Esrutura:
+ - users
+ - projects
+   - branches
+   - files
+
+http://mattupstate.com/blog/how-i-structure-my-flask-applications/
+
+https://blog.miguelgrinberg.com/post/designing-a-restful-api-with-python-and-flask
+
+https://stackoverflow.com/questions/14510630/wtforms-creating-a-custom-widget
+
+https://flask-login.readthedocs.io/en/latest/
+
+
+
+
+</note-content></text>
+	<last-change-date>2017-06-30T12:07:28.0000000+00:00</last-change-date>
+	<last-metadata-change-date>2017-06-30T12:07:28.0000000+00:00</last-metadata-change-date>
+	<create-date>1999-12-31T21:00:00.0000000-02:00</create-date>
+	<cursor-position>0</cursor-position>
+	<width>0</width>
+	<height>0</height>
+	<x>-1</x>
+	<y>-1</y>
+	<open-on-startup>False</open-on-startup>
+</note>
