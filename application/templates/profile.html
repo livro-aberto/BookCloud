@@ -43,7 +43,7 @@
         {% for b in p.branches %}
           <tr>
             <td>
-              <a href="{{ url_for('projects.project', project=p.name) }}">
+              <a href="{{ url_for('projects.dashboard', project=p.name) }}">
                 {{ p.name }}
               </a>
             <td>{{ p.owner.username }}</td>

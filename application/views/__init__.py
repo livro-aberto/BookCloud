@@ -70,7 +70,6 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 from ..utils import select_multi_checkbox
 
-
 def menu_bar(project=None, branch=None):
     left  = []
     right = []
@@ -84,7 +83,7 @@ def menu_bar(project=None, branch=None):
                                branch='master', filename='index.html')
             }, {
                 'name': 'Dashboard',
-                'url': url_for('projects.project', project=project)
+                'url': url_for('projects.dashboard', project=project)
             }, {
                 'name': 'Download pdf',
                 'url': url_for('branches.pdf', project=project)

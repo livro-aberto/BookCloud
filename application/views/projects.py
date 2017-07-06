@@ -3,7 +3,7 @@ import git
 from os.path import join, isdir, isfile, splitext
 
 from flask import (
-    Blueprint, request, render_template,
+    g, Blueprint, request, render_template,
     url_for, flash, redirect
 )
 from flask_user import login_required, current_user
@@ -30,10 +30,26 @@ from application.tools import write_file
 
 projects = Blueprint('projects', __name__, url_prefix='/projects')
 
+
+#@projects.url_value_preprocessor
+#def get_project(endpoint, values):
+#    g.project = Project.query.filter_by(name=values.pop('project')).one()
+#    #print(g.project.name)
+#    #query = Project.query.filter_by(url_slug=values.pop('user_url_slug'))
+#    #g.profile_owner = query.first_or_404()
+
+from .new_views import BaseView
+
+class CommitView(BaseView):
+    template_name = '500.html'
+
+projects.add_url_rule('/aaa', view_func=CommitView.as_view('commit', 'commit'))
+
+
 @limiter.exempt
 @projects.route('/<project>')
-def project(project):
-    path = join('repos', project)
+def dashboard():
+    path = join('repos', g.project.name)
     branches = [d for d in os.listdir(path) if isdir(join(path, d))]
     menu = application.views.menu_bar(project)
     project_id = Project.query.filter_by(name=project).first().id

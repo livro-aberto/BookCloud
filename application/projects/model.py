@@ -14,7 +14,6 @@ import application.users
 from application.tools import load_file
 from application.models import CRUDMixin
 
-
 class Project(CRUDMixin, db.Model):
     __tablename__ = 'project'
     id = db.Column(db.Integer, primary_key=True)
@@ -37,33 +36,22 @@ class Project(CRUDMixin, db.Model):
     def __init__(self, name, user):
         self.name = name
         self.owner_id = user.id
+        # create the master branch
+        new_branch = application.branches.Branch('master', self, None, user)
+        db.session.add(new_branch)
+        db.session.commit()
+        # updating branch's self reference
+        new_branch.origin_id = new_branch.id
+        db.session.commit()
         # create the repository in the filesystem
         repo_path = join('repos', name, 'master/source')
         os.makedirs(repo_path)
         git.Repo.init(repo_path)
         repo = git.Repo(repo_path)
-
-        # Is this necessary???? It should be done in create_branch
-        # !!!!!!!!!!!!
         application.branches.config_repo(repo, user.username, user.email)
-
         copyfile('empty_repo/source/index.rst', join(repo_path, 'index.rst'))
         copyfile('empty_repo/.gitignore', join(repo_path, '.gitignore'))
         repo.index.add(['index.rst', '.gitignore'])
         author = git.Actor(user.username, user.email)
         repo.index.commit(_('Initial commit'), author=author)
-        # create the master branch
-        origin_id = 1
-
-        new_branch = application.branches.Branch('master', self,
-                                                 None, user)
-        db.session.add(new_branch)
-        db.session.commit()
-        # updating branch's self reference
-        new_branch = (application.branches.Branch.query
-                      .filter_by(project_id=self.id).one())
-        new_branch.origin_id = new_branch.id
-        db.session.commit()
-        new_branch = (application.branches.Branch.query
-                      .filter_by(project_id=self.id).one())
         application.branches.build(name, 'master')

@@ -65,7 +65,7 @@ def test_page_urls(client):
     assert new_project_name in response.data
 
     # Visit new project
-    response = client.get(url_for('projects.project',
+    response = client.get(url_for('projects.dashboard',
                                   project=new_project_name))
     assert 'master' in response.data
 
@@ -340,7 +340,7 @@ def test_page_urls(client):
             or ("successfully created" in response.data))
 
     # View thread in project page
-    response = client.get(url_for('projects.project',
+    response = client.get(url_for('projects.dashboard',
                               project=new_project_name))
     match = re.search(r'new_comment/(\d+)/000000:', response.data)
     thread_id = match.group(1)
@@ -361,7 +361,7 @@ def test_page_urls(client):
                                      file_tags='[]',
                                      custom_tags='[]',
                                      free_tags='["last", "one", "dear"]'))
-    response = client.get(url_for('projects.project',
+    response = client.get(url_for('projects.dashboard',
                                   project=new_project_name))
     assert ("dear" in response.data)
 
@@ -379,7 +379,7 @@ def test_page_urls(client):
             or ("successfully created" in response.data))
 
     # Check reply
-    response = client.get(url_for('projects.project',
+    response = client.get(url_for('projects.dashboard',
                               project=new_project_name))
     assert "Please!" in response.data
 

@@ -41,25 +41,23 @@ def get_branch_origin(project, branch):
     origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
     return Branch.query.filter_by(id=origin_id).first()
 
-def clone_branch(project, origin, branch_name, user):
-    # create the branch on the database
+def clone_branch(project, origin, name, user):
     origin.expiration = None
-    owner = User.query.filter_by(username=user.username).first()
-    new_branch = Branch(branch_name, project, origin, owner)
+    # create the branch on the database
+    new_branch = Branch(name, project, origin, user)
     db.session.add(new_branch)
     db.session.commit()
     # clone repository from a certain origin branch
-    branch_path = join('repos', project.name, branch_name, 'source')
+    branch_path = os.path.abspath(join(os.getcwd(), 'repos',
+                                       project.name, name, 'source'))
     origin_repo = git.Repo(join('repos', project.name, origin.name, 'source'))
-    origin_repo.clone(os.path.abspath(join(os.getcwd(), branch_path)),
-                      branch=origin.name)
-    branch_repo = git.Repo(os.path.abspath(join(os.getcwd(), branch_path)))
+    origin_repo.clone(branch_path, branch=origin.name)
+    branch_repo = git.Repo(branch_path)
     git_api = branch_repo.git
-    git_api.checkout('HEAD', b=branch_name)
+    git_api.checkout('HEAD', b=name)
     config_repo(branch_repo, user.username, user.email)
     # build the source
-    build(project.name, branch_name, timeout=30)
-
+    build(project.name, name, timeout=30)
 
 def get_git(project, branch):
     repo_path = join('repos', project, branch, 'source')

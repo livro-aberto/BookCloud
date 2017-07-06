@@ -53,7 +53,7 @@ def new():
             db.session.commit()
             #project.create_project(form.name.data, current_user)
             flash(_('Project created successfuly!'), 'info')
-            return redirect(url_for('projects.project',
+            return redirect(url_for('projects.dashboard',
                                     project=form.name.data))
     return render_template('new.html', menu=menu, form=form)
 
