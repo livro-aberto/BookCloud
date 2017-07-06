@@ -16,10 +16,10 @@ import application
 from application import db, app, limiter, mail
 from application.users import User
 from application.threads import (
-    Thread, Comment, File_Tag, Named_Tag, CommentSearchForm, NewThreadForm,
-    CommentForm
+    Thread, Comment, File_Tag, Free_Tag, Named_Tag, CommentSearchForm,
+    ThreadForm, NewThreadForm, CommentForm
 )
-from application.projects import Project, get_labels
+from application.projects import Project
 
 
 threads = Blueprint('threads', __name__, url_prefix='/threads')
@@ -79,7 +79,7 @@ def newthread(project):
                          free_tags=inputs['free_tags'])
     form.user_tags.widget.choices = json.dumps(
         [u.username for u in User.query.all()])
-    form.file_tags.widget.choices = get_labels(project)
+    form.file_tags.widget.choices = project.get_labels()
     form.custom_tags.widget.choices = json.dumps(
         [t.name for t in Named_Tag.query.filter_by(project=project).all()])
     if request.method == 'POST' and form.validate():
@@ -161,7 +161,7 @@ def editthread(project, thread_id):
         free_tags=[t.name for t in thread.free_tags])
     form.user_tags.widget.choices = json.dumps(
         [u.username for u in User.query.all()])
-    form.file_tags.widget.choices = get_labels(project)
+    form.file_tags.widget.choices = project.get_labels()
     form.custom_tags.widget.choices = json.dumps(
         [t.name for t in Named_Tag.query.filter_by(project=project).all()])
     master_path = join('repos', project.name, 'master', 'source')
@@ -249,7 +249,6 @@ def newcomment(project, thread_id, parent_lineage=''):
 def editcomment(project, comment_id):
     menu = application.views.menu_bar(project)
     comment = Comment.get_by_id(comment_id)
-    print(comment.content)
     form = CommentForm(request.form,
                        comment=comment.content)
     if current_user != comment.owner:

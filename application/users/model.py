@@ -62,7 +62,6 @@ class User(CRUDMixin, UserMixin, db.Model):
 
     @classmethod
     def get_by_name(cls, name):
-        print(name)
         return cls.query.filter_by(username=name).first_or_404()
 
 

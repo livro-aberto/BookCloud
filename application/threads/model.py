@@ -45,7 +45,6 @@ class Thread(CRUDMixin, db.Model):
         self.title = title
         self.owner_id = owner_id
         self.project_id = project_id
-        print(posted_at)
         self.posted_at = posted_at
         self.flag = flag
 

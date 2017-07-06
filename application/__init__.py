@@ -39,6 +39,7 @@ def create_app(extra_config_settings={}):
     Initialize Flask applicaton
     """
     import application.views
+    app.register_blueprint(application.views.bookcloud.bookcloud)
     app.register_blueprint(application.views.users.users)
     app.register_blueprint(application.views.projects.projects)
     app.register_blueprint(application.views.threads.threads)
@@ -56,7 +57,7 @@ def create_app(extra_config_settings={}):
         app.config['LANGUAGE'] = 'en_US'
         app.config['BOOKCLOUD_URL_PREFIX'] = ''
 
-    app.register_blueprint(application.views.bookcloud,
+    app.register_blueprint(application.views.temp,
                            url_prefix=app.config['BOOKCLOUD_URL_PREFIX'])
 
     # Setup Flask-Mail

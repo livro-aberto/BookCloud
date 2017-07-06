@@ -3,13 +3,6 @@ from wtforms import (
     StringField, validators
 )
 
-
-
-# import special tools for this platform
-#from application.tools import window, rst2html, Command, get_git, load_file,\
-#    write_file, get_merging, get_requests, get_merge_pendencies,\
-#    config_repo, is_dirty, get_log, get_log_diff, last_modified
-
 def create_message(name):
     return StringField(name, [
         validators.Length(min=4, max=60),

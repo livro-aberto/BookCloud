@@ -30,7 +30,7 @@ test_page = (u'Title of test page\n'
 
 def test_page_urls(client):
     # Visit home page
-    response = client.get(url_for('projects.home'))
+    response = client.get(url_for('bookcloud.home'))
     assert _('Projects list').encode('utf8') in response.data
 
     # Login
@@ -51,17 +51,17 @@ def test_page_urls(client):
     assert b'NY' in response.data
 
     # Get page for new()
-    response = client.get(url_for('projects.new'))
+    response = client.get(url_for('bookcloud.new'))
     assert _('Create new project') in response.data
 
     # Create a new project
     new_project_name = ''.join(random.sample(char_set, 20))
-    response = client.post(url_for('projects.new'), follow_redirects=True,
+    response = client.post(url_for('bookcloud.new'), follow_redirects=True,
                            data=dict(name=new_project_name))
     assert new_project_name in response.data
 
     # Check that project is there
-    response = client.get(url_for('projects.home'))
+    response = client.get(url_for('bookcloud.home'))
     assert new_project_name in response.data
 
     # Visit new project
@@ -332,10 +332,10 @@ def test_page_urls(client):
                            data=dict(title="Hi there!",
                                      flag="discussion",
                                      firstcomment="Give me some attention!",
-                                     usertags='["foo"]',
-                                     filetags='[]',
-                                     namedtags='[]',
-                                     freetags='["last", "one"]'))
+                                     user_tags='["foo"]',
+                                     file_tags='[]',
+                                     custom_tags='[]',
+                                     free_tags='["last", "one"]'))
     assert (("criado com sucesso" in response.data)
             or ("successfully created" in response.data))
 
@@ -348,6 +348,22 @@ def test_page_urls(client):
                .filter(Comment.content.like('%attention%'))
                .first())
     assert "Give me some attention!" in response.data
+
+    # edit thread
+    response = client.post(url_for('threads.editthread',
+                                   project=new_project_name,
+                                   thread_id=thread_id),
+                           follow_redirects=True,
+                           data=dict(title="Hi there!",
+                                     flag="discussion",
+                                     firstcomment="Give me some attention!",
+                                     user_tags='["foo"]',
+                                     file_tags='[]',
+                                     custom_tags='[]',
+                                     free_tags='["last", "one", "dear"]'))
+    response = client.get(url_for('projects.project',
+                                  project=new_project_name))
+    assert ("dear" in response.data)
 
     # POST reply
     response = client.post(url_for('threads.newcomment',
@@ -372,7 +388,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   thread_id=thread_id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('projects.home',
+                          data=dict(return_url=url_for('bookcloud.home',
                                                        _external=True)))
     assert "vazio" in response.data
 
@@ -381,7 +397,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   comment_id=comment.id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('projects.home',
+                          data=dict(return_url=url_for('bookcloud.home',
                                                        _external=True)))
     assert (_('This comment has replies and cannot be deleted').encode('utf8')
             in response.data)
@@ -391,7 +407,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   comment_id=reply.id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('projects.home',
+                          data=dict(return_url=url_for('bookcloud.home',
                                                        _external=True)))
     assert (_('Comment successfully deleted').encode('utf8')
             in response.data)
@@ -401,7 +417,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   comment_id=comment.id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('projects.home',
+                          data=dict(return_url=url_for('bookcloud.home',
                                                        _external=True)))
     assert (_('Comment successfully deleted').encode('utf8')
             in response.data)
@@ -411,7 +427,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   thread_id=thread_id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('projects.home',
+                          data=dict(return_url=url_for('bookcloud.home',
                                                        _external=True)))
     assert (_('Thread successfully deleted').encode('utf8')
             in response.data)

@@ -45,15 +45,14 @@ from application.threads import NewThreadForm
 from application.tools import window, rst2html, Command, load_file,\
     write_file, last_modified
 
-
-#import application.users
 import users
 
 import projects
 
+import bookcloud
+
 import threads
 
-#import application.branches
 import branches
 
 
@@ -61,7 +60,7 @@ mail.init_app(app)
 
 config_path = 'conf'
 
-bookcloud = Blueprint('bookcloud', __name__, template_folder='templates')
+temp = Blueprint('temp', __name__, template_folder='templates')
 
 babel = Babel(app)
 
@@ -184,14 +183,14 @@ def package():
     return sent_package
 
 @limiter.exempt
-@bookcloud.route('/<project>/<branch>/<action>/_images/<path:filename>')
-#@bookcloud.route('/edit/<project>/<branch>/images/<path:filename>', methods = ['GET'])
+@temp.route('/<project>/<branch>/<action>/_images/<path:filename>')
+#@temp.route('/edit/<project>/<branch>/images/<path:filename>', methods = ['GET'])
 def get_tikz(project, branch, action, filename):
     images_path = join('repos', project, branch, 'build/html/_images')
     return flask.send_from_directory(os.path.abspath(images_path), filename)
 
 @limiter.exempt
-@bookcloud.route('/<project>/<action>/_static/<path:filename>')
+@temp.route('/<project>/<action>/_static/<path:filename>')
 def get_static(project, action, filename):
     if (current_user.is_authenticated):
         user_repo_path = join('repos', project, current_user.username)
@@ -200,19 +199,19 @@ def get_static(project, action, filename):
     return flask.send_from_directory(os.path.abspath(join(user_repo_path, 'build/html/_static/')), filename)
 
 @limiter.exempt
-@bookcloud.route('/_static/<path:filename>')
+@temp.route('/_static/<path:filename>')
 def get_global_static(filename):
     return flask.send_from_directory(os.path.abspath(join('conf/biz/static/', os.path.dirname(filename))),
                                      os.path.basename(filename))
 
-@bookcloud.route('/<project>/<branch>/view/_sources/<path:filename>')
+@temp.route('/<project>/<branch>/view/_sources/<path:filename>')
 def show_source(project, branch, filename):
     sources_path = join('repos', project, branch, 'build/html/_sources', filename)
     content = load_file(sources_path)
     return Response(content, mimetype='text/txt')
 
 @limiter.exempt
-@bookcloud.route('/<project>/images/<path:filename>')
+@temp.route('/<project>/images/<path:filename>')
 def get_image(project, filename):
     return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
 
@@ -226,7 +225,7 @@ def page_not_found(e):
                            trace=trace), 500
 
 @limiter.exempt
-@bookcloud.errorhandler(Exception)
+@temp.errorhandler(Exception)
 def internal_server_error(e):
     message = repr(e)
     trace = traceback.format_exc()
