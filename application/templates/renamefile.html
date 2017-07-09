@@ -2,13 +2,15 @@
 
 {% from "_formhelpers.html" import render_field %}
 
-{% block title %}{{ _('Create new project') }}{% endblock%}
+{% block title %}{{ _('Rename file: %s') % (old_name) }}{% endblock%}
 
 {% macro contents() %}
   <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
     <form method="POST">
       <fieldset class="uk-fieldset">
-        <legend class="uk-legend">{{ _('Create new project') }}</legend>
+        <legend class="uk-legend">
+          {{ _('Rename file: %s') % (old_name) }}
+        </legend>
         <div class="uk-margin">
           {{ render_field(form.name) }}
         </div>
@@ -17,7 +19,5 @@
         </div>
     </form>
   </div>
-
-
 {% endmacro %}
 

@@ -48,12 +48,14 @@
               </a>
             <td>{{ p.owner.username }}</td>
             <td>
-              <a href="{{ url_for('bookcloud.branch', project=p.name, branch=b.name) }}">
+              <a href="{{ url_for('branches.branch', project=p.name,
+                                  branch=b.name) }}">
                 {{ b.name }}
               </a>
             </td>
             <td>
-              <a href="{{ url_for('bookcloud.branch', project=p.name, branch=b.origin.name) }}">
+              <a href="{{ url_for('branches.branch', project=p.name,
+                                  branch=b.origin.name) }}">
                 {{ b.origin.name }}
               </a>
           </tr>

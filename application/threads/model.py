@@ -33,13 +33,18 @@ class Thread(CRUDMixin, db.Model):
     flag = db.Column(db.String(10), nullable=False)
     posted_at = db.Column(db.DateTime(), nullable=False)
 
-    comments = db.relationship('Comment', back_populates='thread', lazy='dynamic')
-    user_tags = db.relationship('User', secondary=user_tags,
-                                backref=db.backref('tagged_threads', lazy='dynamic'))
-    custom_tags = db.relationship('Named_Tag', secondary=custom_tags,
-                                  backref=db.backref('threads', lazy='dynamic'))
-    file_tags = db.relationship('File_Tag', back_populates='thread', lazy='dynamic')
-    free_tags = db.relationship('Free_Tag', back_populates='thread', lazy='dynamic')
+    comments = db.relationship(
+        'Comment', back_populates='thread', lazy='dynamic')
+    user_tags = db.relationship(
+        'User', secondary=user_tags,
+        backref=db.backref('tagged_threads', lazy='dynamic'))
+    custom_tags = db.relationship(
+        'Named_Tag', secondary=custom_tags,
+        backref=db.backref('threads', lazy='dynamic'))
+    file_tags = db.relationship('File_Tag', back_populates='thread',
+                                lazy='dynamic')
+    free_tags = db.relationship('Free_Tag', back_populates='thread',
+                                lazy='dynamic')
 
     def __init__(self, title, owner_id, project_id, flag, posted_at):
         self.title = title
@@ -49,7 +54,8 @@ class Thread(CRUDMixin, db.Model):
         self.flag = flag
 
     def get_comments(self, number):
-        return Comment.query.filter_by(thread_id=self.id).order_by(Comment.lineage).limit(number)
+        return (Comment.query.filter_by(thread_id=self.id)
+                .order_by(Comment.lineage).limit(number))
 
 class Comment(CRUDMixin, db.Model):
     # Comments have a father thread and a lineage inside that thread.

@@ -1,5 +1,4 @@
 import os
-import re
 import git
 import string
 import json
@@ -8,7 +7,7 @@ from os.path import join
 from flask_babel import gettext as _
 from sqlalchemy import desc
 from flask import (
-    Blueprint, request, render_template, render_template_string,
+    g, Blueprint, request, render_template, render_template_string,
     url_for, flash, redirect
 )
 from flask_user import login_required, current_user
@@ -22,28 +21,117 @@ from .threads import Thread, File_Tag
 from application.branches import (
     Branch, BranchForm, CommitForm, get_branch_owner, get_merge_pendencies,
     build, get_merging, get_branch_origin, update_subtree, clone_branch,
-    get_log, is_dirty, get_git
+    get_requests
 )
 
-branches = Blueprint('branches', __name__, url_prefix='/branches')
+branches = Blueprint('branches', __name__,
+                     url_prefix='/branches/<project>/<branch>')
 
-@branches.route('/<project>/<branch>', methods = ['GET', 'POST'])
+@branches.url_value_preprocessor
+def get_branch_object(endpoint, values):
+    g.project = Project.get_by_name(values.get('project'))
+    values['project'] = g.project
+    g.branch = g.project.get_branch(values.get('branch'))
+    values['branch'] = g.branch
+
+@branches.before_request
+def branch_before_request():
+    application.views.projects.projects_before_request()
+    g.menu['left'].append({
+        'name': g.branch.name,
+        'sub_menu': [{
+            'name': 'View index',
+            'url': url_for('branches.view', project=g.project.name,
+                           branch=g.branch.name, filename='index.html')
+        }, {
+            'name': 'Dashboard',
+            'url': url_for('branches.branch', project=g.project.name,
+                           branch=g.branch.name)
+        }]})
+    if current_user.is_authenticated and current_user == g.branch.owner:
+        if g.branch.is_dirty():
+            flash(_('You have uncommitted changes!!!'), 'error')
+            g.menu['right'].insert(0, {
+                'url': url_for('branches.commit',
+                               project=g.project.name,
+                               branch=g.branch.name),
+                'name': 'Commit', 'style': 'attention'
+            })
+        else:
+            if len(get_requests(g.project.name, g.branch.name)):
+                flash(_('You have unreviewed requests!!!'), 'error')
+                g.menu['right'].insert(0, {
+                    'url': url_for('branches.requests',
+                                   project=g.project.name,
+                                   branch=g.branch.name),
+                    'name': 'Requests',
+                    'style': 'attention'
+                })
+
+@branches.context_processor
+def branch_context_processor():
+    return { 'project': g.project,
+             'branch': g.branch,
+             'menu': g.menu }
+
+@branches.route('/', methods = ['GET', 'POST'])
 def branch(project, branch):
+    # will be deprecated
     if (current_user.is_authenticated):
-        if (current_user.username == get_branch_owner(project, branch) or
-            current_user.username == get_branch_owner(project, 'master')):
-            merge_pendencies = get_merge_pendencies(project, branch)
+        if (current_user == branch.owner or
+            current_user == project.get_master().owner):
+            merge_pendencies = get_merge_pendencies(project.name, branch.name)
             if merge_pendencies:
                 return merge_pendencies
-    menu = application.views.menu_bar(project, branch)
-    log = get_log(project, branch)
-    project_id = Project.query.filter_by(name=project).first().id
-    threads = (Thread.query.filter_by(project_id=project_id).
+    ####################
+    log = branch.get_log()
+    threads = (Thread.query.filter_by(project_id=project.id).
                order_by(desc(Thread.posted_at)))
-    return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
+    return render_template('branch.html', log=log, threads=threads)
+
+@limiter.exempt
+@branches.route('/view/<path:filename>')
+def view(project, branch, filename):
+    filename, file_extension = os.path.splitext(filename)
+    if file_extension == '':
+        file_extension = '.html'
+    if not current_user.is_authenticated:
+        g.menu['right'].insert(0, {'url': url_for('branches.edit',
+                                                  project=project.name,
+                                                  branch=branch,
+                                                  filename=filename),
+                                   'name': 'edit'})
+    else:
+        if (current_user == branch.owner or
+            current_user == project.get_master().owner):
+            # will be deprecated
+            merge_pendencies = get_merge_pendencies(project.name, branch.name)
+            if merge_pendencies:
+                return merge_pendencies
+            ####################
+            g.menu['right'].append({'url': url_for('branches.edit',
+                                                   project=project.name,
+                                                   branch=branch.name,
+                                                   filename=filename),
+                                    'name': 'edit'})
+        else:
+            # add to this link a next link
+            g.menu['right'].append({'url': url_for('branches.clone',
+                                                   project=project.name,
+                                                   branch=branch.name),
+                                    'name': 'edit'})
+    content = load_file(join('repos', project.name, branch.name,
+                             'build/html', filename + file_extension))
+    threads = (Thread.query.join(File_Tag)
+               .filter(File_Tag.filename==filename)
+               .filter(Thread.project_id==project.id)
+               .order_by(desc(Thread.posted_at)))
+    threads_by_tag = project.get_threads_by_tag(filename)
+    return render_template_string(content, threads=threads,
+                                  threads_by_tag=threads_by_tag)
 
 @limiter.limit("7 per day")
-@branches.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
+@branches.route('/clone', methods = ['GET', 'POST'])
 @login_required
 def clone(project, branch):
     project = Project.get_by_name(project)
@@ -69,21 +157,22 @@ def clone(project, branch):
                                     filename='index.html'))
     return render_template('clone.html', menu=menu, form=form)
 
-@branches.route('/<project>/<branch>/requests')
+@branches.route('/requests')
 @login_required
 def requests(project, branch):
     if (current_user.username != get_branch_owner(project, branch) and
         current_user.username != get_branch_owner(project, 'master')):
         flash(_('You are not the owner of this branch'), 'error')
         return redirect(url_for('branches.view', project=project, branch=branch, filename='index.html'))
-    if is_dirty(project, branch):
+    project_obj = Project.get_by_name(project)
+    if project_obj.get_branch(branch).is_dirty():
         flash(_('Commit your changes before reviewing requests'), 'error')
         return redirect(url_for('branches.branch', project=project, branch=branch))
     requests = get_requests(project, branch)
     menu = application.views.menu_bar(project, branch)
     return render_template('requests.html', unmerged=requests, menu=menu)
 
-@branches.route('/<project>/<branch>/finish')
+@branches.route('/finish')
 @login_required
 def finish(project, branch):
     if (current_user.username != get_branch_owner(project, branch) and
@@ -109,7 +198,7 @@ def finish(project, branch):
     flash(_('You have finished merging _%s') % merging['branch'], 'info')
     return redirect(url_for('branches.branch', project=project, branch=branch))
 
-@branches.route('/<project>/<branch>/commit', methods = ['GET', 'POST'])
+@branches.route('/commit', methods = ['GET', 'POST'])
 @login_required
 def commit(project, branch):
     if (current_user.username != get_branch_owner(project, branch) and
@@ -142,12 +231,13 @@ def commit(project, branch):
     diff = repo.git.diff('--cached')
     return render_template('commit.html', menu=menu, form=form, diff=diff)
 
-@branches.route('/<project>/<branch>/merge/<other>')
+@branches.route('/merge/<other>')
 @login_required
 def merge(project, branch, other):
     merging = get_merging(project, branch)
     if not merging:
-        if is_dirty(project, branch):
+        project_obj = Project.get_by_name(project)
+        if project_obj.get_branch(branch).is_dirty():
             flash(_('Commit your changes before reviewing requests'), 'error')
             return redirect(url_for('branches.commit', project=project, branch=branch))
         # Check if other has something to merge
@@ -156,20 +246,24 @@ def merge(project, branch, other):
         merged = string.split(git_api.branch('--merged'))
         if other in merged:
             flash(_('Branch _%s has no requests now') % other, 'error')
-            return redirect(url_for('branches.view', project=project, branch=branch,
-                                    filename='index.html'))
-        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive', '-Xtheirs', other)
+            return redirect(url_for('branches.view', project=project,
+                                    branch=branch, filename='index.html'))
+        git_api.merge('--no-commit', '--no-ff', '-s', 'recursive',
+                      '-Xtheirs', other)
         modified = string.split(git_api.diff('HEAD', '--name-only'))
         merging = {'branch': other, 'modified': modified, 'reviewed': []}
-        write_file(join('repos', project, branch, 'merging.json'), json.dumps(merging))
+        write_file(join('repos', project, branch, 'merging.json'),
+                   json.dumps(merging))
     menu = {'right': [{'name': branch,
-                       'url': url_for('branches.merge', project=project, branch=branch, other=other)}]}
-    log = get_log(project, other)
+                       'url': url_for('branches.merge', project=project,
+                                      branch=branch, other=other)}]}
+    branch_obj = Branch.get_by_name(branch)
+    log = branch_obj.get_log()
     return render_template('merge.html', modified=merging['modified'],
                            reviewed=merging['reviewed'], other=other, log=log,
                            menu=menu)
 
-@branches.route('/<project>/<branch>/review/<path:filename>', methods = ['GET', 'POST'])
+@branches.route('/review/<path:filename>', methods = ['GET', 'POST'])
 @login_required
 def review(project, branch, filename):
     if (current_user.username != get_branch_owner(project, branch) and
@@ -205,7 +299,7 @@ def review(project, branch, filename):
                            filename=filename + file_extension,
                            menu=menu, other=merging['branch'], render_sidebar=False)
 
-@branches.route('/<project>/<branch>/diff/<path:filename>')
+@branches.route('/diff/<path:filename>')
 @login_required
 def diff(project, branch, filename):
     if (current_user.username != get_branch_owner(project, branch) and
@@ -233,7 +327,7 @@ def diff(project, branch, filename):
     return render_template('diff.html', other=merging['branch'],
                            diff=diff, filename=filename + file_extension)
 
-@branches.route('/<project>/<branch>/accept/<path:filename>')
+@branches.route('/accept/<path:filename>')
 @login_required
 def accept(project, branch, filename):
     if (current_user.username != get_branch_owner(project, branch) and
@@ -253,58 +347,8 @@ def accept(project, branch, filename):
     write_file(merge_file_path, json.dumps(merging))
     return redirect(url_for('branches.merge', project=project, branch=branch, other=merging['branch']))
 
-
 @limiter.exempt
-@branches.route('/<project>/<branch>/view/<path:filename>')
-def view(project, branch, filename):
-    filename, file_extension = os.path.splitext(filename)
-    project_obj = Project.query.filter_by(name=project).first()
-    if project_obj:
-        project_id = project_obj.id
-    else:
-        return redirect(url_for('bookcloud.home'))
-    if file_extension == '':
-        file_extension = '.html'
-    user_repo_path = join('repos', project, branch,
-                          'build/html', filename + file_extension)
-    menu = application.views.menu_bar(project, branch)
-    #update_branch(project, branch)
-    if not current_user.is_authenticated:
-        menu['right'].append({'url': url_for('branches.edit', project=project, branch=branch,
-                                             filename=filename), 'name': 'edit'})
-    else:
-        if (current_user.username == get_branch_owner(project, branch) or
-            current_user.username == get_branch_owner(project, 'master')):
-            merge_pendencies = get_merge_pendencies(project, branch)
-            if merge_pendencies:
-                return merge_pendencies
-            menu['right'].append({'url': url_for('branches.edit', project=project, branch=branch,
-                                                 filename=filename), 'name': 'edit'})
-        else:
-            menu['right'].append({'url': url_for('branches.clone', project=project, branch=branch),
-                                  'name': 'edit'})
-    content = load_file(user_repo_path)
-    threads = (Thread.query.join(File_Tag)
-               .filter(File_Tag.filename==filename)
-               .filter(Thread.project_id==project_id)
-               .order_by(desc(Thread.posted_at)))
-    label_list = []
-    data = load_file(join('repos', project, branch,
-                          'source', filename + '.rst'))
-    label_list.extend([l for l in re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
-    threads_by_tag = (db.session.query(File_Tag.filename, Thread.title)
-                      .filter(File_Tag.filename.like(filename + '#' + '%'))
-                      .filter(File_Tag.thread_id==Thread.id).all())
-    threads_by_tag = [
-        {'name': name,
-         'fullname': filename + '%23' + name,
-         'titles': [x[1] for x in threads_by_tag
-                    if x[0].split('#')[1] == name]} for name in label_list]
-    return render_template_string(content, menu=menu, render_sidebar=True, threads=threads,
-                                  threads_by_tag=threads_by_tag, show_discussion=False)
-
-@limiter.exempt
-@branches.route('/<project>/<branch>/edit/<path:filename>',
+@branches.route('/edit/<path:filename>',
                 methods = ['GET', 'POST'])
 @login_required
 def edit(project, branch, filename):
@@ -353,8 +397,7 @@ def html2rst():
                                        prefetch=prefetch)
     return render_template('html2rst.html')
 
-@branches.route('/<project>/pdf')
-@branches.route('/<project>/<branch>/pdf')
+@branches.route('/pdf')
 def pdf(project, branch='master'):
     build_path = os.path.abspath(join('repos', project, branch, 'build/latex'))
     build_latex(project, branch)
@@ -362,6 +405,6 @@ def pdf(project, branch='master'):
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
 
-@branches.route('/<project>/<branch>/view/genindex.html')
+@branches.route('/view/genindex.html')
 def genindex(project, branch):
     return redirect(url_for('branches.view', project=project, branch=branch, filename='index.html'))

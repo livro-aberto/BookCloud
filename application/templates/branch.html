@@ -1,21 +1,29 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
-{% block title %}{{_('Project (%(project)s), branch (_%(branch)s)') | format(project=project, branch=branch) }}{% endblock%}
+{% block title %}{{_('Project (%(project)s), branch (_%(branch)s)') | format(project=project.name, branch=branch.name) }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{_('Project (%(project)s), branch (_%(branch)s)') | format(project=project, branch=branch) }}</h1>
+  <h1>
+    {{ _('%(branch)s') | format(branch=branch.name) }}
+  </h1>
 
-  <br>
+  <a class="uk-button uk-button-primary"
+     href="{{ url_for('branches.view',
+                      project=project.name,
+                      branch=branch.name, filename='index.html') }}">
+    {{ _('Visit branch') }}
+  </a>
 
-  <a href="{{ url_for('branches.view', project=project, branch=branch, filename='index.html') }}">{{ _('Visit branch') }}</a>
+  {% if current_user == project.owner %}
+    <a class="uk-button uk-button-primary"
+       href="{{ url_for('projects.newfile',
+                        project=project.name,
+                        branch=branch.name) }}">
+      {{ _('Create a new file') }}
+    </a>
+  {% endif %}
 
-  <br>
-
-  <a href="{{ url_for('projects.newfile', project=project, branch=branch) }}">{{ _('Create a new file') }}</a>
-
-  <br>
-
-  <h1>{{ _('Last commits in _%s:') % branch }}</h1>
+  <h2>{{ _('Last commits in _%s:') % branch.name }}</h2>
     <div class="code highlight-default">
       <div class="highlight">
         <pre><span class="n" style="font-size:small">{{ log }}</span></pre>

@@ -21,8 +21,21 @@ from application.threads import (
 )
 from application.projects import Project
 
-
 threads = Blueprint('threads', __name__, url_prefix='/threads')
+
+@threads.url_value_preprocessor
+def get_branch_object(endpoint, values):
+    g.project = Project.get_by_name(values.get('project'))
+    values['project'] = g.project
+
+@threads.before_request
+def threads_before_request():
+    application.views.projects.projects_before_request()
+
+@threads.context_processor
+def threads_context_processor():
+    return { 'project': g.project,
+             'menu': g.menu }
 
 @limiter.exempt
 @threads.route('/<project>/tagged_threads/<filetag>')

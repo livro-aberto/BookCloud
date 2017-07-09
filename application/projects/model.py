@@ -10,9 +10,19 @@ from sqlalchemy.orm import relationship
 
 from application import db
 import application.branches
+import application.threads
 import application.users
-from application.tools import load_file
+from application.tools import load_file, write_file
 from application.models import CRUDMixin
+
+class FileExists(Exception):
+    pass
+
+class FileNotFound(Exception):
+    pass
+
+class FileNotEmpty(Exception):
+    pass
 
 class Project(CRUDMixin, db.Model):
     __tablename__ = 'project'
@@ -21,6 +31,8 @@ class Project(CRUDMixin, db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     owner = relationship('User')
     branches = relationship('Branch', back_populates='project')
+    threads = relationship('Thread', back_populates='project',
+                           lazy='dynamic')
 
     def get_labels(self):
         master_path = join('repos', self.name, 'master', 'source')
@@ -32,6 +44,80 @@ class Project(CRUDMixin, db.Model):
                     [splitext(f)[0] + '#' + l for l in
                      re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
         return json.dumps(label_list)
+
+    #def get_repo_path(self):
+    #    return join('repos', self.name)
+
+    def get_master(self):
+        return (application.branches.Branch.query
+                .filter_by(project_id=self.id, name='master').one())
+
+    def get_branch(self, name):
+        return (application.branches.Branch.query
+                .filter_by(project_id=self.id, name=name).one())
+
+    # will be deprecated (files should be in database)
+    def get_files(self):
+        path = self.get_master().get_source_path()
+        return [f for f in os.listdir(path)
+                if isfile(join(path, f)) and f[0] != '.']
+
+    def new_file(self, filename):
+        file_extension = '.rst'
+        file_path = join(self.get_master().get_source_path(),
+                         filename + file_extension)
+        if os.path.isfile(file_path):
+            raise FileExists
+        else:
+            stars = '*' * len(filename) + '\n'
+            write_file(file_path, stars + filename + '\n' + stars)
+            repo = self.get_master().get_repo()
+            repo.index.add([filename + file_extension])
+            application.branches.build(self.name, 'master')
+
+    def rename_file(self, old_filename, new_filename):
+        file_extension = '.rst'
+        if not os.path.isfile(join(self.get_master().get_source_path(),
+                                   old_filename + file_extension)):
+            raise FileNotFound
+        if os.path.isfile(join(self.get_master().get_source_path(),
+                               new_filename + file_extension)):
+            raise FileExists
+        git_api = self.get_master().get_git()
+        git_api.mv(old_filename + file_extension,
+                   new_filename + file_extension)
+        application.branches.build(self.name, 'master')
+
+    def delete_file(self, filename):
+        file_extension = '.rst'
+        if not os.path.isfile(join(self.get_master().get_source_path(),
+                                   filename + file_extension)):
+            raise FileNotFound
+        if not os.stat(join(self.get_master().get_source_path(),
+                                   filename + file_extension)).st_size == 0:
+            raise FileNotEmpty
+        git_api = self.get_master().get_git()
+        git_api.rm('-f', filename + file_extension)
+        application.branches.build(self.name, 'master')
+
+    def get_threads_by_tag(self, filename):
+        label_list = []
+        data = load_file(join('repos', self.name, 'master',
+                              'source', filename + '.rst'))
+        label_list.extend([l for l in re.findall(r'^\.\. _([a-z\-]+):\s$',
+                                                 data, re.MULTILINE)])
+        File_Tag = application.threads.File_Tag
+        Thread = application.threads.Thread
+        threads_by_tag = (db.session.query(File_Tag.filename, Thread.title)
+                          .filter(File_Tag.filename.like(filename + '#' + '%'))
+                          .filter(File_Tag.thread_id==Thread.id).all())
+        return [
+            {'name': name,
+             'fullname': filename + '%23' + name,
+             'titles': [x[1] for x in threads_by_tag
+                        if x[0].split('#')[1] == name]} for name in label_list]
+
+
 
     def __init__(self, name, user):
         self.name = name

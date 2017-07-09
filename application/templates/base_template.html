@@ -17,7 +17,9 @@
     {% else %}
       {%- if t.style == 'attention' %}
         <div class="uk-navbar-item">
-          <a class="uk-button uk-button-danger" href="{{ t.url }}">{{ t.name }}</a>
+          <a class="uk-button uk-button-danger" href="{{ t.url }}">
+            {{ t.name }}
+          </a>
         </div>
       {% else %}
         <li><a href="{{ t.url }}">{{ t.name }}</a></li>
@@ -55,7 +57,8 @@
   <body>
     <!-- Navigation bar -->
     <nav class="uk-navbar-container" uk-navbar="mode: click">
-      <div class="uk-navbar-left uk-padding uk-padding-remove-top uk-padding-remove-bottom">
+      <div class="uk-navbar-left uk-padding uk-padding-remove-top
+                  uk-padding-remove-bottom">
         <ul class="uk-navbar-nav">
           <li class="uk-active"><a href="/">Home</a></li>
           {{ menu_items(menu.left) }}
@@ -70,14 +73,16 @@
           {% endif %}
         </ul>
       </div>
-      <div class="uk-navbar-right uk-padding uk-padding-remove-top uk-padding-remove-bottom">
+      <div class="uk-navbar-right uk-padding uk-padding-remove-top
+                  uk-padding-remove-bottom">
         <ul class="uk-navbar-nav">
           {{ menu_items(menu.right) }}
         </ul>
       </div>
     </nav>
 
-    <div class="main-container uk-container uk-container-center uk-margin-top uk-margin-bottom">
+    <div class="main-container uk-container uk-container-center
+                uk-margin-top uk-margin-bottom">
       <!-- Flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -137,9 +142,11 @@
         <div class="uk-container uk-container-center">
           {% for t in threads %}
             <article class="uk-article">
-              <header class="uk-comment-header uk-position-relative uk-background-muted">
+              <header class="uk-comment-header uk-position-relative
+                             uk-background-muted">
                 <hr>
-                <div class="uk-grid-small uk-flex-middle uk-margin-left" uk-grid>
+                <div class="uk-grid-small uk-flex-middle
+                            uk-margin-left" uk-grid>
                   <div class="uk-width-auto">
                     <canvas width="40" height="40"
                             data-jdenticon-hash="{{ hash(t.author.username) }}"
@@ -149,27 +156,34 @@
                   <div class="uk-width-expand">
                     <p style="margin: 0 0 0 0;">
                       {{ t.author.username }} ({{ t.flag }}) -
-                      {{ t.posted_at }} - ({{ t.comments.count() }} {{ _('comments') }}):
+                      {{ t.posted_at }} - ({{ t.comments.count() }}
+                      {{ _('comments') }}):
                     </p>
                     <h4 style="margin-top: 0;"> {{ t.title }} </h4>
                   </div>
                   <div class="uk-position-top-right uk-position-small">
-                    {% if (current_user == t.author or current_user.username == project_owner) %}
+                    {% if ((current_user == t.author
+                           or current_user.username == project.owner)) %}
                       <a href="{{ url_for('threads.editthread',
-                               project=project, thread_id=t.id,
+                               project=t.project.name, thread_id=t.id,
                                return_url=url_encode(request.base_url)) }}"
-                         class="uk-link-muted">Edit</a>
+                               class="uk-link-muted">
+                               Edit
+                      </a>
                       {% if t.comments.count() == 0 %}
                         <a href="{{ url_for('threads.deletethread',
                                  project=t.project.name, thread_id=t.id,
                                  return_url=url_encode(request.base_url)) }}"
                                  onclick="return confirm('Are you sure?')"
-                           class="uk-link-muted">Delete</a>
+                                 class="uk-link-muted">
+                                 Delete
+                        </a>
                       {% endif %}
                     {% endif %}
                   </div>
                 </div>
-                <div class="uk-grid-small uk-flex-middle uk-margin-left" uk-grid>
+                <div class="uk-grid-small uk-flex-middle
+                            uk-margin-left" uk-grid>
                   <div class="uk-width-auto">
                     {% if t.user_tags %}
                       {{ _('Users:') }}
@@ -207,7 +221,8 @@
               <ul class="uk-comment-list">
                 {% for c in t.get_comments(100) %}
                   <li class="uk-margin-remove">
-                  <article class="uk-comment" style="margin-left: {{ c.get_indent() }}px;">
+                  <article class="uk-comment" style="margin-left:
+                                                     {{ c.get_indent() }}px;">
                     <header class="uk-comment-header uk-position-relative">
                       <div class="uk-grid-medium uk-flex-middle" uk-grid>
                         <div class="uk-width-auto">
@@ -218,28 +233,33 @@
                         <div class="uk-width-expand">
                           <a class="uk-link-reset" href="#">{{ c.author.username }}</a>
                           &nbsp
-                          <span class="uk-comment-meta uk-margin-remove-top uk-text-small">
-                            {{ c.posted_at }} - ({{ c.likes.count() }} {{ _('likes') }})
+                          <span class="uk-comment-meta
+                                       uk-margin-remove-top uk-text-small">
+                            {{ c.posted_at }} -
+                            ({{ c.likes.count() }} {{ _('likes') }})
                           </span>
                         </div>
                       </div>
-                      <div class="uk-position-top-right uk-position-small uk-hidden-hover">
+                      <div class="uk-position-top-right uk-position-small
+                                  uk-hidden-hover">
                         <a href="{{ url_for('threads.newcomment',
-                           project=project,
+                           project=t.project.name,
                            thread_id = t.id, parent_lineage=c.lineage,
                                  return_url=url_encode(request.base_url)) }}"
                            class="uk-link-muted">Reply</a>
                         {% if current_user == c.author %}
                           <a href="{{ url_for('threads.editcomment',
-                             project=project, comment_id=c.id,
+                             project=t.project.name, comment_id=c.id,
                                    return_url=url_encode(request.base_url)) }}"
                              class="uk-link-muted">Edit</a>
                         {% endif %}
                         {% if not c.has_replies()
                           and (current_user == c.author
-                          or current_user.username == project_owner) %}
-                          <a href="{{ url_for('threads.deletecomment', project=project,
-                                   comment_id=c.id, return_url=url_encode(request.base_url)) }}"
+                          or current_user.username == project.owner) %}
+                          <a href="{{ url_for('threads.deletecomment',
+                                   project=t.project.name,
+                                   comment_id=c.id,
+                                   return_url=url_encode(request.base_url)) }}"
                                    onclick="return confirm('Are you sure?')"
                              class="uk-link-muted">Delete</a>
                         {% endif %}
@@ -254,7 +274,7 @@
                 {% endfor %}
               </ul>
               <a href="{{ url_for('threads.newcomment',
-                          project=project, thread_id = t.id,
+                          project=t.project.name, thread_id = t.id,
                           return_url=url_encode(request.base_url)) }}"
                  class="uk-link-muted uk-margin-medium-left">
                 <span uk-icon="icon: reply"></span>
@@ -273,10 +293,12 @@
 
     <!-- Footer -->
     <nav class="uk-navbar-container" uk-navbar="mode: click">
-      <div class="uk-navbar-right uk-padding uk-padding-remove-top uk-padding-remove-bottom">
+      <div class="uk-navbar-right uk-padding uk-padding-remove-top
+                  uk-padding-remove-bottom">
         <ul class="uk-navbar-nav">
           <li class="uk-active">
-            <div class="tm-middle uk-container uk-container-center uk-text-center">
+            <div class="tm-middle uk-container uk-container-center
+                        uk-text-center">
               <ul class="uk-subnav uk-subnav-line uk-flex-center">
                 <div class="uk-navbar-item">
                   &copy; {{ copyright }}.

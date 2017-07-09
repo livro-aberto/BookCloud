@@ -2,7 +2,7 @@ import os
 from os.path import join, isdir
 
 from flask import (
-    Blueprint, request, render_template,
+    g, Blueprint, request, render_template,
     url_for, flash, redirect
 )
 from flask_user import login_required, current_user
@@ -17,6 +17,26 @@ from application.projects import (
 import application.views
 
 bookcloud = Blueprint('bookcloud', __name__)
+
+@bookcloud.before_request
+def bookcloud_before_request():
+    g.menu = {'left': [], 'right':[]}
+    if current_user.is_authenticated:
+        g.menu['right'].append({
+            'name': current_user.username,
+            'sub_menu': [{
+                'name': 'Profile',
+                'url': url_for('users.profile')
+            }, {
+                'name': 'Logout',
+                'url': url_for('user.logout')}]})
+    else:
+        g.menu['right'] = [
+            {'name': 'Login', 'url': url_for('user.login')}]
+
+@bookcloud.context_processor
+def bookcloud_context_processor():
+    return {'menu': g.menu}
 
 @limiter.exempt
 @bookcloud.route('/')

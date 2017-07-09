@@ -11,150 +11,128 @@ from flask_babel import gettext as _
 from sqlalchemy import desc
 
 from application import db, limiter
+from application.projects import Project, ProjectForm, FileForm
 from application.threads import Thread
 from application.branches import (
-    Branch, get_sub_branches, get_log, get_branch_owner, get_merge_pendencies,
-    get_git, build
+    Branch, get_sub_branches,
+    get_merge_pendencies, build
 )
-
-from application.projects import (
-    Project, ProjectForm, FileForm
-)
-
 import application.views
-
 from application.tools import write_file
 
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# Convert the name of the project to an sql object globally!!!!
+projects = Blueprint('projects', __name__, url_prefix='/projects/<project>')
 
-projects = Blueprint('projects', __name__, url_prefix='/projects')
+@projects.url_value_preprocessor
+def get_project_object(endpoint, values):
+    g.project = Project.get_by_name(values.get('project'))
+    values['project'] = g.project
 
+@projects.before_request
+def projects_before_request():
+    application.views.bookcloud.bookcloud_before_request()
+    g.menu['left'].append({
+        'name': g.project.name,
+        'sub_menu': [{
+            'name': 'View master index',
+            'url': url_for('branches.view', project=g.project.name,
+                           branch='master', filename='index.html')
+        }, {
+            'name': 'Dashboard',
+            'url': url_for('projects.dashboard', project=g.project.name)
+        }, {
+            'name': 'Download pdf',
+            'url': url_for('branches.pdf', project=g.project.name,
+                           branch='master')
+        }]})
 
-#@projects.url_value_preprocessor
-#def get_project(endpoint, values):
-#    g.project = Project.query.filter_by(name=values.pop('project')).one()
-#    #print(g.project.name)
-#    #query = Project.query.filter_by(url_slug=values.pop('user_url_slug'))
-#    #g.profile_owner = query.first_or_404()
+@projects.context_processor
+def project_context_processor():
+    return { 'project': g.project,
+             'menu': g.menu }
 
-from .new_views import BaseView
-
-class CommitView(BaseView):
-    template_name = '500.html'
-
-projects.add_url_rule('/aaa', view_func=CommitView.as_view('commit', 'commit'))
-
-
+@projects.route('/dashboard', methods = ['GET', 'POST'])
 @limiter.exempt
-@projects.route('/<project>')
 def dashboard(project):
-    path = join('repos', project)
-    branches = [d for d in os.listdir(path) if isdir(join(path, d))]
-    menu = application.views.menu_bar(project)
-    project_id = Project.query.filter_by(name=project).first().id
-    master = Branch.query.filter_by(project_id=project_id, name='master').one()
-    tree = [ get_sub_branches(master) ]
-    log = get_log(project, 'master')
-    master_path = join('repos', project, 'master', 'source')
-    files = [f for f in os.listdir(master_path)
-             if isfile(join(master_path, f)) and f[0] != '.']
+    tree = [ get_sub_branches(project.get_master()) ]
+    log = project.get_master().get_log()
+    master_path = project.get_master().get_source_path()
+    files = project.get_files()
     files.sort()
-    files = [(splitext(f)[0], splitext(f)[1], int(os.stat(join(master_path, f)).st_size / 500)) for f in files]
-    threads = (Thread.query.filter_by(project_id=project_id)
-               .order_by(desc(Thread.posted_at)))
-    return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads,
-                           files=files, show_discussion=True)
+    files = [(splitext(f)[0], splitext(f)[1],
+              int(os.stat(join(master_path, f)).st_size / 500)) for f in files]
+    threads = (project.threads.order_by(desc(Thread.posted_at)))
+    return render_template('dashboard.html', tree=tree, log=log,
+                           files=files, threads=threads)
 
-# Fix this, newfile should not have a branch
-@projects.route('/<project>/newfile', methods = ['GET', 'POST'])
+@projects.route('/newfile', methods = ['GET', 'POST'])
 @login_required
 def newfile(project):
-    menu = application.views.menu_bar(project)
     form = FileForm(request.form)
-    if current_user.username != get_branch_owner(project, 'master'):
-        flash(_('You are not the owner of master'), 'error')
-        return redirect(url_for('branches.view', project=project,
+    if current_user != project.owner:
+        flash(_('You are not the owner of this project'), 'error')
+        return redirect(url_for('branches.view', project=project.name,
                                 branch='master', filename='index.html'))
-    merge_pendencies = get_merge_pendencies(project, 'master')
+    # will be deprecated
+    merge_pendencies = get_merge_pendencies(project.name, 'master')
     if merge_pendencies:
         return merge_pendencies
+    ####################
     if request.method == 'POST' and form.validate():
-        filename = form.name.data
-        file_extension = '.rst'
-        file_path = join('repos', project, 'master', 'source', filename + file_extension)
-        if os.path.isfile(file_path):
+        try:
+            project.new_file(form.name.data)
+        except application.projects.FileExists:
             flash(_('This file name name already exists'), 'error')
-        else:
-            #file = open(file_path, 'w+')
-            stars = '*' * len(filename) + '\n'
-            #file.write(stars + filename + '\n' + stars)
-            write_file(file_path, stars + filename + '\n' + stars)
-            repo = git.Repo(join('repos', project, 'master', 'source'))
-            repo.index.add([filename + file_extension])
-            #author = git.Actor(current_user.username, current_user.email)
-            #repo.index.commit(_('Adding file %s' % filename), author=author)
-            flash(_('File created successfuly!'), 'info')
-            build(project, 'master')
-            return redirect(url_for('branches.view', project=project,
-                                    branch='master', filename='index.html'))
-    return render_template('newfile.html', menu=menu, form=form)
+            return render_template('newfile.html', form=form)
+        flash(_('File created successfuly!'), 'info')
+        return redirect(url_for('branches.view', project=project.name,
+                                branch='master', filename='index.html'))
+    return render_template('newfile.html', form=form)
 
-@projects.route('/<project>/renamefile/<oldfilename>', methods = ['GET', 'POST'])
+@projects.route('/renamefile/<oldfilename>', methods = ['GET', 'POST'])
 @login_required
 def renamefile(project, oldfilename):
-    menu = application.views.menu_bar(project, 'master')
-    form = IdentifierForm(request.form)
-    if current_user.username != get_branch_owner(project, 'master'):
+    form = FileForm(request.form)
+    if current_user != project.owner:
         flash(_('You are not the owner of master'), 'error')
         return redirect(url_for('branches.view', project=project,
                                 branch='master', filename='index.html'))
-    merge_pendencies = get_merge_pendencies(project, 'master')
+    # will be deprecated
+    merge_pendencies = get_merge_pendencies(project.name, 'master')
     if merge_pendencies:
         return merge_pendencies
+    ####################
     if request.method == 'POST' and form.validate():
-        filename = form.name.data
-        file_extension = '.rst'
-        file_path = join('repos', project, 'master', 'source', filename + file_extension)
-        if os.path.isfile(file_path):
-            flash(_('This file name already exists'), 'error')
-        else:
-            git_api = get_git(project, 'master')
-            git_api.mv(oldfilename + file_extension, form.name.data + file_extension)
-            #author = git.Actor(current_user.username, current_user.email)
-            #repo.index.commit(_('Adding file %s' % filename), author=author)
+        try:
+            project.rename_file(oldfilename, form.name.data)
             flash(_('File renamed successfuly!'), 'info')
-            build(project, 'master')
-            return redirect(url_for('branches.view', project=project,
-                                    branch='master', filename='index.html'))
-    return render_template('newfile.html', menu=menu, form=form)
+            return redirect(url_for('projects.dashboard',
+                                    project=project.name))
+        except application.projects.FileExists:
+            flash(_('This file name already exists'), 'error')
+        except application.projects.FileNotFound:
+            flash(_('File not found'), 'error')
+    return render_template('renamefile.html', old_name=oldfilename, form=form)
 
-@projects.route('/<project>/deletefile/<filename>')
+@projects.route('/deletefile/<filename>')
 @login_required
 def deletefile(project, filename):
-    menu = application.views.menu_bar(project, 'master')
-    if current_user.username != get_branch_owner(project, 'master'):
+    if current_user != project.owner:
         flash(_('You are not the owner of master'), 'error')
-        return redirect(url_for('branches.view', project=project,
+        return redirect(url_for('branches.view', project=project.name,
                                 branch='master', filename='index.html'))
-    merge_pendencies = get_merge_pendencies(project, 'master')
+    # will be deprecated
+    merge_pendencies = get_merge_pendencies(project.name, 'master')
     if merge_pendencies:
         return merge_pendencies
-    file_extension = '.rst'
-    file_path = join('repos', project, 'master', 'source', filename + file_extension)
-    if not os.path.isfile(file_path):
-        flash(_('This file does not exist'), 'error')
-        return redirect(url_for('branches.view', project=project,
-                                branch='master', filename='index.html'))
-    if not os.stat(file_path).st_size == 0:
+    ####################
+    try:
+        project.delete_file(filename)
+        flash(_('File removed successfuly!'), 'info')
+        return redirect(url_for('projects.dashboard',
+                                    project=project.name))
+    except application.projects.FileNotFound:
+        flash(_('File not found'), 'error')
+    except application.projects.FileNotEmpty:
         flash(_('This file is not empty'), 'error')
-        return redirect(url_for('branches.view', project=project,
-                                branch='master', filename='index.html'))
-    git_api = get_git(project, 'master')
-    git_api.rm('-f', filename + file_extension)
-    #author = git.Actor(current_user.username, current_user.email)
-    #repo.index.commit(_('Adding file %s' % filename), author=author)
-    flash(_('File removed successfuly!'), 'info')
-    build(project, 'master')
-    return redirect(url_for('branches.view', project=project,
-                            branch='master', filename='index.html'))
+    build(project.name, 'master')
+    return redirect(url_for('projects.dashboard', project=project.name))

@@ -102,7 +102,8 @@ def menu_bar(project=None, branch=None):
                 }]})
             if current_user.is_authenticated:
                 if current_user.username == get_branch_owner(project, branch):
-                    if is_dirty(project, branch):
+                    project_obj = Project.get_by_name(project)
+                    if project_obj.get_branch(branch).is_dirty():
                         flash(_('You have uncommitted changes!!!'), 'error')
                         right.append({
                             'url': url_for('branches.commit',
@@ -150,20 +151,20 @@ def before_request():
 @app.context_processor
 def package():
     sent_package = {}
-    if (request.view_args) and ('project' in request.view_args):
-        project = request.view_args['project']
-        sent_package['project'] = project
-        sent_package['project_owner'] = get_branch_owner(project, 'master')
-        if 'branch' in request.view_args:
-            branch = request.view_args['branch']
-            if current_user.is_authenticated:
-                if current_user.username == get_branch_owner(project, branch):
-                    branch_obj = get_branch_by_name(request.view_args['project'],
-                                                    request.view_args['branch'])
-                    branch_obj.expiration = None
-            sent_package['branch'] = branch
-            db.session.commit()
-    sent_package['is_dirty'] = is_dirty
+    #if (request.view_args) and ('project' in request.view_args):
+    #    project = request.view_args['project']
+    #    sent_package['project'] = project
+    #    sent_package['project_owner'] = get_branch_owner(project, 'master')
+    #    if 'branch' in request.view_args:
+    #        branch = request.view_args['branch']
+    #        if current_user.is_authenticated:
+    #            if current_user.username == get_branch_owner(project, branch):
+    #                branch_obj = get_branch_by_name(request.view_args['project'],
+    #                                                request.view_args['branch'])
+    #                branch_obj.expiration = None
+    #        sent_package['branch'] = branch
+    #        db.session.commit()
+    #sent_package['is_dirty'] = is_dirty
     sent_package['get_requests'] = get_requests
     def has_requests(project, branch):
         return len(get_requests(project, branch)) > 0
@@ -220,8 +221,8 @@ def page_not_found(e):
     message = e.description
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')
-    return render_template('404.html', message=message,
-                           trace=trace), 500
+    return 'Not Found'#render_template('404.html', message=message,
+                      #     trace=trace), 500
 
 @limiter.exempt
 @temp.errorhandler(Exception)

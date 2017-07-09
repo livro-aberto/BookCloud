@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from os.path import isfile, join
 import string
@@ -18,6 +19,50 @@ from application.tools import Command, load_file
 from application.users import User
 from application.models import CRUDMixin
 
+class Branch(CRUDMixin, db.Model):
+    __tablename__ = 'branch'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    origin_id = db.Column(db.Integer, db.ForeignKey('branch.id'))
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
+    expires = db.Column('expires', db.Boolean(), nullable=False)
+    expiration =  db.Column(db.DateTime)
+
+    owner = relationship('User')
+    origin = relationship('Branch', remote_side=id)
+    collaborators = relationship('Branch')
+    project = relationship('Project', back_populates='branches')
+
+    def __init__(self, name, project, origin, owner):
+        self.name = name
+        self.project = project
+        if origin:
+            self.origin_id = origin.id
+        self.owner_id = owner.id
+        self.expires = True
+
+    def get_source_path(self):
+        return join('repos', self.project.name, self.name, 'source')
+
+    def get_repo(self):
+        return git.Repo(self.get_source_path())
+
+    def get_git(self):
+        return git.Repo(self.get_source_path()).git
+
+    def is_dirty(self):
+        repo_path = join('repos', self.project.name, self.name, 'source')
+        return git.Repo(repo_path).is_dirty()
+
+    def get_log(self):
+        git_api = get_git(self.project.name, self.name)
+        return git_api.log(
+            '-15', '--no-merges', '--abbrev-commit','--decorate',
+            '--full-history',
+            "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
+
+# will be deprecated
 def get_sub_branches(branch_obj):
     children = Branch.query.filter_by(origin_id=branch_obj.id)
     answer = { 'branch': branch_obj, 'subtree': [] }
@@ -64,11 +109,13 @@ def get_git(project, branch):
     repo = git.Repo(repo_path)
     return repo.git
 
+# will be deprecated
 def get_merging(project, branch):
     merge_file_path = join('repos', project, branch, 'merging.json')
     if isfile(merge_file_path):
         return json.loads(load_file(merge_file_path))
 
+# will be deprecated
 def get_requests(project, branch):
     git_api = get_git(project, branch)
     branches = string.split(git_api.branch())
@@ -76,6 +123,7 @@ def get_requests(project, branch):
     unmerged = [item for item in branches if item not in merged]
     return unmerged
 
+# will be deprecated
 def get_merge_pendencies(project, branch):
     branch_repo_path = join('repos', project, branch)
     # user is merging?
@@ -88,15 +136,6 @@ def config_repo(repo, user_name, email):
     config = repo.config_writer()
     config.set_value('user', 'email', email)
     config.set_value('user', 'name', user_name)
-
-def is_dirty(project, branch):
-    repo_path = join('repos', project, branch, 'source')
-    return git.Repo(repo_path).is_dirty()
-
-def get_log(project, branch):
-    git_api = get_git(project, branch)
-    return git_api.log('-15', '--no-merges', '--abbrev-commit','--decorate', '--full-history',
-                       "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
 
 def get_log_diff(project, origin, branch):
     git_api = get_git(project, origin)
@@ -141,7 +180,8 @@ def get_branch_by_name(project, branch):
 
 def update_branch(project, branch):
     # update from reviewer (if not master)
-    if branch != 'master' and not is_dirty(project, branch):
+    project_obj = Project.get_by_name(project)
+    if branch != 'master' and not project_obj.get_branch(branch).is_dirty():
         origin_branch = get_branch_origin(project, branch).name
         git_api = get_git(project, branch)
         git_api.fetch()
@@ -150,7 +190,8 @@ def update_branch(project, branch):
     build(project, branch, timeout=20)
 
 def update_subtree(project, branch):
-    if not is_dirty(project, branch):
+    project_obj = Project.get_by_name(project)
+    if not project_obj.get_branch(branch).is_dirty():
         update_branch(project, branch)
         project_id = application.projects.Project.query.filter_by(name=project).first().id
         branch_id = Branch.query.filter_by(project_id=project_id, name=branch).first().id
@@ -162,7 +203,7 @@ def update_subtree(project, branch):
         origin = get_branch_origin(project, branch).name
         origin_pendencies = get_requests(project, origin)
         if (branch == 'master' or children.first()
-            or is_dirty(project, branch) or not branch_obj.expires
+            or branch_obj.is_dirty() or not branch_obj.expires
             or branch in origin_pendencies):
             branch_obj.expiration = None
         else:
@@ -184,27 +225,4 @@ def get_branch_origin(project, branch):
     project_id = application.projects.Project.query.filter_by(name=project).first().id
     origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
     return Branch.query.filter_by(id=origin_id).first()
-
-class Branch(CRUDMixin, db.Model):
-    __tablename__ = 'branch'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False, unique=False)
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    origin_id = db.Column(db.Integer, db.ForeignKey('branch.id'))
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
-    expires = db.Column('expires', db.Boolean(), nullable=False)
-    expiration =  db.Column(db.DateTime)
-
-    owner = relationship('User')
-    origin = relationship('Branch', remote_side=id)
-    collaborators = relationship('Branch')
-    project = relationship('Project', back_populates='branches')
-
-    def __init__(self, name, project, origin, owner):
-        self.name = name
-        self.project = project
-        if origin:
-            self.origin_id = origin.id
-        self.owner_id = owner.id
-        self.expires = True
 

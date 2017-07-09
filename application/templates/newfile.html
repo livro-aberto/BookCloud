@@ -1,23 +1,21 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% from "_formhelpers.html" import render_field %}
 
 {% block title %}{{ _('Create new file') }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ _('Create new file') }}</h1>
-
-<ul id="navigation">
-
-  {{ _('Choose a file name') }}
-
-  <p>
+  <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
     <form method="POST">
-      {{ render_field(form.name) }}
-      <br>
-      <input type=submit value=Register>
+      <fieldset class="uk-fieldset">
+        <legend class="uk-legend">{{ _('Create new file') }}</legend>
+        <div class="uk-margin">
+          {{ render_field(form.name) }}
+        </div>
+        <div class="uk-margin">
+          <button class="uk-button uk-button-primary">Submit</button>
+        </div>
     </form>
-  </p>
-</ul>
+  </div>
 {% endmacro %}
 
