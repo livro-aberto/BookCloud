@@ -198,13 +198,13 @@ div.bodywrapper {
             <button onclick="insertAround('\\overrightarrow{','}')">x&#8407</button>
           </nobr>
           experimental
-          <button {# href="{{ url_for('branches.html2rst') }}"#} onclick="return popitup('{{ url_for('branches.html2rst') }}')">Visual</button>
-        <form id="myform" action="{{ url_for('branches.edit', project=project, branch=branch,
+          <button {# href="{{ url_for('bookcloud.html2rst') }}"#} onclick="return popitup('{{ url_for('bookcloud.html2rst') }}')">Visual</button>
+        <form id="myform" action="{{ url_for('branches.edit', project=project.name, branch=branch.name,
                                   filename=filename) }}" method="post">
           <textarea id="code" name="code">{{ rst }}</textarea>
           <br>
-          <a href="{{ url_for('branches.view', project=project,
-                   branch=branch, filename=filename) }}" style="text-decoration:none">
+          <a href="{{ url_for('branches.view', project=project.name,
+                   branch=branch.name, filename=filename) }}" style="text-decoration:none">
             <input type="button" value="exit"/>
           </a>
           <input id="preview" name="preview" type="button" value="save" onClick="save()" />

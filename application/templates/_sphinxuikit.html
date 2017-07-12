@@ -1,0 +1,24 @@
+{% macro sphinx_uikit_script() %}
+  <script>
+    $(document).ready(function(){
+    $('div.admonition').addClass('uk-card');
+    $('div.admonition').addClass('uk-card-default');
+    $('div.admonition').addClass('uk-card-body');
+    $('div.admonition').addClass('uk-box-shadow-large');
+
+
+    $('div.align-center').addClass('uk-text-center');
+    $('div.figure').addClass('uk-text-center');
+
+    $('table').addClass('uk-table');
+    $('table').addClass('uk-table-divider');
+    $('table').removeClass('docutils');
+    $('table').removeAttr('border');
+    $('tr').removeClass('row-odd');
+    $('tr').removeClass('row-even');
+    $('th').removeClass('head');
+
+
+    });
+  </script>
+{% endmacro %}

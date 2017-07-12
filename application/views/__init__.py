@@ -182,12 +182,6 @@ def package():
     #sent_package['listat'] = listat
     return sent_package
 
-@limiter.exempt
-@temp.route('/<project>/<branch>/<action>/_images/<path:filename>')
-#@temp.route('/edit/<project>/<branch>/images/<path:filename>', methods = ['GET'])
-def get_tikz(project, branch, action, filename):
-    images_path = join('repos', project, branch, 'build/html/_images')
-    return flask.send_from_directory(os.path.abspath(images_path), filename)
 
 @limiter.exempt
 @temp.route('/<project>/<action>/_static/<path:filename>')

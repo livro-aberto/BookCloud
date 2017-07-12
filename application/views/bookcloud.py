@@ -20,7 +20,16 @@ bookcloud = Blueprint('bookcloud', __name__)
 
 @bookcloud.before_request
 def bookcloud_before_request():
-    g.menu = {'left': [], 'right':[]}
+    g.menu = {'left': [], 'right': [{
+        'name': 'Bookcloud',
+        'sub_menu': [
+        {
+            'name': 'Issues',
+            'url': 'https://github.com/gutosurrex/BookCloud/issues'
+        }, {
+            'name': 'Syntax',
+            'url': ('https://www.umlivroaberto.com/BookCloud/sintaxe/'
+                    'master/view/index.html')}]}]}
     if current_user.is_authenticated:
         g.menu['right'].append({
             'name': current_user.username,
@@ -77,3 +86,21 @@ def new():
                                     project=form.name.data))
     return render_template('new.html', menu=menu, form=form)
 
+@bookcloud.route('/html2rst', methods = ['GET', 'POST'])
+@limiter.limit("300 per day")
+def html2rst():
+    if request.method == 'POST':
+        if request.form.has_key('content'):
+            input = request.form.get('content')
+            if not input:
+                input = 'undefined'
+            if input != 'undefined':
+                try:
+                    converted = html2rest(input)
+                    prefetch = None
+                except:
+                    converted = None
+                    prefetch = input
+                return render_template('html2rst.html', converted=converted,
+                                       prefetch=prefetch)
+    return render_template('html2rst.html')

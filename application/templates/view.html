@@ -1,2 +1,13 @@
-{{ content | safe }}
+{% extends "base_template.html" %}
 
+{% from "_sphinxuikit.html" import sphinx_uikit_script %}
+
+{% block title %}{{ _('Viewing %s') % (filename) }}{% endblock%}
+
+{% block scripts %}{{ sphinx_uikit_script() }}{% endblock %}
+
+{% macro contents() %}
+
+  {{ content | safe }}
+
+{% endmacro %}

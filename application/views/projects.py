@@ -1,6 +1,7 @@
 import os
 import git
 from os.path import join, isdir, isfile, splitext
+from functools import wraps
 
 from flask import (
     g, Blueprint, request, render_template,
@@ -22,8 +23,21 @@ from application.tools import write_file
 
 projects = Blueprint('projects', __name__, url_prefix='/projects/<project>')
 
+def require_projct_owner(func):
+    """
+    A view decorator that restricts access to owner of project
+    """
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if current_user != g.project.owner:
+            flash(_('You are not the owner of this project'), 'error')
+            return redirect(url_for('branches.view', project=g.project.name,
+                                    branch='master', filename='index.html'))
+        return func(*args, **kwargs)
+    return decorated_function
+
 @projects.url_value_preprocessor
-def get_project_object(endpoint, values):
+def projects_url_value_preprocessor(endpoint, values):
     g.project = Project.get_by_name(values.get('project'))
     values['project'] = g.project
 
@@ -66,12 +80,9 @@ def dashboard(project):
 
 @projects.route('/newfile', methods = ['GET', 'POST'])
 @login_required
+@require_projct_owner
 def newfile(project):
     form = FileForm(request.form)
-    if current_user != project.owner:
-        flash(_('You are not the owner of this project'), 'error')
-        return redirect(url_for('branches.view', project=project.name,
-                                branch='master', filename='index.html'))
     # will be deprecated
     merge_pendencies = get_merge_pendencies(project.name, 'master')
     if merge_pendencies:
@@ -90,12 +101,9 @@ def newfile(project):
 
 @projects.route('/renamefile/<oldfilename>', methods = ['GET', 'POST'])
 @login_required
+@require_projct_owner
 def renamefile(project, oldfilename):
     form = FileForm(request.form)
-    if current_user != project.owner:
-        flash(_('You are not the owner of master'), 'error')
-        return redirect(url_for('branches.view', project=project,
-                                branch='master', filename='index.html'))
     # will be deprecated
     merge_pendencies = get_merge_pendencies(project.name, 'master')
     if merge_pendencies:
@@ -115,11 +123,8 @@ def renamefile(project, oldfilename):
 
 @projects.route('/deletefile/<filename>')
 @login_required
+@require_projct_owner
 def deletefile(project, filename):
-    if current_user != project.owner:
-        flash(_('You are not the owner of master'), 'error')
-        return redirect(url_for('branches.view', project=project.name,
-                                branch='master', filename='index.html'))
     # will be deprecated
     merge_pendencies = get_merge_pendencies(project.name, 'master')
     if merge_pendencies:

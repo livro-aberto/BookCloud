@@ -15,7 +15,7 @@
 import sys
 import os
 
-style = "biz"
+style = "theme"
 
 html_theme = style
 html_theme_path = ["/var/www/BookCloud/conf/", ]
