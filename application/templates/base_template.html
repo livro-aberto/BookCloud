@@ -28,11 +28,35 @@
   {% endfor %}
 {% endmacro %}
 
+{% macro navigation_bar() %}
+  <!-- Navigation bar -->
+  <nav class="uk-navbar-container" uk-navbar="mode: click">
+    <div class="uk-navbar-left uk-padding uk-padding-remove-top
+                uk-padding-remove-bottom">
+      <ul class="uk-navbar-nav">
+        <li class="uk-active"><a href="/">Home</a></li>
+        {{ menu_items(menu.left) }}
+        {% if threads %}
+          <li>
+            <a href="#discussion">
+              {{ _('discussion') }}
+              &nbsp
+              <span class="uk-badge">{{ threads.count() }}</span>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+    <div class="uk-navbar-right uk-padding uk-padding-remove-top
+                uk-padding-remove-bottom">
+      <ul class="uk-navbar-nav">
+        {{ menu_items(menu.right) }}
+      </ul>
+    </div>
+  </nav>
+{% endmacro %}
 
-<!doctype html>
-
-<html xmlns="http://www.w3.org/1999/xhtml">
-
+{% macro head() %}
   <head>
     <!-- Title -->
     <title>{% block title %}{% endblock %}</title>
@@ -52,37 +76,9 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jdenticon/1.4.0/jdenticon.min.js"></script>
     {% block scripts %}{% endblock %}
   </head>
+{% endmacro %}
 
-  <body>
-    <!-- Navigation bar -->
-    <nav class="uk-navbar-container" uk-navbar="mode: click">
-      <div class="uk-navbar-left uk-padding uk-padding-remove-top
-                  uk-padding-remove-bottom">
-        <ul class="uk-navbar-nav">
-          <li class="uk-active"><a href="/">Home</a></li>
-          {{ menu_items(menu.left) }}
-          {% if threads %}
-            <li>
-              <a href="#discussion">
-                {{ _('discussion') }}
-                &nbsp
-                <span class="uk-badge">{{ threads.count() }}</span>
-              </a>
-            </li>
-          {% endif %}
-        </ul>
-      </div>
-      <div class="uk-navbar-right uk-padding uk-padding-remove-top
-                  uk-padding-remove-bottom">
-        <ul class="uk-navbar-nav">
-          {{ menu_items(menu.right) }}
-        </ul>
-      </div>
-    </nav>
-
-    <div class="main-container uk-container uk-container-center
-                uk-margin-top uk-margin-bottom">
-      <!-- Flash messages -->
+{% macro flash_messages() %}
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
@@ -105,6 +101,24 @@
           {% endfor %}
         {% endif %}
       {% endwith %}
+
+{% endmacro %}
+
+<!doctype html>
+
+{% block document %}
+
+{{ head() }}
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <body>
+
+    {{ navigation_bar() }}
+
+    <div class="main-container uk-container uk-container-center
+                uk-margin-top uk-margin-bottom">
+      <!-- Flash messages -->
+      {{ flash_messages() }}
 
       <!-- Without sidebar -->
       {% if not self.sidebar() %}
@@ -312,3 +326,5 @@
 
   </body>
 </html>
+
+{% endblock document %}

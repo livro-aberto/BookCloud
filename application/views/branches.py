@@ -95,31 +95,19 @@ def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
     if file_extension == '':
         file_extension = '.html'
-    if not current_user.is_authenticated:
-        g.menu['right'].insert(0, {'name': 'edit',
-                                   'url': url_for('branches.edit',
-                                                  project=project.name,
-                                                  branch=branch,
-                                                  filename=filename)})
-    else:
-        if (current_user == branch.owner or
-            current_user == project.get_master().owner):
+    g.menu['right'].insert(0, {'name': 'edit',
+                               'url': url_for('branches.edit',
+                                              project=project.name,
+                                              branch=branch.name,
+                                              filename=filename)})
+    if (current_user.is_authenticated
+        and (current_user == branch.owner or
+             current_user == project.get_master().owner)):
             # will be deprecated
             merge_pendencies = get_merge_pendencies(project.name, branch.name)
             if merge_pendencies:
                 return merge_pendencies
             ####################
-            g.menu['right'].insert(0, {'name': 'edit',
-                                       'url': url_for('branches.edit',
-                                                      project=project.name,
-                                                      branch=branch.name,
-                                                      filename=filename)})
-        else:
-            # add to this link a next link
-            g.menu['right'].insert(0, {'name': 'edit',
-                                       'url': url_for('branches.clone',
-                                                      project=project.name,
-                                                      branch=branch.name)})
     content = load_file(join('repos', project.name, branch.name,
                              'build/html', filename + file_extension))
     threads = (Thread.query.join(File_Tag)
@@ -145,6 +133,7 @@ def edit(project, branch, filename):
     merge_pendencies = get_merge_pendencies(project.name, branch.name)
     if merge_pendencies:
         return pendencies
+    ####################
     branch_source_path = join('repos', project.name, branch.name,
                               'source', filename + '.rst')
     branch_html_path = join('repos', project.name, branch.name,
@@ -159,11 +148,8 @@ def edit(project, branch, filename):
     build(project.name, branch.name)
     rst = load_file(branch_source_path)
     doc = render_template_string(load_file(branch_html_path), barebones=True)
-    #menu = {'right': [{'name': branch.name,
-    #                   'url': url_for('branches.edit', project=project, branch=branch, filename=filename)}]}
     return render_template('edit.html', doc=doc, rst=rst, filename=filename,
-                           html_scroll=html_scroll,
-                           edit_scroll=edit_scroll, render_sidebar=False)
+                           html_scroll=html_scroll, edit_scroll=edit_scroll)
 
 @branches.route('/clone', methods = ['GET', 'POST'])
 @limiter.limit("7 per day")

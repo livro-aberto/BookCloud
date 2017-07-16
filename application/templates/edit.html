@@ -1,235 +1,413 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% block title %}{{ _('Edit: %(filename)s') | format(filename=filename) }} {% endblock%}
 
+{% from "_sphinxuikit.html" import sphinx_uikit_script %}
+
 {% block scripts %}
-<link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
-<script src="https://codemirror.net/lib/codemirror.js"></script>
-<script src="https://codemirror.net/addon/mode/overlay.js"></script>
-<script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
-<script type="text/javascript" src="/_static/jquery.are-you-sure.js"></script>
+  <link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
+  <script src="https://codemirror.net/lib/codemirror.js"></script>
+  <script src="https://codemirror.net/addon/mode/overlay.js"></script>
+  <script type="text/javascript"
+          src="https://codemirror.net/mode/rst/rst.js">
+  </script>
+  <script type="text/javascript"
+          src="/_static/jquery.are-you-sure.js">
+  </script>
+  <link rel="stylesheet" href="https://codemirror.net/addon/dialog/dialog.css">
+  <link rel="stylesheet"
+        href="https://codemirror.net/addon/search/matchesonscrollbar.css">
+  <script src="https://codemirror.net/mode/xml/xml.js"></script>
+  <script src="https://codemirror.net/addon/dialog/dialog.js"></script>
+  <script src="https://codemirror.net/addon/search/searchcursor.js"></script>
+  <script src="https://codemirror.net/addon/search/search.js"></script>
+  <script src="https://codemirror.net/addon/scroll/annotatescrollbar.js"></script>
+  <script src="https://codemirror.net/addon/search/matchesonscrollbar.js"></script>
+  <script src="https://codemirror.net/addon/search/jump-to-line.js"></script>
 
-<link rel="stylesheet" href="https://codemirror.net/addon/dialog/dialog.css">
-<link rel="stylesheet" href="https://codemirror.net/addon/search/matchesonscrollbar.css">
-
-<script src="https://codemirror.net/mode/xml/xml.js"></script>
-<script src="https://codemirror.net/addon/dialog/dialog.js"></script>
-<script src="https://codemirror.net/addon/search/searchcursor.js"></script>
-<script src="https://codemirror.net/addon/search/search.js"></script>
-<script src="https://codemirror.net/addon/scroll/annotatescrollbar.js"></script>
-<script src="https://codemirror.net/addon/search/matchesonscrollbar.js"></script>
-<script src="https://codemirror.net/addon/search/jump-to-line.js"></script>
-
-
-<script language="javascript" type="text/javascript">
-  function popitup(url) {
-    newwindow = window.open(url,'name','height=500,width=900');
-    if (window.focus) {newwindow.focus()}
-    return false;
-  }
-</script>
-
-<script>
-  var is_changed = 0;
-
-  // inserts text around the cursor or selection
-  function insertAround(start, end) {
-    var doc = editor;
-    var cursor = doc.getCursor();
-
-    if (doc.somethingSelected()) {
-      var selection = doc.getSelection();
-      doc.replaceSelection(start + selection + end);
-    } else {
-      // If no selection then insert start and end args and set cursor position between the two.
-      doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
-      doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
+  <script language="javascript" type="text/javascript">
+    function popitup(url) {
+      newwindow = window.open(url,'name',',width=900');
+      if (window.focus) {newwindow.focus()}
+      return false;
     }
-    editor.focus();
-  }
+  </script>
 
-  function save() {
-    is_changed = 0;
-    var height = document.getElementById("html_view").scrollTop;
-    document.getElementById("html_scroll").value = height;
-    var info = editor.getScrollInfo();
-    document.getElementById("edit_scroll").value = info.top;
-    document.getElementById("myform").submit();
-  }
+  <script>
+    var is_changed = 0;
+    // inserts text around the cursor or selection
+    function insertAround(start, end) {
+      var doc = editor;
+      var cursor = doc.getCursor();
+      if (doc.somethingSelected()) {
+        var selection = doc.getSelection();
+        doc.replaceSelection(start + selection + end);
+      } else {
+        // If no selection then insert start and end args and set cursor position between the two.
+        doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
+        doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
+      }
+      editor.focus();
+    }
 
-  function scrollWin() {
-    document.getElementById("html_view").scrollTo(0, {{ html_scroll }});
-    editor.scrollTo(0, {{ edit_scroll }});
-  }
+    function save() {
+      is_changed = 0;
+      var height = document.getElementById("html_view").scrollTop;
+      document.getElementById("html_scroll").value = height;
+      var info = editor.getScrollInfo();
+      document.getElementById("edit_scroll").value = info.top;
+      document.getElementById("myform").submit();
+    }
 
-  window.onload = scrollWin;
+    function scrollWin() {
+      document.getElementById("html_view").scrollTo(0, {{ html_scroll }});
+      editor.scrollTo(0, {{ edit_scroll }});
+    }
 
+    window.onload = scrollWin;
 
-  //$('#form').data('serialize',$('#form').serialize()); // On load save form current state
+    $(window).bind('beforeunload', function(e){
+      if (is_changed == 1) return true;
+      else e=null;
+      // i.e; if form state change show warning box, else don't show it.
+    });
+  </script>
+  <style>
 
-  $(window).bind('beforeunload', function(e){
-    if (is_changed == 1) return true;
-    else e=null; // i.e; if form state change show warning box, else don't show it.
-  });
+    .CodeMirror{
+    height: calc(100vh - 100px);
+    overflow: hidden;
+    }
+  </style>
+  {{ sphinx_uikit_script() }}
+{% endblock scripts %}
 
-  //$(function() {
-  //  $('form').areYouSure();
-  //});
-</script>
-
-
-<style>
-.flex-container {
-    display: -webkit-flex;
-    display: flex;
-    width: auto;
-    height: 90vh;
-    background-color: #7799CC;
-}
-
-.CodeMirror {
-    border: 1px solid #eee;
-    height: 65vh;
-}
-
-.flex-item, .flex-item-rigid {
-    width: 50%;
-    height: auto;
-    margin: 10px;
-}
-.flex-item {
-    overflow: scroll;
-}
-button
-{
-    margin: -1px;
-    padding: 0px;
-}
-div.bodywrapper {
-    margin: 0 0 0 0px;
-}
-</style>
-{% endblock %}
-
-{% macro contents() %}
-  <div class="body" role="main">
-    <div class="flex-container" align="left">
-      <div class="flex-item-rigid">
-        <p style="line-height: 200%;">
-          <nobr>
-            {{ _('sections') }}
-            <button onclick="insertAround('\n.. _cap-coloque-aqui-o-nome:\n\n********\nCap&#237;tulo\n********','')">Cap</button>
-            <button onclick="insertAround('\n.. _sec-coloque-aqui-o-nome:\n\nSe&#231;&#227;o\n=====','')">Sec</button>
-            <button onclick="insertAround('\n.. _sub-coloque-aqui-o-nome:\n\nSubse&#231;&#227;o\n---------','')">Sub</button>
-          </nobr>
-          <nobr>
-            {{ _('style') }}
-            <button onclick="insertAround('**','**')"
-                    title="{{ _('Bold') }}"><b>B</b></button>
-            <button onclick="insertAround('*','*')" style="font-family:verdana;"
-                    title="{{ _('Italic') }}"><i>I</i></button>
-            <button onclick="insertAround('\n* a\n* b','')"
-                    title="{{ _('Itemize') }}">&#x2D57</button>
-            <button onclick="insertAround('\n#. foo\n#. bar','')"
-                    title="{{ _('Enumerate') }}">a)</button>
-          </nobr>
-          <nobr>
-            {{ _('boxes') }}
-            <button onclick="insertAround('\n.. admonition:: Para o professor\n\n   texto','')"
-                    title="{{ _('Para o professor') }}">Pr</button>
-            <button onclick="insertAround('\n.. admonition:: Resposta \n\n   texto','')"
-                    title="{{ _('Resposta') }}">Re</button>
-            <button onclick="insertAround('\n.. admonition:: Definição \n\n   texto','')"
-                    title="{{ _('Definição') }}">Def</button>
-            <button onclick="insertAround('\n.. admonition:: Teorema \n\n   texto','')"
-                    title="{{ _('Teorema') }}">Teo</button>
-            <button onclick="insertAround('\n.. admonition:: Exemplo \n\n   texto','')"
-                    title="{{ _('Exemplo') }}">Ex</button>
-            <button onclick="insertAround('\n.. _ativ-titulo-da-atividade:\n\nAtividade: título da atividade\n------------------------------\n\n','')"
-                    title="{{ _('Atividade') }}">At</button>
-          </nobr>
-          <nobr>
-            {{ _('image') }}
-            <button onclick="insertAround('\n.. _fig-coloque-aqui-o-nome:\n\n.. figure:: <link da figura>\n   :width: 200px\n   :align: center\n\n   legenda', '')"
-                    title="{{ _('figure') }}">
-              : <font size="1">&#x263a</font>
+{% macro editor() %}
+  <div id="header"
+       style="height: 50px;">
+    <div class="uk-inline uk-margin-small-top uk-margin-small-left">
+      <button class="uk-button uk-button-small uk-background-default
+                     uk-button-default" type="button">
+        {{ _('sections') }}
+      </button>
+      <div uk-dropdown>
+        <ul class="uk-nav uk-navbar-dropdown-nav">
+          <li>
+            <button class="uk-button uk-button-text"
+               onclick="insertAround('\n.. _cap-coloque-aqui-o-nome:\n\n********\nCap&#237;tulo\n********','')">Cap
             </button>
-            {#
-            <button onclick="insertAround('\n.. figure:: ../images/','<nome-da-figura>\n\n    legenda')">
-              &#x263a
+          </li>
+          <li>
+            <button class="uk-button uk-button-text"
+               onclick="insertAround('\n.. _sec-coloque-aqui-o-nome:\n\nSe&#231;&#227;o\n=====','')">Sec
             </button>
-            #}
-            <button onclick="insertAround('.. table:: Legenda\n   :widths: 1 3\n   :column-alignment: left center\n\n   +---+---+\n   | A | B |\n   +===+===+\n   | 0 | 1 |\n   +---+---+\n   | 2 | 3 |\n   +---+---+\n','')"
-                    title="{{ _('Table') }}">
-              &#x25EB
+          </li>
+          <li>
+            <button class="uk-button uk-button-text"
+               onclick="insertAround('\n.. _sub-coloque-aqui-o-nome:\n\nSubse&#231;&#227;o\n---------','')">Sub
             </button>
-            <button onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')"
-                    title="{{ _('Tikz figure') }}">
-              &#x25B3
-            </button>
-          </nobr>
-          <nobr>
-            {{ _('ref') }}
-            <button onclick="insertAround(':ref:`nome-da-referencia`', '')"
-                    title="{{ _('ref') }}">!
-            </button>
-          </nobr>
-          <nobr>
-            Eq.:
-            <button onclick="insertAround('`a = b`','')"
-                    title="{{ _('Inline math') }}">: &#x1D4CD</button>
-            <button onclick="insertAround('\n.. math::\n\n   a^2 = b','')"
-                    title="{{ _('Displayed equation') }}">&#x1D4E7</button>
-          </nobr>
-          <nobr>
-            {{ _('math') }}:
-            <button onclick="insertAround('\\frac{1}{2}','')">&#xBD</button>
-            <button onclick="insertAround('\\sin(',')')">sin</button>
-            <button onclick="insertAround('\\cos(',')')">cos</button>
-            <button onclick="insertAround('\\neq','')">&#x2260</button>
-            <button onclick="insertAround('\\cap','')">&#x2229</button>
-            <button onclick="insertAround('\\cup','')">&#x222A</button>
-            <button onclick="insertAround('\\mathbb{R}','')">&#x211D</button>
-            <button onclick="insertAround('\\mathbb{Q}','')">&#x211A</button>
-            <button onclick="insertAround('\\mathbb{Z}','')">&#x2124</button>
-            <button onclick="insertAround('\\mathbb{N}','')">&#x2115</button>
-            <button onclick="insertAround('\\in','')">&#x2208</button>
-            <button onclick="insertAround('\\subset','')">&#x2282</button>
-            <button onclick="insertAround('\\overrightarrow{','}')">x&#8407</button>
-          </nobr>
-          experimental
-          <button {# href="{{ url_for('bookcloud.html2rst') }}"#} onclick="return popitup('{{ url_for('bookcloud.html2rst') }}')">Visual</button>
-        <form id="myform" action="{{ url_for('branches.edit', project=project.name, branch=branch.name,
-                                  filename=filename) }}" method="post">
-          <textarea id="code" name="code">{{ rst }}</textarea>
-          <br>
-          <a href="{{ url_for('branches.view', project=project.name,
-                   branch=branch.name, filename=filename) }}" style="text-decoration:none">
-            <input type="button" value="exit"/>
-          </a>
-          <input id="preview" name="preview" type="button" value="save" onClick="save()" />
-
-          <input type="hidden" name="html_scroll" id="html_scroll" value="{{ html_scroll }}" />
-          <input type="hidden" name="edit_scroll" id="edit_scroll" value="{{ edit_scroll }}" />
-
-        </form>
+          </li>
+        </ul>
       </div>
 
-      <script>
-        var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-          extraKeys: {"Alt-F": "findPersistent"},
-          extraKeys: {"Ctrl-F": "findPersistent"},
-          lineNumbers: false,
-          lineWrapping: true,
-        });
+      <button class="uk-button uk-button-small uk-background-default
+                     uk-button-default" type="button">
+        {{ _('style') }}
+      </button>
+      <div uk-dropdown>
+        <ul class="uk-iconnav uk-iconnav-vertical">
+          <li>
+            <a onclick="insertAround('**','**')"
+               title="{{ _('Bold') }}"
+               uk-icon="icon: bold"><b></b>
+            </a>
+          </li>
+          <li>
+            <a onclick="insertAround('*','*')"
+               style="font-family:verdana;"
+               title="{{ _('Italic') }}"
+               uk-icon="icon: italic"><i></i>
+            </a>
+          </li>
+          <li>
+            <a onclick="insertAround('\n* a\n* b','')"
+               title="{{ _('Itemize') }}"
+               uk-icon="icon: more-vertical">
+            </a>
+          </li>
+          <li>
+            <a onclick="insertAround('\n#. foo\n#. bar','')"
+               title="{{ _('Enumerate') }}"
+               uk-icon="icon: list">
+            </a>
+          </li>
+        </ul>
+      </div>
 
-        editor.on("change", function(){ is_changed = 1; }  );
-      </script>
+      <button class="uk-button uk-button-small uk-background-default
+              uk-button-default" type="button">
+          {{ _('boxes') }}
+      </button>
+      <div uk-dropdown>
+        <ul class="uk-nav uk-navbar-dropdown-nav">
+          <li>
+            <button class="uk-button uk-button-text"
+               onclick="insertAround('\n.. admonition:: Para o professor\n\n   texto','')"
+                    title="{{ _('Para o professor') }}">{{ _('Para o professor') }}
+            </button>
+          </li>
+          <li>
+            <button class="uk-button uk-button-text"
+                    onclick="insertAround('\n.. admonition:: Resposta \n\n   texto','')"
+                    title="{{ _('Resposta') }}">{{ _('Resposta') }}
+            </button>
+          </li>
+          <li>
+            <button class="uk-button uk-button-text"
+                    onclick="insertAround('\n.. admonition:: Definição \n\n   texto','')"
+                    title="{{ _('Definição') }}">{{ _('Definição') }}
+            </button>
+          </li>
+          <li>
+            <button class="uk-button uk-button-text"
+                    onclick="insertAround('\n.. admonition:: Teorema \n\n   texto','')"
+                    title="{{ _('Teorema') }}">{{ _('Teorema') }}
+            </button>
+          </li>
+          <li>
+            <button class="uk-button uk-button-text"
+                    onclick="insertAround('\n.. admonition:: Exemplo \n\n   texto','')"
+                    title="{{ _('Exemplo') }}">{{ _('Exemplo') }}
+            </button>
+          </li>
+          <li>
+            <button class="uk-button uk-button-text" onclick="insertAround('\n.._ativ-titulo-da-atividade:\n\nAtividade: título da atividade\n------------------------------\n\n','')"
+                    title="{{ _('Atividade') }}">{{ _('Atividade') }}
+            </button>
+          </li>
+        </ul>
+      </div>
 
-      <div id="html_view" class="flex-item" onload="document.getElementById('html_view').scrollTop = 200;">
-        {{ doc | safe }}
+      <button class="uk-button uk-button-small uk-background-default
+              uk-button-default" type="button">
+          {{ _('image') }}
+      </button>
+      <div uk-dropdown>
+        <ul class="uk-iconnav uk-iconnav-vertical">
+          <li>
+            <a onclick="insertAround('\n.. _fig-coloque-aqui-o-nome:\n\n.. figure:: <link da figura>\n   :width: 200px\n   :align: center\n\n   legenda', '')"
+               title="{{ _('figure') }}"
+               uk-icon="icon: image">
+              <font size="1"></font>
+            </a>
+          <li>
+          </li>
+            <a onclick="insertAround('.. table:: Legenda\n   :widths: 1 3\n   :column-alignment: left center\n\n   +---+---+\n   | A | B |\n   +===+===+\n   | 0 | 1 |\n   +---+---+\n   | 2 | 3 |\n   +---+---+\n','')"
+               title="{{ _('Table') }}"
+               uk-icon="icon: thumbnails">
+            </a>
+          <li>
+          </li>
+            <a onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')"
+               title="{{ _('Tikz figure') }}"
+               uk-icon="icon: move">
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <a class="uk-button uk-button-small uk-background-default
+                uk-button-default" type="button"
+         onclick="insertAround(':ref:`nome-da-referencia`', '')"
+         title="{{ _('Referência interna') }}"
+         uk-icon="icon: bookmark">
+      </a>
+
+      <button class="uk-button uk-button-small uk-background-default
+              uk-button-default" type="button">
+          {{ _('math') }}:
+      </button>
+      <div uk-dropdown>
+        <div class="uk-flex uk-flex-wrap uk-flex-wrap-around
+                    uk-background-default">
+          <div>
+            {{ _('Insert equation') }}
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('`a = b`','')"
+                    title="{{ _('Inline') }}">{{ _('Inline') }}
+            </button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\n.. math::\n\n   a^2 = b','')"
+                    title="{{ _('Displayed equation') }}">{{ _('Displayed equation') }}
+            </button>
+          </div>
+        </div>
+            {{ _('Math symbols') }}
+          <div class="uk-flex uk-flex-wrap uk-flex-wrap-around
+                      uk-background-default">
+            <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\frac{1}{2}','')">&#xBD</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\sin(',')')">sin</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\cos(',')')">cos</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\neq','')">&#x2260</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\cap','')">&#x2229</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\cup','')">&#x222A</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\mathbb{R}','')">&#x211D</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\mathbb{Q}','')">&#x211A</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\mathbb{Z}','')">&#x2124</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\mathbb{N}','')">&#x2115</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\in','')">&#x2208</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\subset','')">&#x2282</button>
+          </div>
+          <div>
+            <button class="uk-button uk-button-default uk-button-small"
+                    onclick="insertAround('\\overrightarrow{','}')">x&#8407
+          </button>
+          </div>
+        </div>
+      </div>
+
+      <a class="uk-button uk-button-small uk-background-default
+                uk-button-default" type="button"
+                onclick="return popitup('{{ url_for('bookcloud.html2rst') }}')"
+                title="{{ _('Visual writting tool') }}"
+                uk-icon="icon: pencil">
+      </a>
+              </div>
+  </div>
+
+  <div id="editor-wrap"
+       style="height: calc(100vh - 50px);
+              overflow: hidden;">
+    <form id="myform" action="{{ url_for('branches.edit',
+                              project=project.name, branch=branch.name,
+                              filename=filename) }}" method="post">
+      <textarea class="uk-textarea"
+                id="code" name="code">{{ rst }}</textarea>
+        <script>
+            var editor = CodeMirror.fromTextArea
+              (document.getElementById("code"), {
+                 extraKeys: {"Alt-F": "findPersistent"},
+                 extraKeys: {"Ctrl-F": "findPersistent"},
+                 lineNumbers: false,
+                 lineWrapping: true}
+              );
+            editor.on("change", function(){ is_changed = 1; }  );
+        </script>
+
+
+          <a href="{{ url_for('branches.view', project=project.name,
+             branch=branch.name, filename=filename) }}"
+             style="text-decoration:none">
+            <input class="uk-button uk-button-primary uk-margin-left
+                          uk-button-small
+                          uk-margin-small-top"
+                   type="button" value="exit"/>
+          </a>
+
+          <input class="uk-button uk-button-primary uk-margin-small-top
+                        uk-button-small"
+                 id="preview" name="preview" type="button"
+                 value="save" onClick="save()" />
+          <input type="hidden" name="html_scroll" id="html_scroll"
+                 value="{{ html_scroll }}" />
+          <input type="hidden" name="edit_scroll" id="edit_scroll"
+                 value="{{ edit_scroll }}" />
+
+        </form>
+</div>
+
+{% endmacro%}
+
+{% macro contents() %}{% endmacro %}
+
+{% block document %}
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+  {{ head() }}
+
+  <div class="uk-flex uk-flex-stretch uk-background-muted">
+
+    <div class="uk-width-1-2">
+        {{ editor() }}
+    </div>
+
+    <div class="uk-width-1-2">
+      <div style="height: 50px; overflow:hidden;">
+        <a class="uk-button uk-button-default uk-button-small
+           uk-margin-small-bottom uk-margin-small-left
+           uk-margin-small-top"
+           title="{{ _('Open menu bar') }}"
+           href="#modal-container" uk-toggle>Menu</a>
+
+        <div id="modal-container" class="uk-modal-container" uk-modal>
+          <div class="uk-modal-dialog uk-modal-body">
+            <button class="uk-modal-close-default" type="button" uk-close>
+            </button>
+            {{ navigation_bar() }}
+          </div>
+        </div>
+      </div>
+
+      <div style="height: calc(100vh - 50px);
+                  overflow: hidden;">
+
+
+      <div class="uk-card uk-card-default uk-card-body"
+           id="html_view"
+           style="height: calc(100vh - 100px);
+                  top: 0px;
+                  overflow-y: scroll;"
+           onload="document.getElementById('html_view').scrollTop = 200;">
+
+        {{ flash_messages() }}
+
+          {{ doc | safe }}
       </div>
     </div>
   </div>
-{% endmacro %}
 
+</html>
+
+{% endblock %}

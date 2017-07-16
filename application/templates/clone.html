@@ -1,22 +1,21 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% from "_formhelpers.html" import render_field %}
 
 {% block title %}{{ _('Create your own branch of this project') }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ _('Create your own branch of this project') }}</h1>
-
-<ul id="navigation">
-
-  {{ _('Choose branch name') }}
-
-  <form method="POST">
-    {{ render_field(form.name) }}
-    <br>
-    <input type=submit value=Register>
-  </form>
-
-</ul>
+  <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
+    <form method="POST">
+      <fieldset class="uk-fieldset">
+        <legend class="uk-legend">{{ _('Create your own branch of this project') }}</legend>
+        <div class="uk-margin">
+          {{ render_field(form.name) }}
+        </div>
+        <div class="uk-margin">
+          <button class="uk-button uk-button-primary">Submit</button>
+        </div>
+    </form>
+  </div>
 {% endmacro %}
 

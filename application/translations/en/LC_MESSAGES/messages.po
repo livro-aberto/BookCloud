@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2017-06-24 17:01-0300\n"
+"POT-Creation-Date: 2017-07-16 13:42-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -15,73 +15,96 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.3.4\n"
+"Generated-By: Babel 2.4.0\n"
 
-#: utils.py:73
-msgid "You have uncommitted changes!!!"
-msgstr "Você tem mudanças não submetidas!!!"
+#: branches/forms.py:8
+msgid "Message"
+msgstr ""
 
-#: utils.py:82
-msgid "You have unreviewed requests!!!"
-msgstr "Você tem requerimentos não revisados!!!"
+#: branches/forms.py:11
+msgid "Branch name"
+msgstr ""
 
-#: templates/base_template.html:65 templates/layout.html:173
+#: branches/model.py:218
+#, python-format
+msgid "Branch %s has been killed"
+msgstr "Ramo %s foi eliminado"
+
+#: branches/model.py:220
+#, python-format
+msgid "Branch %s has been marked obsolete"
+msgstr "Ramo %s foi marcado como obsoleto"
+
+#: projects/forms.py:9
+msgid "Project name"
+msgstr ""
+
+#: projects/forms.py:12
+msgid "File name"
+msgstr ""
+
+#: projects/model.py:142
+msgid "Initial commit"
+msgstr "Submissao inicial"
+
+#: templates/base_template.html:42 templates/layout.html:199
 msgid "discussion"
 msgstr "Discussão"
 
-#: templates/base_template.html:152 templates/layout.html:257
+#: templates/base_template.html:169 templates/layout.html:284
 msgid "comments"
 msgstr "Comentários"
 
-#: templates/base_template.html:175 templates/layout.html:282
+#: templates/base_template.html:198 templates/layout.html:309
 msgid "Users:"
 msgstr "Usuários"
 
-#: templates/base_template.html:182 templates/layout.html:285
+#: templates/base_template.html:205 templates/layout.html:312
 msgid "Files:"
 msgstr "Arquivos"
 
-#: templates/base_template.html:189 templates/layout.html:289
+#: templates/base_template.html:212 templates/layout.html:316
 msgid "Tags:"
 msgstr "Rótulos"
 
-#: templates/base_template.html:196 templates/layout.html:293
+#: templates/base_template.html:219 templates/layout.html:320
 msgid "Others:"
 msgstr "Outros"
 
-#: templates/base_template.html:222 templates/layout.html:309
+#: templates/base_template.html:248 templates/layout.html:336
 msgid "likes"
 msgstr "Likes"
 
-#: templates/base_template.html:283 templates/layout.html:349
+#: templates/base_template.html:314 templates/layout.html:376
 msgid "Created using"
 msgstr "Criado com"
 
-#: templates/branch.html:3 templates/branch.html:6
+#: templates/branch.html:3
 #, python-format
 msgid "Project (%(project)s), branch (_%(branch)s)"
 msgstr "Projeto (%(project)s), ramo (_%(branch)s)"
 
-#: templates/branch.html:10
+#: templates/branch.html:7
+#, python-format
+msgid "%(branch)s"
+msgstr ""
+
+#: templates/branch.html:14
 msgid "Visit branch"
 msgstr "Visitar ramo"
 
-#: templates/branch.html:14
+#: templates/branch.html:22
 msgid "Create a new file"
 msgstr "Criar novo arquivo"
 
-#: templates/branch.html:18
+#: templates/branch.html:26
 #, python-format
 msgid "Last commits in _%s:"
 msgstr "Últimas submissões em _%s"
 
-#: templates/clone.html:5 templates/clone.html:8
+#: templates/clone.html:5 templates/clone.html:11
 msgid "Create your own branch of this project"
 msgstr "Crie seu próprio ramo deste projeto"
-
-#: templates/clone.html:12
-msgid "Choose branch name"
-msgstr "Escolha um nome para o ramo"
 
 #: templates/commit.html:5 templates/commit.html:8
 msgid "Commit your changes"
@@ -94,6 +117,34 @@ msgstr "Escolha uma mensagem descrevendo a submissão"
 #: templates/commit.html:19
 msgid "Changes that you are committing now"
 msgstr "Mudanças que você está submetendo agora"
+
+#: templates/dashboard.html:3 templates/dashboard.html:10
+msgid "List of branches"
+msgstr "Lista de ramos"
+
+#: templates/dashboard.html:13
+#, python-format
+msgid "Here you can see the project: %(project)s..."
+msgstr ""
+"Para visualizar a versão mais revisada do projeto, clique em 'master'. Se"
+" quiser editar o texto, clique no eixo mais apropriado e depois clique em"
+" 'editar'."
+
+#: templates/dashboard.html:32
+msgid "Sub-branches"
+msgstr ""
+
+#: templates/dashboard.html:75
+msgid "Files in this project"
+msgstr "Arquivos nesse projeto"
+
+#: templates/dashboard.html:79
+msgid "New file"
+msgstr ""
+
+#: templates/dashboard.html:116
+msgid "Last commits in _master:"
+msgstr "Últimas alterações"
 
 #: templates/diff.html:3 templates/diff.html:30
 #, python-format
@@ -109,108 +160,112 @@ msgstr "O arquivo proposto (esquerda) e a versão antiga (direita)"
 msgid "Edit: %(filename)s"
 msgstr "Editar: %(filename)s"
 
-#: templates/edit.html:120
+#: templates/edit.html:88
 msgid "sections"
 msgstr "seções"
 
-#: templates/edit.html:126
+#: templates/edit.html:112
 msgid "style"
 msgstr "estilo"
 
-#: templates/edit.html:128
+#: templates/edit.html:118
 msgid "Bold"
 msgstr "Negrito"
 
-#: templates/edit.html:130
+#: templates/edit.html:125
 msgid "Italic"
 msgstr "Itálico"
 
-#: templates/edit.html:132
+#: templates/edit.html:131
 msgid "Itemize"
 msgstr "Ítens"
 
-#: templates/edit.html:134
+#: templates/edit.html:137
 msgid "Enumerate"
 msgstr "Enumeração"
 
-#: templates/edit.html:137
+#: templates/edit.html:146
 msgid "boxes"
 msgstr "caixas"
 
-#: templates/edit.html:139
+#: templates/edit.html:153
 msgid "Para o professor"
 msgstr "Para o professor"
 
-#: templates/edit.html:141
+#: templates/edit.html:159
 msgid "Resposta"
 msgstr "Resposta"
 
-#: templates/edit.html:143
+#: templates/edit.html:165
 msgid "Definição"
 msgstr "Definição"
 
-#: templates/edit.html:145
+#: templates/edit.html:171
 msgid "Teorema"
 msgstr "Teorema"
 
-#: templates/edit.html:147
+#: templates/edit.html:177
 msgid "Exemplo"
 msgstr "Exemplo"
 
-#: templates/edit.html:149
+#: templates/edit.html:182
 msgid "Atividade"
 msgstr "Atividade"
 
-#: templates/edit.html:152
+#: templates/edit.html:190
 msgid "image"
 msgstr "imagem"
 
-#: templates/edit.html:154
+#: templates/edit.html:196
 msgid "figure"
 msgstr "figura"
 
-#: templates/edit.html:163
+#: templates/edit.html:203
 msgid "Table"
 msgstr "Tabela"
 
-#: templates/edit.html:167
+#: templates/edit.html:209
 msgid "Tikz figure"
 msgstr "Figura Tikz"
 
-#: templates/edit.html:172 templates/edit.html:174
-msgid "ref"
-msgstr "ref"
+#: templates/edit.html:219
+msgid "Referência interna"
+msgstr ""
 
-#: templates/edit.html:180
+#: templates/edit.html:225
+msgid "math"
+msgstr "mat"
+
+#: templates/edit.html:232
 msgid "Inline math"
-msgstr "Matemática na mesma linha"
+msgstr "Ambiente matemático"
 
-#: templates/edit.html:182
+#: templates/edit.html:238
 msgid "Displayed equation"
 msgstr "Equação"
 
-#: templates/edit.html:185
-msgid "math"
-msgstr "mat"
+#: templates/edit.html:299
+msgid "Visual writting tool"
+msgstr ""
 
 #: templates/editthread.html:5 templates/editthread.html:47
 #: templates/newthread.html:5 templates/newthread.html:47
 msgid "New thread"
 msgstr "Nova discussão"
 
-#: templates/home.html:3 templates/home.html:7
+#: templates/home.html:3 templates/home.html:6
 msgid "Projects list"
 msgstr "Lista de projetos"
 
-#: templates/home.html:11
+#: templates/home.html:9
 msgid "Here you can see all the projects..."
 msgstr "Aqui você pode ver todos os projetos..."
 
-#: templates/home.html:23 templates/new.html:5 templates/new.html:8
+#: templates/home.html:32 templates/new.html:5 templates/new.html:11
 msgid "Create new project"
 msgstr "Criar novo projeto"
 
-#: templates/layout.html:199
+#: templates/layout.html:225
 msgid "Discussions"
 msgstr "Discussões"
 
@@ -265,13 +320,9 @@ msgstr "Novo comentário"
 msgid "Create new comment"
 msgstr "Criar novo comentário"
 
-#: templates/newfile.html:5 templates/newfile.html:8
+#: templates/newfile.html:5 templates/newfile.html:11
 msgid "Create new file"
 msgstr "Criar novo arquivo"
-
-#: templates/newfile.html:12
-msgid "Choose a file name"
-msgstr "Escolha um nome de arquivo"
 
 #: templates/profile.html:31
 msgid "Your branches"
@@ -293,48 +344,33 @@ msgstr "Ramo"
 msgid "Father branch"
 msgstr "Ramo pai"
 
-#: templates/profile.html:66
+#: templates/profile.html:68
 msgid "Profile"
 msgstr "Perfil"
 
-#: templates/profile.html:70
+#: templates/profile.html:72
 msgid "First Name"
 msgstr "Primeiro Nome"
 
-#: templates/profile.html:74
+#: templates/profile.html:76
 msgid "Last Name"
 msgstr "Último Nome"
 
-#: templates/profile.html:85 templates/profile.html:95
-#: templates/profile.html:105
+#: templates/profile.html:87 templates/profile.html:97
+#: templates/profile.html:107
 msgid "Not answered"
 msgstr "Não respondido"
 
-#: templates/project.html:3 templates/project.html:7
-msgid "List of branches"
-msgstr "Lista de ramos"
-
-#: templates/project.html:10
+#: templates/renamefile.html:5 templates/renamefile.html:12
 #, python-format
-msgid "Here you can see the project: %(project)s..."
+msgid "Rename file: %s"
 msgstr ""
-"Para visualizar a versão mais revisada do projeto, clique em 'master'. Se"
-" quiser editar o texto, clique no eixo mais apropriado e depois clique em"
-" 'editar'."
-
-#: templates/project.html:68
-msgid "Files in this project"
-msgstr "Arquivos nesse projeto"
-
-#: templates/project.html:91
-msgid "Last commits in _master:"
-msgstr "Últimas alterações"
 
 #: templates/search_comments.html:5
 msgid "List of comments"
 msgstr "Lista de comentários"
 
-#: templates/search_comments.html:27
+#: templates/search_comments.html:25
 msgid "No results found"
 msgstr "Nenhum resultado encontrado"
 
@@ -350,215 +386,214 @@ msgstr "sim"
 msgid "no"
 msgstr "não"
 
-#: tools/__init__.py:57
+#: templates/view.html:5
+#, python-format
+msgid "Viewing %s"
+msgstr ""
+
+#: tools/__init__.py:59
 msgid "Process is taking too long and will be terminated!"
 msgstr "O processo está demorando muito e será terminado!"
 
-#: views/__init__.py:114
-#, python-format
-msgid "Branch %s has been killed"
-msgstr "Ramo %s foi eliminado"
+#: views/__init__.py:107 views/branches.py:53
+msgid "You have uncommitted changes!!!"
+msgstr "Você tem mudanças não submetidas!!!"
 
-#: views/__init__.py:116
-#, python-format
-msgid "Branch %s has been marked obsolete"
-msgstr "Ramo %s foi marcado como obsoleto"
+#: views/__init__.py:116 views/branches.py:62
+msgid "You have unreviewed requests!!!"
+msgstr "Você tem requerimentos não revisados!!!"
 
-#: views/__init__.py:174
-msgid "Initial commit"
-msgstr "Submissao inicial"
-
-#: views/__init__.py:288
+#: views/bookcloud.py:78
 msgid "This project name already exists"
 msgstr "Este nome de projeto já existe"
 
-#: views/__init__.py:291
+#: views/bookcloud.py:84
 msgid "Project created successfuly!"
 msgstr "Projeto criado com sucesso"
 
-#: views/__init__.py:343
-msgid "This branch name already exists"
-msgstr "Esse nome de ramo já existe"
-
-#: views/__init__.py:348
-msgid "Project cloned successfuly!"
-msgstr "Ramo criado com sucesso"
-
-#: views/__init__.py:360 views/__init__.py:393 views/__init__.py:421
-msgid "You are not the owner of master"
-msgstr "Você não é o proprietário do ramo master"
-
-#: views/__init__.py:371
-msgid "This file name name already exists"
-msgstr "Esse nome de arquivo já existe"
-
-#: views/__init__.py:381
-msgid "File created successfuly!"
-msgstr "Arquivo criado com sucesso"
-
-#: views/__init__.py:404
-msgid "This file name already exists"
-msgstr "Esse nome de arquivo já existe"
-
-#: views/__init__.py:410
-msgid "File renamed successfuly!"
-msgstr "Arquivo renomeado com sucesso"
-
-#: views/__init__.py:430
-msgid "This file does not exist"
-msgstr "Esse arquivo não existe"
-
-#: views/__init__.py:434
-msgid "This file is not empty"
-msgstr "Ese arquivo não está vazio"
-
-#: views/__init__.py:441
-msgid "File removed successfuly!"
-msgstr "Arquivo removido com sucesso"
-
-#: views/__init__.py:451 views/__init__.py:465 views/__init__.py:551
-#: views/__init__.py:587 views/__init__.py:615 views/__init__.py:691
+#: views/branches.py:129 views/branches.py:183 views/branches.py:198
+#: views/branches.py:299 views/branches.py:335 views/branches.py:363
 msgid "You are not the owner of this branch"
 msgstr "Você não é o proprietário deste ramo"
 
-#: views/__init__.py:454 views/__init__.py:525
+#: views/branches.py:146
+msgid "File saved successfully"
+msgstr "Arquivo salvado com sucesso"
+
+#: views/branches.py:166
+msgid "This branch name already exists"
+msgstr "Esse nome de ramo já existe"
+
+#: views/branches.py:172
+msgid "Project cloned successfuly!"
+msgstr "Ramo criado com sucesso"
+
+#: views/branches.py:187 views/branches.py:269
 msgid "Commit your changes before reviewing requests"
 msgstr "Submeta suas mudanças antes de revisar requerimentos"
 
-#: views/__init__.py:469 views/__init__.py:555 views/__init__.py:592
-#: views/__init__.py:619
+#: views/branches.py:204 views/branches.py:303 views/branches.py:340
+#: views/branches.py:367
 msgid "You are not merging"
 msgstr "Você não está consolidando uma submissão"
 
-#: views/__init__.py:472
+#: views/branches.py:208
 msgid "You still have unreviewed files"
 msgstr "Você ainda tem arquivos não revisados"
 
-#: views/__init__.py:481 views/__init__.py:511
+#: views/branches.py:219 views/branches.py:254
 #, python-format
 msgid "Page submitted to _%s"
 msgstr "Submissão submetida para _%s"
 
-#: views/__init__.py:483
+#: views/branches.py:221
 #, python-format
 msgid "You have finished merging _%s"
 msgstr "Você finalizou a consolidação do ramo _%s"
 
-#: views/__init__.py:491
+#: views/branches.py:230
 msgid "You are not the owner of this or the master branch"
 msgstr "Você não é o proprietário deste ramo (nem do ramo master)"
 
-#: views/__init__.py:495
+#: views/branches.py:236
 msgid "You need to finish merging"
 msgstr "Você precisa de finalizar a consolidação"
 
-#: views/__init__.py:505
+#: views/branches.py:248
 msgid "Some changes"
 msgstr "Algumas mudanças"
 
-#: views/__init__.py:532
+#: views/branches.py:276
 #, python-format
 msgid "Branch _%s has no requests now"
 msgstr "Ramo _%s não possui requerimentos agora"
 
-#: views/__init__.py:703
-msgid "File saved successfully"
-msgstr "Arquivo salvado com sucesso"
+#: views/projects.py:33
+msgid "You are not the owner of this project"
+msgstr ""
 
-#: views/threads.py:31
+#: views/projects.py:95
+msgid "This file name name already exists"
+msgstr "Esse nome de arquivo já existe"
+
+#: views/projects.py:97
+msgid "File created successfuly!"
+msgstr "Arquivo criado com sucesso"
+
+#: views/projects.py:115
+msgid "File renamed successfuly!"
+msgstr "Arquivo renomeado com sucesso"
+
+#: views/projects.py:119
+msgid "This file name already exists"
+msgstr "Esse nome de arquivo já existe"
+
+#: views/projects.py:121 views/projects.py:139
+msgid "File not found"
+msgstr ""
+
+#: views/projects.py:135
+msgid "File removed successfuly!"
+msgstr "Arquivo removido com sucesso"
+
+#: views/projects.py:141
+msgid "This file is not empty"
+msgstr "Ese arquivo não está vazio"
+
+#: views/threads.py:50
 msgid "Threads with tag: "
 msgstr "Discussões com o rótulo:"
 
-#: views/threads.py:107 views/threads.py:122 views/threads.py:210
-#: views/threads.py:226
+#: views/threads.py:127 views/threads.py:142 views/threads.py:230
+#: views/threads.py:246
 msgid "Thread: "
 msgstr "Tópico: "
 
-#: views/threads.py:108 views/threads.py:211
+#: views/threads.py:128 views/threads.py:231
 msgid "Project: "
 msgstr "Projeto: "
 
-#: views/threads.py:109
+#: views/threads.py:129
 msgid "Owner: "
 msgstr "Criador: "
 
-#: views/threads.py:110 views/threads.py:213
+#: views/threads.py:130 views/threads.py:233
 msgid "Type: "
 msgstr "Tipo: "
 
-#: views/threads.py:111 views/threads.py:214
+#: views/threads.py:131 views/threads.py:234
 msgid "Created at: "
 msgstr "Criado em: "
 
-#: views/threads.py:112 views/threads.py:215
+#: views/threads.py:132 views/threads.py:235
 msgid "Contents:"
 msgstr "Conteúdo: "
 
-#: views/threads.py:113
+#: views/threads.py:133
 msgid "To comment on this thread: "
 msgstr "Para comentar nesse tópico: "
 
-#: views/threads.py:127
+#: views/threads.py:147
 msgid "New thread successfully created"
 msgstr "Novo tópico criado com sucesso"
 
-#: views/threads.py:145
+#: views/threads.py:165
 msgid "You are not allowed to edit this thread"
 msgstr "Você não está autorizado a editar essa discussão"
 
-#: views/threads.py:174
+#: views/threads.py:194
 msgid "Thread successfully modified"
 msgstr "Discussão modificada com sucesso"
 
-#: views/threads.py:212
+#: views/threads.py:232
 msgid "Author: "
 msgstr "Autor: "
 
-#: views/threads.py:216
+#: views/threads.py:236
 msgid "To reply to this comment follow: "
 msgstr "Para responder a esse comentário, siga: "
 
-#: views/threads.py:231
+#: views/threads.py:251
 msgid "New comment successfully created"
 msgstr "Novo comentário criado com sucesso"
 
-#: views/threads.py:248
+#: views/threads.py:268
 msgid "You are not allowed to edit this comment"
 msgstr "Você não está autorizado a editar esse comentário"
 
-#: views/threads.py:256
+#: views/threads.py:276
 msgid "Comment modified successfully"
 msgstr "Você não está autorizado a editar esse comentário"
 
-#: views/threads.py:271
+#: views/threads.py:291
 msgid "Thread is not empty"
 msgstr "Tópico não está vazio"
 
-#: views/threads.py:275
+#: views/threads.py:295
 msgid "You must be logged in to delete a thread"
 msgstr "Você precisa estar logado para deletar um tópico"
 
-#: views/threads.py:280 views/threads.py:317
+#: views/threads.py:300 views/threads.py:323
 msgid "You are not allowed to delete this thread"
 msgstr "Você não está autorizado a deletar esse tópico"
 
-#: views/threads.py:293
+#: views/threads.py:304
 msgid "Thread successfully deleted"
 msgstr "Tópico removido com sucesso"
 
-#: views/threads.py:305
+#: views/threads.py:315
 msgid "This comment has replies and cannot be deleted"
 msgstr "Esse comentário foi respondido e portanto não pode ser deletado"
 
-#: views/threads.py:308
+#: views/threads.py:318
 msgid "You must be logged in to delete a comment"
 msgstr "Você precisa estar logado para deletar esse comentário"
 
-#: views/threads.py:315
+#: views/threads.py:328
 msgid "Comment successfully deleted"
 msgstr "Comentário deletado com sucesso"
 
-#: views/users.py:52
+#: views/users.py:49
 msgid "Profile updated"
 msgstr "Perfil atualizado"
 
@@ -744,4 +779,19 @@ msgstr "Perfil atualizado"
 
 #~ msgid "Here you can update your profile."
 #~ msgstr "Aqui você pode atualizar o seu perfil"
+
+#~ msgid "Choose branch name"
+#~ msgstr "Escolha um nome para o ramo"
+
+#~ msgid "ref"
+#~ msgstr "ref"
+
+#~ msgid "Choose a file name"
+#~ msgstr "Escolha um nome de arquivo"
+
+#~ msgid "You are not the owner of master"
+#~ msgstr "Você não é o proprietário do ramo master"
+
+#~ msgid "This file does not exist"
+#~ msgstr "Esse arquivo não existe"
 
