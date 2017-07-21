@@ -195,7 +195,7 @@ def get_static(project, action, filename):
 @limiter.exempt
 @temp.route('/_static/<path:filename>')
 def get_global_static(filename):
-    return flask.send_from_directory(os.path.abspath(join('conf/biz/static/', os.path.dirname(filename))),
+    return flask.send_from_directory(os.path.abspath(join('conf/theme/static/', os.path.dirname(filename))),
                                      os.path.basename(filename))
 
 @temp.route('/<project>/<branch>/view/_sources/<path:filename>')

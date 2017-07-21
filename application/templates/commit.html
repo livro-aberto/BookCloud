@@ -1,22 +1,25 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% from "_formhelpers.html" import render_field %}
 
 {% block title %}{{ _('Commit your changes') }}{% endblock%}
 
 {% macro contents() %}
-<h1>{{ _('Commit your changes') }}</h1>
+  <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
+    <form method="POST">
+      <fieldset class="uk-fieldset">
+        <legend class="uk-legend">{{ _('Commit your changes') }}</legend>
+        <div class="uk-margin">
+          {{ render_field(form.message, size=50) }}
+        </div>
+        <div class="uk-margin">
+          <button class="uk-button uk-button-primary">Submit</button>
+        </div>
+    </form>
+  </div>
 
-<ul id="navigation">
 
-  {{ _('Choose your commit message') }}
-  <form method="POST">
-    {{ render_field(form.message, size="50") }}
-    <br>
-    <input type=submit value=Register>
-  </form>
-
-<h2>{{ _('Changes that you are committing now') }}</h2>
+  <h2>{{ _('Changes that you are committing now') }}</h2>
 
   <div class="code highlight-default">
     <div class="highlight">

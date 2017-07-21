@@ -5,7 +5,7 @@ from os.path import join
 
 from flask import (
     Blueprint, request, render_template,
-    url_for, flash, redirect
+    url_for, flash, redirect, g
 )
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
@@ -40,22 +40,18 @@ def threads_context_processor():
 @limiter.exempt
 @threads.route('/<project>/tagged_threads/<filetag>')
 def tagthreads(project, filetag):
-    # Find threads with a certain filetag
-    menu = application.views.menu_bar(project)
-    project = Project.query.filter_by(name=project).first_or_404()
+    """ Find threads with a certain filetag """
     threads = (Thread.query.join(File_Tag)
                .filter(File_Tag.filename.like('%' + filetag + '%'))
                .filter(Thread.project==project)
                .order_by(desc(Thread.posted_at)))
     description = (_('Threads with tag: ') + '&nbsp <span class="uk-label">'
                    + filetag + '</span>')
-    return render_template('search_comments.html', menu=menu, threads=threads,
+    return render_template('search_comments.html', threads=threads,
                            description=description)
 
 @threads.route('/<project>/search_comments', methods = ['GET', 'POST'])
 def search_comments(project):
-    menu = application.views.menu_bar(project)
-    project = Project.query.filter_by(name=project).first_or_404()
     form = CommentSearchForm(request.form)
     if request.method == 'POST' and form.validate():
         if not form.search.data:
@@ -73,18 +69,17 @@ def search_comments(project):
                    .filter_by(project=project)
                    .order_by(desc(Thread.posted_at))
                    .limit(100))
-    return render_template('search_comments.html', menu=menu, threads=threads,
-                           form=form, show_discussion=True)
+    return render_template('search_comments.html', threads=threads, form=form)
 
 @threads.route('/<project>/new_thread', methods = ['GET', 'POST'])
 @login_required
 def newthread(project):
-    menu = application.views.menu_bar(project)
-    project = Project.query.filter_by(name=project).first_or_404()
     inputs = {'user_tags': '', 'file_tags': '',
               'custom_tags': '', 'free_tags': ''}
     for t in inputs:
         inputs[t] = request.args.get(t) if request.args.get(t) else ''
+    # In the next line we are deleting some inputs if they
+    # were inserted but not validated in a previous new_thread view
     form = NewThreadForm(request.form,
                          user_tags=inputs['user_tags'].split(","),
                          file_tags=inputs['file_tags'].split(","),
@@ -148,15 +143,13 @@ def newthread(project):
         if 'return_url' in request.args:
             redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('projects.dashboard', project=project.name))
-    return render_template('newthread.html', menu=menu,
-                           form=form, show_discussion=False)
+            return redirect(url_for('projects.dashboard',
+                                    project=project.name))
+    return render_template('newthread.html', form=form)
 
 @threads.route('/<project>/edit_thread/<thread_id>', methods = ['GET', 'POST'])
 @login_required
 def editthread(project, thread_id):
-    menu = application.views.menu_bar(project)
-    project = Project.query.filter_by(name=project).first_or_404()
     thread = Thread.get_by_id(thread_id)
     if (current_user != thread.owner and
         # Correct line below (remove username)!!!!!!!!!!!!!!!!!!!!!!!
@@ -195,18 +188,17 @@ def editthread(project, thread_id):
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('projects.dashboard', project=project.name))
-    return render_template('editthread.html', menu=menu, form=form)
+            return redirect(url_for('projects.dashboard',
+                                    project=project.name))
+    return render_template('editthread.html', form=form)
 
 @threads.route('/<project>/new_comment/<thread_id>', methods = ['GET', 'POST'])
 @threads.route('/<project>/new_comment/<thread_id>/<parent_lineage>',
                methods = ['GET', 'POST'])
 @login_required
 def newcomment(project, thread_id, parent_lineage=''):
-    menu = application.views.menu_bar(project)
     form = CommentForm(request.form)
     if request.method == 'POST' and form.validate():
-        project = Project.query.filter_by(name=project).first_or_404()
         siblings_pattern = parent_lineage + '%'
         decend_comments = (Comment.query
                            .filter(Comment.thread_id==thread_id)
@@ -253,14 +245,12 @@ def newcomment(project, thread_id, parent_lineage=''):
             return redirect(urllib.unquote(request.args['return_url']))
     threads = (Thread.query.filter_by(id=thread_id)
                .order_by(desc(Thread.posted_at)))
-    return render_template('newcomment.html', menu=menu,
-                           form=form, threads=threads)
+    return render_template('newcomment.html', form=form, threads=threads)
 
 @threads.route('/<project>/edit_comment/<comment_id>',
                methods = ['GET', 'POST'])
 @login_required
 def editcomment(project, comment_id):
-    menu = application.views.menu_bar(project)
     comment = Comment.get_by_id(comment_id)
     form = CommentForm(request.form,
                        comment=comment.content)
@@ -280,8 +270,7 @@ def editcomment(project, comment_id):
                 return redirect(url_for('projects.dashboard', project=project))
     threads = (Thread.query.filter_by(id=comment.thread.id)
                .order_by(desc(Thread.posted_at)))
-    return render_template('newcomment.html', menu=menu, form=form,
-                           threads=threads)
+    return render_template('newcomment.html', form=form, threads=threads)
 
 @threads.route('/<project>/delete_thread/<int:thread_id>')
 @login_required

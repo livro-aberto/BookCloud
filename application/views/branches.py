@@ -100,14 +100,14 @@ def view(project, branch, filename):
                                               project=project.name,
                                               branch=branch.name,
                                               filename=filename)})
+    # will be deprecated
     if (current_user.is_authenticated
         and (current_user == branch.owner or
              current_user == project.get_master().owner)):
-            # will be deprecated
             merge_pendencies = get_merge_pendencies(project.name, branch.name)
             if merge_pendencies:
                 return merge_pendencies
-            ####################
+    ####################
     content = load_file(join('repos', project.name, branch.name,
                              'build/html', filename + file_extension))
     threads = (Thread.query.join(File_Tag)
@@ -231,7 +231,7 @@ def commit(project, branch):
         return redirect(url_for('branches.view', project=project.name,
                                 branch=branch.name, filename='index.html'))
     # will be deprecated
-    merging = get_merging(project, branch)
+    merging = get_merging(project.name, branch.name)
     if merging:
         flash(_('You need to finish merging'), 'error')
         return redirect(url_for('branches.merge', project=project.name,

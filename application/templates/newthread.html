@@ -4,41 +4,6 @@
 
 {% block title %}{{ _('New thread') }}{% endblock %}
 
-{% block scripts %}
-  <script src="/_static/tag/js/doc.js" type="text/javascript" charset="utf-8"></script>
-  <link rel="stylesheet" href="{{ url_for('temp.get_global_static',
-                               filename='tag/css/textext.core.css') }}" type="text/css" />
-  <link rel="stylesheet" href="{{ url_for('temp.get_global_static',
-                               filename='tag/css/textext.plugin.tags.css') }}" type="text/css" />
-  <link rel="stylesheet" href="{{ url_for('temp.get_global_static',
-                               filename='tag/css/textext.plugin.autocomplete.css') }}" type="text/css" />
-  <link rel="stylesheet" href="{{ url_for('temp.get_global_static',
-                               filename='tag/css/textext.plugin.focus.css') }}" type="text/css" />
-  <link rel="stylesheet" href="{{ url_for('temp.get_global_static',
-                               filename='tag/css/textext.plugin.prompt.css') }}" type="text/css" />
-  <link rel="stylesheet" href="{{ url_for('temp.get_global_static',
-                               filename='tag/css/textext.plugin.arrow.css') }}" type="text/css" />
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.core.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.plugin.tags.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.plugin.autocomplete.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.plugin.suggestions.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.plugin.filter.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.plugin.focus.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.plugin.prompt.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.plugin.ajax.js') }}" type="text/javascript" charset="utf-8"></script>
-  <script src="{{ url_for('temp.get_global_static',
-               filename='tag/js/textext.plugin.arrow.js') }}" type="text/javascript" charset="utf-8"></script>
-
-{% endblock %}
-
 {% macro contents() %}
 
   <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">

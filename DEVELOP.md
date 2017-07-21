@@ -44,6 +44,14 @@ Do the actual translation, then
 
     pybabel compile -d translations
 
+## Add javascript client-side libraries
+
+Enter the `application/static/vendor` folder and type
+
+    bower install -S <package>
+
+Add the corresponding components in `application/__init__.py`.
+
 ## Main views
 
 ### Global

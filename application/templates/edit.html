@@ -5,25 +5,18 @@
 {% from "_sphinxuikit.html" import sphinx_uikit_script %}
 
 {% block scripts %}
-  <link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
-  <script src="https://codemirror.net/lib/codemirror.js"></script>
-  <script src="https://codemirror.net/addon/mode/overlay.js"></script>
-  <script type="text/javascript"
-          src="https://codemirror.net/mode/rst/rst.js">
-  </script>
+
+  {% assets "codemirror_css_all" %}
+      <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}"></script>
+  {% endassets %}
+
+  {% assets "codemirror_js_all" %}
+      <script type="text/javascript" src="{{ ASSET_URL }}" charset="utf-8"></script>
+  {% endassets %}
+
   <script type="text/javascript"
           src="/_static/jquery.are-you-sure.js">
   </script>
-  <link rel="stylesheet" href="https://codemirror.net/addon/dialog/dialog.css">
-  <link rel="stylesheet"
-        href="https://codemirror.net/addon/search/matchesonscrollbar.css">
-  <script src="https://codemirror.net/mode/xml/xml.js"></script>
-  <script src="https://codemirror.net/addon/dialog/dialog.js"></script>
-  <script src="https://codemirror.net/addon/search/searchcursor.js"></script>
-  <script src="https://codemirror.net/addon/search/search.js"></script>
-  <script src="https://codemirror.net/addon/scroll/annotatescrollbar.js"></script>
-  <script src="https://codemirror.net/addon/search/matchesonscrollbar.js"></script>
-  <script src="https://codemirror.net/addon/search/jump-to-line.js"></script>
 
   <script language="javascript" type="text/javascript">
     function popitup(url) {
