@@ -488,7 +488,7 @@ def branch(project, branch):
     threads = display_threads(Thread.query.filter_by(project_id=project_id).order_by(desc(Thread.posted_at)))
     return render_template('branch.html', menu=menu, log=log, render_sidebar=False)
 
-@limiter.limit("7 per day")
+@limiter.limit("50 per day")
 @bookcloud.route('/<project>/<branch>/clone', methods = ['GET', 'POST'])
 @login_required
 def clone(project, branch):
