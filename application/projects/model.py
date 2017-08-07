@@ -73,7 +73,7 @@ class Project(CRUDMixin, db.Model):
             write_file(file_path, stars + filename + '\n' + stars)
             repo = self.get_master().get_repo()
             repo.index.add([filename + file_extension])
-            application.branches.build(self.name, 'master')
+            self.get_master().build()
 
     def rename_file(self, old_filename, new_filename):
         file_extension = '.rst'
@@ -140,4 +140,5 @@ class Project(CRUDMixin, db.Model):
         repo.index.add(['index.rst', '.gitignore'])
         author = git.Actor(user.username, user.email)
         repo.index.commit(_('Initial commit'), author=author)
-        application.branches.build(name, 'master')
+        new_branch.build(timeout=30)
+

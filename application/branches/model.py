@@ -30,7 +30,7 @@ class Branch(CRUDMixin, db.Model):
     expiration =  db.Column(db.DateTime)
 
     owner = relationship('User')
-    origin = relationship('Branch', remote_side=id)
+    origin = relationship('Branch', remote_side=id, post_update=True)
     collaborators = relationship('Branch')
     project = relationship('Project', back_populates='branches')
 
@@ -42,8 +42,32 @@ class Branch(CRUDMixin, db.Model):
         self.owner_id = owner.id
         self.expires = True
 
+    def clone(self, name, user):
+        """
+        create a clone of self with a given name, owned by user
+        """
+        self.expiration = None
+        # create the branch on the database
+        new_branch = Branch(name, self.project, self, user)
+        db.session.add(new_branch)
+        db.session.commit()
+        # clone repository in file system
+        branch_path = os.path.abspath(join(os.getcwd(), 'repos',
+                                           self.project.name,
+                                           name, 'source'))
+        self.get_repo().clone(branch_path, branch=self.name)
+        branch_repo = git.Repo(branch_path)
+        branch_repo.git.checkout('HEAD', b=name)
+        config_repo(branch_repo, user.username, user.email)
+        # build the source
+        new_branch.build(timeout=30)
+        return new_branch
+
     def get_source_path(self):
         return join('repos', self.project.name, self.name, 'source')
+
+    def get_html_path(self):
+        return join('repos', self.project.name, self.name, 'build/html')
 
     def get_repo(self):
         return git.Repo(self.get_source_path())
@@ -56,54 +80,38 @@ class Branch(CRUDMixin, db.Model):
         return git.Repo(repo_path).is_dirty()
 
     def get_log(self):
-        git_api = get_git(self.project.name, self.name)
+        git_api = self.get_git()
         return git_api.log(
             '-15', '--no-merges', '--abbrev-commit','--decorate',
             '--full-history',
             "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
 
+    def build(self, timeout=10):
+        # Replace this terrible implementation
+        config_path = 'conf'
+        # args = ['-a', '-c conf']
+        # if sphinx.build_main(args + ['source/', 'build/html/']):
+        #     os.chdir(previous_wd)
+        #     return False
+        # os.chdir(previous_wd)
+        # return True
+        command = ('sphinx-build -c ' + config_path + ' '
+                   + self.get_source_path() + ' '
+                   + self.get_html_path())
+        process = Command(command)
+        process.run(timeout=timeout)
+        return True
+
 # will be deprecated
-def get_sub_branches(branch_obj):
-    children = Branch.query.filter_by(origin_id=branch_obj.id)
-    answer = { 'branch': branch_obj, 'subtree': [] }
+def get_sub_branches(branch):
+    children = Branch.query.filter_by(origin_id=branch.id)
+    answer = { 'branch': branch, 'subtree': [] }
     for child in children:
         if child.name != 'master':
             answer['subtree'].append(get_sub_branches(child))
     return answer
 
-def get_branch_owner(project, branch):
-    project_obj = application.projects.Project.query.filter_by(name=project).first()
-    if project_obj:
-        project_id = project_obj.id
-        branch_obj = Branch.query.filter_by(project_id=project_id, name=branch).first()
-        if branch_obj:
-            return branch_obj.owner.username
-    return None
-
-
-def get_branch_origin(project, branch):
-    project_id = application.projects.Project.query.filter_by(name=project).first().id
-    origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
-    return Branch.query.filter_by(id=origin_id).first()
-
-def clone_branch(project, origin, name, user):
-    origin.expiration = None
-    # create the branch on the database
-    new_branch = Branch(name, project, origin, user)
-    db.session.add(new_branch)
-    db.session.commit()
-    # clone repository from a certain origin branch
-    branch_path = os.path.abspath(join(os.getcwd(), 'repos',
-                                       project.name, name, 'source'))
-    origin_repo = git.Repo(join('repos', project.name, origin.name, 'source'))
-    origin_repo.clone(branch_path, branch=origin.name)
-    branch_repo = git.Repo(branch_path)
-    git_api = branch_repo.git
-    git_api.checkout('HEAD', b=name)
-    config_repo(branch_repo, user.username, user.email)
-    # build the source
-    build(project.name, name, timeout=30)
-
+# will be deprecated
 def get_git(project, branch):
     repo_path = join('repos', project, branch, 'source')
     repo = git.Repo(repo_path)
@@ -153,76 +161,46 @@ def build_latex(project, branch):
     os.system(command)
     return True
 
-
-
-def build(project, branch, timeout=10):
-    # Replace this terrible implementation
-    config_path = 'conf'
-    source_path = join('repos', project, branch, 'source')
-    build_path = join('repos', project, branch, 'build/html')
-    # args = ['-a', '-c conf']
-    # if sphinx.build_main(args + ['source/', 'build/html/']):
-    #     os.chdir(previous_wd)
-    #     return False
-    # os.chdir(previous_wd)
-    # return True
-    command = 'sphinx-build -c ' + config_path + ' ' + source_path + ' ' + build_path
-
-    process = Command(command)
-    process.run(timeout=timeout)
-    #os.system(command)
-    return True
-
 def get_branch_by_name(project, branch):
     project_id = application.projects.Project.query.filter_by(name=project).first().id
     return Branch.query.filter_by(project_id=project_id, name=branch).first()
 
-
 def update_branch(project, branch):
     # update from reviewer (if not master)
-    project_obj = Project.get_by_name(project)
-    if branch != 'master' and not project_obj.get_branch(branch).is_dirty():
-        origin_branch = get_branch_origin(project, branch).name
-        git_api = get_git(project, branch)
+    if (branch.name != 'master'
+        and not project.get_branch(branch.name).is_dirty()):
+        git_api = branch.get_git()
         git_api.fetch()
-        git_api.merge('-s', 'recursive', '-Xours', 'origin/' + origin_branch)
-        git_api.push('origin', branch)
-    build(project, branch, timeout=20)
+        git_api.merge('-s', 'recursive', '-Xours', 'origin/'
+                      + branch.origin.name)
+        git_api.push('origin', branch.name)
+    branch.build(timeout=20)
 
 def update_subtree(project, branch):
-    project_obj = Project.get_by_name(project)
-    if not project_obj.get_branch(branch).is_dirty():
+    if not branch.is_dirty():
         update_branch(project, branch)
-        project_id = application.projects.Project.query.filter_by(name=project).first().id
-        branch_id = Branch.query.filter_by(project_id=project_id, name=branch).first().id
-        children = Branch.query.filter_by(origin_id=branch_id)
-        branch_obj = get_branch_by_name(project, branch)
+        children = Branch.query.filter_by(origin_id=branch.id)
         for child in children:
             if child.name != 'master':
-                update_subtree(project, child.name)
-        origin = get_branch_origin(project, branch).name
-        origin_pendencies = get_requests(project, origin)
-        if (branch == 'master' or children.first()
-            or branch_obj.is_dirty() or not branch_obj.expires
-            or branch in origin_pendencies):
-            branch_obj.expiration = None
+                update_subtree(project, child)
+        origin_pendencies = get_requests(project.name, branch.origin.name)
+        if (branch.name == 'master' or children.first()
+            or branch.is_dirty() or not branch.expires
+            or branch.name in origin_pendencies):
+            branch.expiration = None
         else:
             current_time = datetime.utcnow()
-            if branch_obj.expiration:
-                if current_time > branch_obj.expiration:
+            if branch.expiration:
+                if current_time > branch.expiration:
                     # Delete branch
-                    Branch.query.filter_by(id=branch_obj.id).delete()
+                    Branch.query.filter_by(id=branch.id).delete()
                     db.session.commit()
-                    branch_folder = join('repos', project, branch)
+                    branch_folder = join('repos', project.name, branch.name)
                     rmtree(branch_folder)
-                    flash(_('Branch %s has been killed') % branch, 'info')
+                    flash(_('Branch %s has been killed') % branch.name, 'info')
             else:
-                flash(_('Branch %s has been marked obsolete') % branch, 'info')
-                branch_obj.expiration = current_time + timedelta(days=1)
+                branch.expiration = current_time + timedelta(days=1)
                 db.session.commit()
-
-def get_branch_origin(project, branch):
-    project_id = application.projects.Project.query.filter_by(name=project).first().id
-    origin_id = Branch.query.filter_by(project_id=project_id, name=branch).first().origin_id
-    return Branch.query.filter_by(id=origin_id).first()
+                flash(_('Branch %s has been marked obsolete') % branch.name,
+                      'info')
 

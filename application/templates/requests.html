@@ -1,23 +1,38 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% block title %}Merge requests{% endblock%}
 
 {% macro contents() %}
-<h1>Merge requests</h1>
+<h1>Requests</h1>
 
-    <ul id="navigation">
-    {% for b in unmerged %}
-    <li>
-      Request from <a href="{{ url_for('branches.merge', project=project, branch=branch, other=b) }}">{{ b }}</a>, by @{{ get_branch_by_name(project, b).owner.username }}
-    </li>
-      <div class="code highlight-default">
-        <div class="highlight">
-          <pre><span class="n" style="font-size:small">{{ get_log_diff(project, branch, b) }}</span></pre>
+<div class="uk-flex uk-flex-wrap uk-flex-center uk-text-left" uk-grid>
+
+  {% for b in unmerged %}
+
+  <div class="uk-card uk-card-default uk-width-1-1 uk-card-body">
+    <div class="uk-card-header">
+      <div class="uk-grid-small uk-flex-middle" uk-grid>
+        <div class="uk-width-expand">
+          <h3 class="uk-card-title uk-margin-remove-bottom">
+            {{ b }}
+          </h3>
+          <p class="uk-text-meta uk-margin-remove-top">
+            by @{{ branch.owner.username }}
+          </p>
         </div>
       </div>
-
-    {% endfor %}
-    </ul>
+    </div>
+    <pre><code>
+        {{- get_log_diff(project.name, branch.name, b) -}}
+    </code></pre>
+    <a class="uk-button uk-button-primary"
+       href="{{ url_for('branches.merge', project=project.name,
+                        branch=branch.name, other=b) }}">
+       Merge
+    </a>
+  </div>
+</div>
+{% endfor %}
 
 {% endmacro %}
 

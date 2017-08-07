@@ -46,11 +46,13 @@ def create_app(extra_config_settings={}):
     assets.init_app(app)
     with app.app_context():
         assets.load_path = [
-            join(os.path.dirname(__file__), 'static/vendor/bower_components/')
+            join(os.path.dirname(__file__), 'static/vendor/bower_components/'),
+            join(os.path.dirname(__file__), 'static/')
         ]
     assets.register(
         'js_all',
         Bundle(
+            #'klaus.js',
             'jquery/dist/jquery.min.js',
             Bundle('uikit/dist/js/uikit.min.js',
                    'uikit/dist/js/uikit-icons.min.js'
@@ -67,13 +69,15 @@ def create_app(extra_config_settings={}):
                    'jquery-textext/src/js/textext.plugin.ajax.js',
                    'jquery-textext/src/js/textext.plugin.arrow.js'
                ),
+            'google-diff-match-patch/diff_match_patch.js',
             output='js_all.js'
         ),
         filters='closure_js'
     )
     assets.register(
         'codemirror_js_all',
-        Bundle('codemirror/lib/codemirror.js',
+        Bundle(
+            'codemirror/lib/codemirror.js',
                'codemirror/mode/rst/rst.js',
                'codemirror/mode/xml/xml.js',
                'codemirror/addon/mode/overlay.js',
@@ -82,7 +86,9 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/dialog/dialog.js',
                'codemirror/addon/scroll/annotatescrollbar.js',
                'codemirror/addon/search/matchesonscrollbar.js',
-               'codemirror/addon/search/jump-to-line.js'),
+               'codemirror/addon/search/jump-to-line.js',
+               'codemirror/addon/merge/merge.js',
+           ),
         output='codemirror_all.js',
         filters='closure_js'
     )
@@ -105,6 +111,7 @@ def create_app(extra_config_settings={}):
     assets.register(
         'codemirror_css_all',
         Bundle('codemirror/lib/codemirror.css',
+               'codemirror/addon/merge/merge.css',
                'codemirror/addon/search/matchesonscrollbar.css'),
         output='codemirror_all.css',
         filters='cssmin'

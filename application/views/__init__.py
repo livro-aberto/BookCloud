@@ -2,6 +2,7 @@ import os
 import re
 import math
 import json
+import time
 from os.path import isdir, isfile, join, splitext
 import flask
 import urllib
@@ -12,7 +13,7 @@ from sqlalchemy import or_, desc
 
 
 from application import app, db, mail, limiter
-
+from application.diff import render_diff
 
 from application.projects import Project
 from application.branches import *
@@ -70,70 +71,6 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 
 from ..utils import select_multi_checkbox
 
-def menu_bar(project=None, branch=None):
-    left  = []
-    right = []
-    #if current_user.is_authenticated:
-    if project:
-        left.append({
-            'name': project,
-            'sub_menu': [{
-                'name': 'View master',
-                'url': url_for('branches.view', project=project,
-                               branch='master', filename='index.html')
-            }, {
-                'name': 'Dashboard',
-                'url': url_for('projects.dashboard', project=project)
-            }, {
-                'name': 'Download pdf',
-                'url': url_for('branches.pdf', project=project)
-            }]})
-        if branch:
-            left.append({
-                'name': branch,
-                'sub_menu': [{
-                    'name': 'View',
-                    'url': url_for('branches.view', project=project,
-                                   branch='master', filename='index.html')
-                }, {
-                    'name': 'Dashboard',
-                    'url': url_for('branches.branch', project=project,
-                                   branch=branch)
-                }]})
-            if current_user.is_authenticated:
-                if current_user.username == get_branch_owner(project, branch):
-                    project_obj = Project.get_by_name(project)
-                    if project_obj.get_branch(branch).is_dirty():
-                        flash(_('You have uncommitted changes!!!'), 'error')
-                        right.append({
-                            'url': url_for('branches.commit',
-                                           project=project,
-                                           branch=branch),
-                            'name': 'Commit', 'style': 'attention'
-                        })
-                    else:
-                        if len(get_requests(project, branch)):
-                            flash(_('You have unreviewed requests!!!'), 'error')
-                            right.append({
-                                'url': url_for('branches.requests',
-                                               project=project,
-                                               branch=branch),
-                                'name': 'Requests',
-                                'style': 'attention'
-                            })
-    if current_user.is_authenticated:
-        right.append({'name': current_user.username,
-                      'sub_menu': [{
-                          'name': 'Profile',
-                          'url': url_for('users.profile')
-                      }, {
-                          'name': 'Logout',
-                          'url': url_for('user.logout')}]})
-    else:
-        right = [{'name': 'Login', 'url': url_for('user.login')}]
-    return { 'left': left, 'right': right}
-
-
 @babel.localeselector
 def get_locale():
     # if a user is logged in, use the locale from the user settings
@@ -148,23 +85,45 @@ def get_locale():
 def before_request():
     flask.g.locale = get_locale()
 
+def commit_diff(repo, old_commit, new_commit):
+    """Return the list of changes introduced from old to new commit."""
+
+    summary = {'nfiles': 0, 'nadditions':  0, 'ndeletions':  0}
+    file_changes = []  # the changes in detail
+
+    dulwich_changes = repo.object_store.tree_changes(old_commit.tree,
+                                                     new_commit.tree)
+    for (oldpath, newpath), (oldmode, newmode), (oldsha, newsha) \
+        in dulwich_changes:
+        summary['nfiles'] += 1
+        try:
+            oldblob = (repo.object_store[oldsha] if oldsha
+                       else Blob.from_string(b''))
+            newblob = (repo.object_store[newsha] if newsha
+                       else Blob.from_string(b''))
+        except KeyError:
+            # newsha/oldsha are probably related to submodules.
+            # Dulwich will handle that.
+            pass
+
+        additions, deletions, chunks = render_diff(
+            oldblob.splitlines(), newblob.splitlines())
+        change = {
+            'is_binary': False,
+            'old_filename': oldpath or '/dev/null',
+            'new_filename': newpath or '/dev/null',
+            'chunks': chunks,
+            'additions': additions,
+            'deletions': deletions,
+        }
+        summary['nadditions'] += additions
+        summary['ndeletions'] += deletions
+        file_changes.append(change)
+    return summary, file_changes
+
 @app.context_processor
 def package():
     sent_package = {}
-    #if (request.view_args) and ('project' in request.view_args):
-    #    project = request.view_args['project']
-    #    sent_package['project'] = project
-    #    sent_package['project_owner'] = get_branch_owner(project, 'master')
-    #    if 'branch' in request.view_args:
-    #        branch = request.view_args['branch']
-    #        if current_user.is_authenticated:
-    #            if current_user.username == get_branch_owner(project, branch):
-    #                branch_obj = get_branch_by_name(request.view_args['project'],
-    #                                                request.view_args['branch'])
-    #                branch_obj.expiration = None
-    #        sent_package['branch'] = branch
-    #        db.session.commit()
-    #sent_package['is_dirty'] = is_dirty
     sent_package['get_requests'] = get_requests
     def has_requests(project, branch):
         return len(get_requests(project, branch)) > 0
@@ -179,9 +138,57 @@ def package():
     sent_package['floor'] = math.floor
     sent_package['len'] = len
     sent_package['getattr'] = getattr
-    #sent_package['listat'] = listat
+    sent_package['commit_diff'] = commit_diff
     return sent_package
 
+
+@app.template_filter('force_unicode')
+def force_unicode(s):
+    """Do all kinds of magic to turn `s` into unicode"""
+    # It's already unicode, don't do anything:
+    #if isinstance(s, six.text_type):
+    #    return s
+    # Try some default encodings:
+    try:
+        return s.decode('utf-8')
+    except UnicodeDecodeError as exc:
+        pass
+    try:
+        return s.decode(locale.getpreferredencoding())
+    except UnicodeDecodeError:
+        pass
+    if chardet is not None:
+        # Try chardet, if available
+        encoding = chardet.detect(s)['encoding']
+        if encoding is not None:
+            return s.decode(encoding)
+    raise # Give up.
+
+@app.template_filter('extract_author_name')
+def extract_author_name(email):
+    """Extract the name from an email address --
+    >>> extract_author_name("John <john@example.com>")
+    "John"
+    -- or return the address if none is given.
+    >>> extract_author_name("noname@example.com")
+    "noname@example.com"
+    """
+    match = re.match('^(.*?)<.*?>$', email)
+    if match:
+        return match.group(1).strip()
+    return email
+
+@app.template_filter('formattimestamp')
+def formattimestamp(timestamp):
+    return (datetime.fromtimestamp(timestamp)
+            .strftime('%b %d, %Y %H:%M:%S'))
+
+@app.template_filter('timesince')
+def timesince(when, now=time.time):
+    """Return the difference between `when` and `now` in human
+    readable form."""
+    #return naturaltime(now() - when)
+    return (now() - when)
 
 @limiter.exempt
 @temp.route('/<project>/<action>/_static/<path:filename>')

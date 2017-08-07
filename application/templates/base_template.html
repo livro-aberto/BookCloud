@@ -64,23 +64,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {% assets "css_all" %}
-        <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}"></script>
+        <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}">
     {% endassets %}
+
+    <!-- MathJax has to be separated, since it call font files -->
+    <script type="text/javascript"
+            src="{{- url_for('static',
+                 filename='vendor/bower_components/MathJax/MathJax.js') -}}
+                 ?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+
+    {% assets "js_all" %}
+      <script type="text/javascript" src="{{ ASSET_URL }}"
+              charset="utf-8"></script>
+    {% endassets %}
+
+    {% block scripts %}{% endblock %}
+
   </head>
-
-  <!-- MathJax has to be separated, since it call font files -->
-  <script type="text/javascript"
-          src="{{- url_for('static',
-               filename='vendor/bower_components/MathJax/MathJax.js') -}}
-               ?config=TeX-AMS-MML_HTMLorMML">
-  </script>
-
-  {% assets "js_all" %}
-    <script type="text/javascript" src="{{ ASSET_URL }}"
-            charset="utf-8"></script>
-  {% endassets %}
-
-  {% block scripts %}{% endblock %}
 
 {% endmacro %}
 
@@ -126,18 +127,18 @@
       <!-- Flash messages -->
       {{ flash_messages() }}
 
-      <!-- Without sidebar -->
       {% if not self.sidebar() %}
+        <!-- Without sidebar -->
         <div class="uk-grid" data-uk-grid-margin>
-          <div class="uk-width-1-1">
+          <div id="content-container" class="uk-width-1-1">
             <p class="uk-text-large">{% block sub_title %}{% endblock %}</p>
             {{ contents() }}
           </div>
         </div>
       {% endif %}
 
-      <!-- With sidebar -->
       {% if self.sidebar() %}
+        <!-- With sidebar -->
         <div class="uk-text-center" uk-grid>
           <div class="uk-width-1-3@m">
             <div class="uk-card uk-card-default uk-card-body">
@@ -150,9 +151,8 @@
         </div>
       {% endif %}
 
-
-      <!-- Discussions -->
       {% if show_discussion %}
+        <!-- Discussions -->
         <h1 id="discussion">{{ _('Discussions') }}</h1>
 
         <p>
@@ -170,22 +170,22 @@
         </p>
       {% endif %}
 
-       <!-- Insert threads in tags -->
       {% if threads_by_tag %}
-        {% for t in threads_by_tag %}
-       <div id="discussion_from-{{ t['name'] }}"
-            class="uk-tile uk-tile-muted uk-padding-remove
-                   uk-width-1-3 uk-flex">
+      <!-- Insert threads in tags -->
+      {% for t in threads_by_tag %}
+        <div id="discussion_from-{{ t['name'] }}"
+             class="uk-tile uk-tile-muted uk-padding-remove
+                    uk-width-1-3 uk-flex">
           <div class="uk-margin-left"
-            title="{{ '\n'.join(t['titles']) }}">
-            Discussions
-            <span class="uk-badge">{{ len(t['titles']) }}</span>
+               title="{{ '\n'.join(t['titles']) }}">
+               Discussions
+               <span class="uk-badge">{{ len(t['titles']) }}</span>
           </div>
           <div>
             <a class="uk-button uk-button-default uk-button-small
                       uk-margin-left"
                href="{{ url_for('threads.tagthreads',
-                      project=project.name, filetag=t['name']) }}"
+                                project=project.name, filetag=t['name']) }}"
                target="_blank">view
             </a>
             <a class="uk-button uk-button-default uk-button-small"
@@ -208,8 +208,6 @@
           });
         </script>
       {% endif %}
-
-
 
       <!-- Threads -->
       {% if threads %}

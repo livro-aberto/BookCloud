@@ -1,14 +1,15 @@
 {% macro sphinx_uikit_script() %}
   <script>
-    $(document).ready(function(){
+  $(document).ready(function(){
     $('div.admonition').addClass('uk-card');
     $('div.admonition').addClass('uk-card-default');
     $('div.admonition').addClass('uk-card-body');
     $('div.admonition').addClass('uk-box-shadow-large');
 
-
     $('div.align-center').addClass('uk-text-center');
     $('div.figure').addClass('uk-text-center');
+
+    //$('div.sphinxsidebar').addClass('uk-text-center');
 
     $('table').addClass('uk-table');
     $('table').addClass('uk-table-divider');
@@ -17,8 +18,23 @@
     $('tr').removeClass('row-odd');
     $('tr').removeClass('row-even');
     $('th').removeClass('head');
+    });
 
-
+    // Make side-bar into an offcanvas
+    $(document).ready(function() {
+      $('div:first').prependTo('.uk-offcanvas-content');
+      $('#content-container').prepend('<a id="toggle" class="uk-button uk-button-default" uk-icon="icon: menu"></a>');
+      $('#toggle').on('click', function (e) {
+        e.preventDefault();
+        UIkit.offcanvas('#offcanvas-nav-primary').toggle();
+      });
+      $('.sphinxsidebar').attr('uk-offcanvas');
+      $('.sphinxsidebar').attr('id', 'offcanvas-nav-primary');
+      $('.sphinxsidebarwrapper').addClass('uk-offcanvas-bar');
+      $('.sphinxsidebarwrapper').prepend('<button class="uk-offcanvas-close uk-close-large" type="button" uk-close></button>');
+      $('.sphinxsidebarwrapper').addClass('uk-flex uk-flex-column');
+      $('.sphinxsidebarwrapper > ul').addClass('uk-nav uk-nav-default');
+      $('.sphinxsidebarwrapper > ul').find('ul').addClass('uk-nav-sub');
     });
   </script>
 {% endmacro %}

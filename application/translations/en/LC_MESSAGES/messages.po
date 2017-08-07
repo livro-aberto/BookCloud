@@ -418,7 +418,7 @@ msgstr "Você não é o proprietário deste ramo"
 
 #: views/branches.py:146
 msgid "File saved successfully"
-msgstr "Arquivo salvado com sucesso"
+msgstr "Arquivo salvo com sucesso"
 
 #: views/branches.py:166
 msgid "This branch name already exists"
@@ -444,7 +444,7 @@ msgstr "Você ainda tem arquivos não revisados"
 #: views/branches.py:219 views/branches.py:254
 #, python-format
 msgid "Page submitted to _%s"
-msgstr "Submissão submetida para _%s"
+msgstr "Alterações submetidas para _%s"
 
 #: views/branches.py:221
 #, python-format

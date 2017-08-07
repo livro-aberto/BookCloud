@@ -1,51 +1,72 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
-{% block title %}{{ _('Merging _%s') % branch }}{% endblock%}
+{% from "_diff.html" import display_file_diff,file_diff_style with context%}
+
+{% block title %}{{ _('Merging %s') % branch.name }}{% endblock%}
+
+{% block scripts %}
+<style>
+  {{ file_diff_style() }}
+</style>
+{% endblock %}
 
 {% macro contents() %}
-<h1>{{ _('Merging from _%(other)s (by @%(owner)s)') | format(other=other, owner=get_branch_by_name(project, other).owner.username) }}</h1>
+<h1>{{ _('Merging ') }}</h1>
+
+<h2>{{ _('Contributions by ') }} <a>{{ other }}</a></h2>
+
+<p>{{ _('owned by %s') % branch.owner.username }}
 
 
-<h2>{{ _('Description of contributions by _%s:') % other }}
-
-  <div class="code highlight-default">
-    <div class="highlight">
-      <pre><span class="n" style="font-size:small">{{ get_log_diff(project, branch, other) }}</span></pre>
-    </div>
-  </div>
-
+{{ display_file_diff(repo, old_commit, new_commit) }}
 
 {% if modified %}
-<h2>{{ _('Modifications not yet reviewed') }}</h2>
-<ul id="navigation">
+<h2>{{ _('Modifications to be reviewed') }}</h2>
+
+<div class="uk-child-width-1-1@m uk-grid-small uk-grid-match" uk-grid>
   {% for f in modified %}
-  <li>
-    {{ f }}
-    <ul>
-      <li><a href="{{ url_for('branches.review', project=project, branch=branch, filename=f) }}">{{ _('Review file') }}</a></li>
-      <li><a href="{{ url_for('branches.diff', project=project, branch=branch, filename=f) }}">{{  _('View differences') }}</a></li>
-      <li><a href="{{ url_for('branches.accept', project=project, branch=branch, filename=f) }}">{{ _('Accept suggestions') }}</a></li>
-      </li>
-    </ul>
-  </li>
+  <div>
+    <div class="uk-card uk-card-default uk-card-body">
+      <h3 class="uk-card-title">{{ f }}</h3>
+      <a class="uk-button uk-button-small uk-button-primary"
+         href="{{ url_for('branches.review', project=project.name,
+               branch=branch.name, filename=f) }}">
+        {{ _('Review file') }}
+      </a>
+      <a class="uk-button uk-button-small uk-button-primary"
+         href="{{ url_for('branches.accept', project=project.name,
+               branch=branch.name, filename=f) }}">
+        {{ _('Accept suggestions') }}
+      </a>
+    </div>
+  </div>
   {% endfor %}
-</ul>
+</div>
 {% endif %}
 
 {% if reviewed %}
-<h2>{{ _('Changes reviewed') }}</h2>
-<ul id="navigation">
-  {% for f in reviewed %}
-  <li>
-    <a href="{{ url_for('branches.review', project=project, branch=branch, filename=f) }}">{{ f }}</a>
-  </li>
-  {% endfor %}
-</ul>
+  <h2>{{ _('Changes reviewed') }}</h2>
+  <ul id="navigation">
+    {% for f in reviewed %}
+    <li>
+      <a href="{{ url_for('branches.review', project=project.name,
+                          branch=branch.name, filename=f) }}">
+        {{ f }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
 {% endif %}
 
 {% if not modified %}
-<h2>{{ _('You have finished all the reviews') }}</h2>
-<a href="{{ url_for('branches.finish', project=project, branch=branch) }}">{{ _('Finish merge') }}</a>
+  <p>
+    {{ _('You have finished merging _%s') % other }}
+  </p>
+  <a class="uk-button uk-button-primary"
+     href="{{ url_for('branches.finish', project=project.name,
+                      branch=branch.name) }}">
+    {{ _('Finish merge') }}
+  </a>
 {% endif %}
 
 {% endmacro %}

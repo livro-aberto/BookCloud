@@ -141,7 +141,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   filename='index'), follow_redirects=True)
-    assert (_('You are not the owner of this branch').encode('utf8')
+    assert (_('Create your own branch of this project').encode('utf8')
             in response.data)
 
     # Clone project
@@ -190,7 +190,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   branch='master',
                                   filename='index.rst'), follow_redirects=True)
-    assert (_('You have finished all the reviews').encode('utf8')
+    assert ((_('You have finished merging _%s') % 'feature').encode('utf8')
             in response.data)
 
     # Finishing merge
@@ -230,7 +230,8 @@ def test_page_urls(client):
                                    branch='typo'),
                            follow_redirects=True,
                            data=dict(name='another'))
-    assert _('You are not the owner of master').encode('utf8') in response.data
+    assert (_('You are not the owner of this project').encode('utf8')
+            in response.data)
 
     # Commit change
     response = client.post(url_for('branches.commit',
@@ -273,7 +274,7 @@ def test_page_urls(client):
                                   branch='feature',
                                   filename='another.rst'),
                           follow_redirects=True)
-    assert (_('You have finished all the reviews').encode('utf8')
+    assert ((_('You have finished merging _%s') % 'typo').encode('utf8')
             in response.data)
     response = client.get(url_for('branches.finish',
                                   project=new_project_name,
@@ -305,7 +306,7 @@ def test_page_urls(client):
                                   filename='another.rst'),
                           follow_redirects=True)
 
-    assert (_('You have finished all the reviews').encode('utf8')
+    assert ((_('You have finished merging _%s') % 'feature').encode('utf8')
             in response.data)
     response = client.get(url_for('branches.finish',
                                   project=new_project_name,

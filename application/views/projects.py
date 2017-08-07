@@ -16,7 +16,7 @@ from application.projects import Project, ProjectForm, FileForm
 from application.threads import Thread
 from application.branches import (
     Branch, get_sub_branches,
-    get_merge_pendencies, build
+    get_merge_pendencies
 )
 import application.views
 from application.tools import write_file
@@ -139,5 +139,5 @@ def deletefile(project, filename):
         flash(_('File not found'), 'error')
     except application.projects.FileNotEmpty:
         flash(_('This file is not empty'), 'error')
-    build(project.name, 'master')
+    project.get_master().build()
     return redirect(url_for('projects.dashboard', project=project.name))

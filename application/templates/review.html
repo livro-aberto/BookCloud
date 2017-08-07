@@ -1,20 +1,21 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
 {% block title %}{{ _('Edit: %(filename)s') | format(filename=filename) }} {% endblock%}
 
 {% block scripts %}
 
-<link rel=stylesheet href="https://codemirror.net/doc/docs.css">
-<link rel=stylesheet href="https://codemirror.net/lib/codemirror.css">
-<link rel=stylesheet href="https://codemirror.net/addon/merge/merge.css">
-<link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
-<script src="https://codemirror.net/lib/codemirror.js"></script>
-<script type="text/javascript" src="https://codemirror.net/mode/rst/rst.js"></script>
-<script src="https://codemirror.net/lib/codemirror.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/diff_match_patch/20121119/diff_match_patch.js"></script>
-<script src="https://codemirror.net/addon/merge/merge.js"></script>
+{% assets "codemirror_css_all" %}
+  <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}"></script>
+{% endassets %}
+
+{% assets "codemirror_js_all" %}
+  <script type="text/javascript" src="{{ ASSET_URL }}"
+          charset="utf-8"></script>
+{% endassets %}
+
 <script>
-  var value, orig1, orig2, dv, panes = 2, highlight = true, connect = null, collapse = false;
+  var value, orig1, orig2, dv, panes = 2, highlight = true, connect = null,
+      collapse = false;
   function initUI() {
     if (value == null) return;
     var target = document.getElementById("view");
@@ -75,7 +76,7 @@
 
 <style>
 .CodeMirror-merge, .CodeMirror-merge .CodeMirror {
-  height: calc(100vh - 150px);
+  height: calc(100vh - 120px);
 }
 
 .CodeMirror { line-height: 1.2; }
@@ -96,53 +97,76 @@ div.bodywrapper {
     margin: 0 0 0 0px;
 }
 </style>
+
 {% endblock %}
 
-{% macro contents() %}
-{#  <div class="body" role="main">
-    <div class="flex-container" align="left">
-      <div class="flex-item-rigid">
-#}
-        <p style="line-height: 200%;">
+{% macro contents() %}{% endmacro %}
 
-          <textarea id="new_file" style="display:none">{{ new }}</textarea>
-          <textarea id="old_file" style="display:none">{{ old }}</textarea>
+{% block document %}
 
-        <form method="post" id="myform" name="myform" action="{{ url_for('branches.commit', project=project, branch=branch, filename=filename) }}">
-          <div id="view" name="view"></div>
+<html xmlns="http://www.w3.org/1999/xhtml">
 
-          <input type="hidden" id="hidden" name="code"/>
+{{ head() }}
 
-          <div align="right">
-            <a href="{{ url_for('branches.merge', project=project,
-               branch=branch, other=other) }}" style="text-decoration:none">
-            <input type="button" value="exit"/>
-          </a>
-            <input id="save" name="save" type="submit" formaction="{{ url_for('branches.review',
-                   project=project, branch=branch, filename=filename) }}"
-                   value="aceitar texto da direita!" onclick="sendIt()">
-          </div>
-
-          {#
-          <input id="submit" name="submit" type="submit" value="{{ submit }}">
-          #}
-
-        </form>
+<div style="height: 50px; overflow:hidden;">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <a class="uk-button uk-button-primary uk-button-small
+         uk-margin-small-bottom uk-margin-small-left
+         uk-margin-small-top"
+         title="{{ _('Open messages') }}"
+         href="#modal-container" uk-toggle>{{ _('Messages') }}</a>
+      <div id="modal-container" class="uk-modal-container" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body">
+          <button class="uk-modal-close-default" type="button" uk-close>
+          </button>
+          {{ flash_messages() }}
+        </div>
       </div>
-
-      <script>
-        var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-          lineNumbers: false,
-          lineWrapping: true,
-        });
-      </script>
-
-{#
-      <div class="flex-item">
-        {{ doc | safe }}
-
-      </div>
-    </div>
+    {% endif %}
+  {% endwith %}
 </div>
-#}
-{% endmacro %}
+
+{# Placeholders for text #}
+<textarea id="new_file" style="display:none">{{ new }}</textarea>
+<textarea id="old_file" style="display:none">{{ old }}</textarea>
+
+<div style="overflow:hidden;">
+
+  <form method="post" id="myform" name="myform"
+        action="{{ url_for('branches.commit', project=project.name,
+                           branch=branch.name, filename=filename) }}">
+    <div id="view" name="view">
+    </div>
+    <input type="hidden" id="hidden" name="code"/>
+    <div align="right" class="uk-padding-small">
+      <button class="uk-button uk-button-default"
+         href="{{ url_for('branches.merge', project=project.name,
+                          branch=branch.name, other=other) }}">
+         {{ _('Exit') }}
+        {#<input type="button" value="exit"/>#}
+      </button>
+      <button class="uk-button uk-button-default"
+              id="save" name="save" type="submit"
+              formaction="{{ url_for('branches.review',
+                                     project=project.name, branch=branch.name,
+                                     filename=filename) }}"
+              onclick="sendIt()">
+              {{ _('aceitar texto da direita!') }}
+      </button>
+    </div>
+  </form>
+
+  <script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+      lineNumbers: false,
+      lineWrapping: true,
+    });
+  </script>
+
+</div>
+
+
+</html>
+
+{% endblock%}

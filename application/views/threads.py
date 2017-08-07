@@ -151,10 +151,7 @@ def newthread(project):
 @login_required
 def editthread(project, thread_id):
     thread = Thread.get_by_id(thread_id)
-    if (current_user != thread.owner and
-        # Correct line below (remove username)!!!!!!!!!!!!!!!!!!!!!!!
-        current_user.username != get_branch_owner(project, 'master')):
-        # Not allowed
+    if (current_user != thread.owner):
         flash(_('You are not allowed to edit this thread'), 'error')
         return redirect(url_for('projects.dashboard', project=project))
     form = ThreadForm(
@@ -284,8 +281,7 @@ def deletethread(project, thread_id):
             flash(_('You must be logged in to delete a thread'), 'error')
         else:
             if (current_user != thread.owner
-                and current_user != get_branch_owner(project, 'master')):
-                # Not allowed
+                and current_user != project.get_master().owner):
                 flash(_('You are not allowed to delete this thread'), 'error')
             else:
                 thread.delete()
@@ -307,8 +303,7 @@ def deletecomment(project, comment_id):
             flash(_('You must be logged in to delete a comment'), 'error')
         else:
             if (current_user != comment.owner
-                and current_user != get_branch_owner(project, 'master')):
-                # Not allowed
+                and current_user != project.get_master().owner):
                 flash(_('You are not allowed '
                         'to delete this thread'), 'error')
             else:

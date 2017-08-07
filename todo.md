@@ -26,6 +26,9 @@
       read the documentation for more
       http://docutils.sourceforge.net/docs/ref/rst/directives.html#raw-data-pass-through
 
+  - use python html bleach (a for untrusted code in view function)
+  - deal with paths using this library instead.
+  S  https://docs.python.org/3/library/pathlib.html
   - parse sphinx
     https://stackoverflow.com/questions/10766609/extract-field-list-from-restructuredtext/10782270#10782270
     https://stackoverflow.com/questions/11302885/parse-sphinx-like-documentation

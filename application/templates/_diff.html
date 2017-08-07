@@ -1,0 +1,234 @@
+{% macro file_diff_style() %}
+
+<style>
+/* Blob, Blame, Diff View */
+.line { display: block; }
+.linenos { background-color: #f9f9f9; text-align: right; }
+.linenos a { color: #888; }
+.linenos a:hover { text-decoration: none; }
+.highlight-line, .highlight-line .line { background-color: #fefed0; }
+.linenos a { padding: 0 6px 0 6px; }
+
+/* Commit View taken from kaus, by Jonas Haag */
+.full-commit { width: 100% !important; margin-top: 10px; }
+
+.full-commit .commit { padding: 15px 20px; }
+.full-commit .commit .line1 { padding-bottom: 5px; }
+.full-commit .commit:hover .line1 { text-decoration: none; }
+.full-commit .commit .line2 > span { float: left; }
+
+.full-commit .summary { color: #737373; font-size: 80%; margin-top: 25px; }
+.full-commit .summary .additions { color: #008800; }
+.full-commit .summary .deletions { color: #ee4444; }
+
+.full-commit .file.collapsed > table { display: none; }
+
+.diff { font-family: monospace; }
+.diff .filename {
+  padding: 8px 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  margin-top: 25px;
+}
+.diff .filename del { color: #999; }
+.diff .filename .summary { float: left; margin: -4px 15px 0 -5px; font-size: 80%; }
+.diff .filename .summary .additions { color: green; }
+.diff .filename .summary .deletions{ color: red; }
+
+.diff .togglers { float: right; }
+.diff .togglers a { opacity: 0.5; }
+.diff .file:not(.collapsed) .togglers .expand   { display: none; }
+.diff .file.collapsed       .togglers .collapse { display: none; }
+
+.diff table, .diff .emptydiff {
+  border: 1px solid #e0e0e0;
+  border-top: 0;
+  background-color: #fdfdfd;
+  display: block;
+}
+.diff .emptydiff {
+  padding: 7px 10px;
+}
+.diff td {
+  padding: 0;
+  border-left: 1px solid #e0e0e0;
+}
+.diff td .line { padding: 1px 10px; display: block; min-height: 1.2em; white-space: pre-wrap; }
+.diff .linenos { font-size: 85%; padding: 0; vertical-align: top; }
+.diff .linenos a { display: block; padding-top: 1px; padding-bottom: 1px; }
+.diff td + td + td { width: 100%; }
+.diff tr:first-of-type td { padding-top: 7px; }
+.diff tr:last-of-type td { padding-bottom: 7px; }
+.diff table .del { background-color: #ffdddd; }
+.diff table .add { background-color: #ddffdd; }
+.diff table .no-newline-marker { font-size: 50%; margin-left: 5px; color: red; }
+.diff table del { background-color: #ee9999; text-decoration: none; }
+.diff table ins { background-color: #99ee99; text-decoration: none; }
+.diff .sep > td {
+  height: 1.2em;
+  text-align: center;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+}
+.diff .sep:hover > td { background-color: #f9f9f9; }
+
+</style>
+
+{% endmacro %}
+
+{% macro display_file_diff(repo, old_commit, new_commit) %}
+
+  {% set summary, file_changes = commit_diff(repo, old_commit, new_commit) %}
+  <div class=full-commit>
+    {# Try to put this data as well, but there will be various commits
+    <div class=commit>
+      <span class=line1>
+        <span>{{ commit.message|force_unicode }}</span>
+      </span>
+      <span class="line2 separated-by-dots">
+        {% if commit.author != commit.committer %}
+          <span>{{ commit.author|force_unicode|extract_author_name }} authored <span class=hastooltip title="{{ commit.author_time|formattimestamp  }}">{{ commit.author_time|timesince }}</span></span>
+          <span>{{ commit.committer|force_unicode|extract_author_name }} committed <span class=hastooltip title="{{ commit.commit_time|formattimestamp  }}">{{ commit.commit_time|timesince }}</span></span>
+        {% else %}
+          <span>{{ commit.committer|force_unicode|extract_author_name }}</span>
+          <span class=hastooltip title="{{ commit.commit_time|formattimestamp  }}">{{ commit.commit_time|timesince }}</span>
+        {% endif %}
+      </span>
+      <span class=clearfloat></span>
+    </div>
+    #}
+
+    <div class="summary separated-by-dots">
+      <span>
+        {{ summary.nfiles }} changed file(s)
+        with <span class=additions>{{ summary.nadditions }} addition(s)</span>
+        and <span class=deletions>{{ summary.ndeletions }} deletion(s)</span>.
+      </span>
+      {# I don't see use for raw diff here
+      <span>
+        <a href="{{ url_for('patch', repo=repo.name, rev=commit.id) }}">
+          Raw diff
+        </a>
+      </span>
+      #}
+      <span>
+        <a href=# onclick="toggler.collapseAll('.file'); return false">
+          Collapse all
+        </a>
+      </span>
+      <span>
+        <a href=# onclick="toggler.expandAll('.file'); return false">
+          Expand all
+        </a>
+      </span>
+    </div>
+
+    <div class=diff style="font-size: 80% !important;">
+    {% for file in file_changes %}
+      <div class=file>
+        {% set fileno = loop.index0 %}
+
+        <div class=filename>
+          {% if not file.get('is_binary') %}
+          <div class="summary hastooltip"
+               title="{{ file.additions }} addition(s), {{ file.deletions }} deletion(s)">
+            <div class=additions>+{{ file.additions }}</div>
+            <div class=deletions>-{{ file.deletions }}</div>
+          </div>
+          {% endif %}
+          {# TODO dulwich doesn't do rename recognition
+          {% if file.old_filename != file.new_filename %}
+            {{ file.old_filename }} →
+          {% endif %}#}
+            {% if file.new_filename == '/dev/null' %}
+              <del>{{ file.old_filename|force_unicode }}</del>
+            {% else %}
+              {# <a href="/??? {{ url_for('blob', repo=repo.name, rev=rev, path=file.new_filename) }} "> #}
+                {{ file.new_filename|force_unicode }}
+              {# </a> #}
+            {% endif %}
+
+            <span class=togglers>
+              <a onclick="toggler.collapse(this.parentNode.parentNode.parentNode); return false"
+                 class=collapse href=#>less</a>
+              <a onclick="toggler.expand(this.parentNode.parentNode.parentNode); return false"
+                 class=expand href=#>more</a>
+            </span>
+        </div>
+
+        {% if file.get('is_binary') %}
+          <div class=emptydiff>Binary diff not shown</div>
+        {% else %}
+          <table>
+            {% for chunk in file.chunks %}
+
+              {%- for line in chunk -%}
+                <tr>
+
+                  {#- left column: linenos -#}
+                  {%- if line.old_lineno is not none -%}
+                    <td class=linenos><a href="#{{fileno}}-L-{{line.old_lineno}}">{{ line.old_lineno }}</a></td>
+                    {%- if line.new_lineno is not none -%}
+                      <td class=linenos><a href="#{{fileno}}-L-{{line.old_lineno}}">{{ line.new_lineno }}</a></td>
+                    {%- else -%}
+                      <td class=linenos></td>
+                    {%- endif -%}
+                  {%- else %}
+                    <td class=linenos></td>
+                    <td class=linenos><a href="#{{fileno}}-R-{{line.new_lineno}}">{{ line.new_lineno }}</a></td>
+                  {% endif %}
+
+                  {#- right column: code -#}
+                  {%- if line.old_lineno -%}
+                    {%- set line_id = "%s-L-%s"|format(fileno, line.old_lineno) -%}
+                  {%- else -%}
+                    {%- set line_id = "%s-R-%s"|format(fileno, line.new_lineno) -%}
+                  {%- endif -%}
+                  <td class="{{ line.action }}">
+                    <span id="{{ line_id }}">
+                      {#- lineno anchors -#}
+                      <a name="{{ line_id }}"></a>
+                      {#- the actual line of code -#}
+                      <span class=line>{% autoescape false %}{{ line.line|force_unicode }}{% endautoescape %}{% if line.no_newline %}<span class="hastooltip no-newline-marker" title="No newline at end of file">⏎</span>{% endif %}</span>
+                    </span>
+                  </td>
+
+                </tr>
+              {%- endfor -%} {# lines #}
+
+              {% if not loop.last %}
+                <tr class=sep>
+                  <td colspan=3></td>
+                </tr>
+              {% endif %}
+
+            {% else %}
+              {% if file.old_filename == '/dev/null' %}
+              <div class=emptydiff>(New empty file)</div>
+              {% elif file.new_filename == '/dev/null' %}
+              <div class=emptydiff>(Empty file)</div>
+              {% else %}
+              {# This case happens if a file has undergone only mode changes.
+                 In the future, if we have rename recognition, it may also happen
+                 if the file has been renamed without having its content changed.
+                 Currently, renames are always reported by dulwich as a file
+                 deletion and addition. #}
+              <div class=emptydiff>(No changes)</div>
+              {% endif %}
+            {%- endfor -%} {# chunks #}
+          </table>
+        {% endif %}
+
+        </div>
+    {% endfor %}
+    </div>
+
+  </div>
+
+  <script>
+    highlight_linenos({linksSelector: '.linenos a'});
+  </script>
+
+{% endmacro %}
+
+

@@ -62,15 +62,13 @@ def home():
         flash('Some folders have no project (%s)'
               % ', '.join(folders_without_project), 'error')
     projects = list(set(projects) - set(projects_without_folder))
-    menu = application.views.menu_bar()
-    return render_template('home.html', projects=projects, menu=menu,
+    return render_template('home.html', projects=projects,
                            copyright='CC-BY-SA')
 
 @limiter.limit("4 per day")
 @bookcloud.route('/new', methods = ['GET', 'POST'])
 @login_required
 def new():
-    menu = application.views.menu_bar()
     form = ProjectForm(request.form)
     if request.method == 'POST' and form.validate():
         user_repo_path = join('repos', form.name.data)
@@ -84,7 +82,7 @@ def new():
             flash(_('Project created successfuly!'), 'info')
             return redirect(url_for('projects.dashboard',
                                     project=form.name.data))
-    return render_template('new.html', menu=menu, form=form)
+    return render_template('new.html', form=form)
 
 @bookcloud.route('/html2rst', methods = ['GET', 'POST'])
 @limiter.limit("300 per day")
