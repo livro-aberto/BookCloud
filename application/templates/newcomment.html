@@ -10,17 +10,58 @@
 <ul id="navigation">
 
   <p>
-    <button onclick="myFunction()">{{ _('Preview') }}</button>
+    <button onclick="pop_preview()">{{ _('Preview') }}</button>
+    <button onclick="pop_help()">{{ _('Help') }}</button>
     <form method="POST">
       {{ render_field(form.comment, id="comment-content", rows='20', cols='70') }}
       <br>
 
+<textarea id="comment-help" style="display: none;">
+<pre>
+  <code>
+Usar **negrito** ou *itálico*.
+
+Uma lista numerada:
+
+#. primeiro ítem
+#. segundo ítem
+
+Lista não numerada
+
+* um ítem
+* outro ítem
+
+.. table:: Uma tabela
+
+    +---+---+
+    | A | B |
+    +===+===+
+    | 0 | 1 |
+    +---+---+
+    | 2 | 3 |
+    +---+---+
+
+Podemos inserir figuras:
+
+.. figure:: http://lorempixel.com/400/200
+
+Links para o texto e equações matemáticas não funcionam :(
+</code>
+</pre>
+</textarea>
+
       <script>
-        function myFunction() {
+        function pop_preview() {
           myWindow = window.open("", "{{ _('Preview') }}", "height=300,width=500");
           $.post("{{ url_for('bookcloud.preview_comment') }}",
                  { content: $('#comment-content').val() },
                  function(data, status){          myWindow.document.write(data);});
+        }
+      </script>
+      <script>
+        function pop_help() {
+          myWindow = window.open("", "{{ _('Help') }}", "height=300,width=500");
+          myWindow.document.write($('#comment-help').val());
         }
       </script>
       <input type=submit value=Register>
