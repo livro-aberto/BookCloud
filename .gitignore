@@ -7,8 +7,8 @@ instance/*
 
 application/static/vendor/*
 !application/static/vendor/bower.json
-application/static/*.js
-application/static/*.css
+application/static/bundles/*
+!application/static/bundles/README.md
 
 repos/*
 !repos/README.md

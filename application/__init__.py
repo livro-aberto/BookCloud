@@ -70,7 +70,7 @@ def create_app(extra_config_settings={}):
                    'jquery-textext/src/js/textext.plugin.arrow.js'
                ),
             'google-diff-match-patch/diff_match_patch.js',
-            output='js_all.js'
+            output='bundles/js_all.js'
         ),
         filters='closure_js'
     )
@@ -89,7 +89,7 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/search/jump-to-line.js',
                'codemirror/addon/merge/merge.js',
            ),
-        output='codemirror_all.js',
+        output='bundles/codemirror_all.js',
         filters='closure_js'
     )
     assets.register(
@@ -104,7 +104,7 @@ def create_app(extra_config_settings={}):
                    'jquery-textext/src/css/textext.plugin.clear.css',
                    'jquery-textext/src/css/textext.plugin.arrow.css'
                ),
-            output='css_all.css'
+            output='bundles/css_all.css'
         ),
         filters='cssmin'
     )
@@ -113,7 +113,7 @@ def create_app(extra_config_settings={}):
         Bundle('codemirror/lib/codemirror.css',
                'codemirror/addon/merge/merge.css',
                'codemirror/addon/search/matchesonscrollbar.css'),
-        output='codemirror_all.css',
+        output='bundles/codemirror_all.css',
         filters='cssmin'
     )
 
