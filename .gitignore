@@ -1,4 +1,5 @@
 application/migrations/*
+application/static/
 sphinx_edit/static/sphinx_static/*
 trash/*
 instance/*

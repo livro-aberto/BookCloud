@@ -21,6 +21,8 @@ from flask_babel import Babel, gettext as _
 
 from flask_mail import Message
 
+import cgi
+
 from wtforms import Form, BooleanField, StringField, validators,\
     RadioField, SelectMultipleField, TextAreaField, SelectField, HiddenField
 
@@ -130,8 +132,9 @@ def display_threads(threads):
             current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
             try:
                 current_comment['content'] = rst2html(comment.content)
-            except KeyError:
-                current_comment['content'] = _('Error in compiling comment:\n\n' + comment.content)
+            except:
+                output = comment.content
+                current_comment['content'] = _('<b>Error in compiling comment:</b><br />' + output.replace("\n","<br />\n"))
             current_comment['posted_at'] = comment.posted_at
             current_comment['lineage'] = comment.lineage
             current_comment['indent'] = 6 * len(comment.lineage)
@@ -473,7 +476,8 @@ def project(project):
     files = [(splitext(f)[0], splitext(f)[1], int(os.stat(join(master_path, f)).st_size / 500)) for f in files]
     threads = display_threads(Thread.query
                               .filter_by(project_id=project_id)
-                              .order_by(desc(Thread.posted_at)))
+                              .order_by(desc(Thread.posted_at))
+                              .limit(20))
     return render_template('project.html', tree=tree, log=log, menu=menu, threads=threads,
                            files=files, show_discussion=True)
 
@@ -1213,11 +1217,23 @@ def edit(project, branch, filename):
                            menu=menu, html_scroll=html_scroll,
                            edit_scroll=edit_scroll, render_sidebar=False)
 
+@limiter.limit("600 per day")
+@bookcloud.route('/preview_comment', methods = ['GET', 'POST'])
+def preview_comment():
+    input = ''
+    if request.method == 'POST':
+        if request.form.has_key('content'):
+            input = request.form.get('content')
+            try:
+                input = rst2html(input)
+            except:
+                input = _('<b>Error in compiling comment:</b><br />' + input)
+    return input.replace("\n","<br />\n")
+
 @limiter.limit("300 per day")
 @bookcloud.route('/html2rst', methods = ['GET', 'POST'])
 def html2rst():
     if request.method == 'POST':
-        print(request.form)
         if request.form.has_key('content'):
             input = request.form.get('content')
             if not input:
