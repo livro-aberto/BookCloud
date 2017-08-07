@@ -10,9 +10,19 @@
 <ul id="navigation">
 
   <p>
+    <button onclick="myFunction()">{{ _('Preview') }}</button>
     <form method="POST">
-      {{ render_field(form.comment, rows='20', cols='70') }}
+      {{ render_field(form.comment, id="comment-content", rows='20', cols='70') }}
       <br>
+
+      <script>
+        function myFunction() {
+          myWindow = window.open("", "{{ _('Preview') }}", "height=300,width=500");
+          $.post("{{ url_for('bookcloud.preview_comment') }}",
+                 { content: $('#comment-content').val() },
+                 function(data, status){          myWindow.document.write(data);});
+        }
+      </script>
       <input type=submit value=Register>
     </form>
   </p>
