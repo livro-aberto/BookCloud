@@ -128,7 +128,10 @@ def display_threads(threads):
             current_comment = {}
             current_comment['id'] = comment.id
             current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
-            current_comment['content'] = rst2html(comment.content)
+            try:
+                current_comment['content'] = rst2html(comment.content)
+            except:
+                current_comment['content'] = _('Error in compiling comment:\n\n' + comment.content)
             current_comment['posted_at'] = comment.posted_at
             current_comment['lineage'] = comment.lineage
             current_comment['indent'] = 6 * len(comment.lineage)
