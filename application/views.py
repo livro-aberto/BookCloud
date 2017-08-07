@@ -130,7 +130,7 @@ def display_threads(threads):
             current_comment['author'] = User.query.filter_by(id=comment.owner_id).first().username
             try:
                 current_comment['content'] = rst2html(comment.content)
-            except:
+            except KeyError:
                 current_comment['content'] = _('Error in compiling comment:\n\n' + comment.content)
             current_comment['posted_at'] = comment.posted_at
             current_comment['lineage'] = comment.lineage
