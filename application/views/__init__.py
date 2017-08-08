@@ -220,10 +220,7 @@ def get_image(project, filename):
 @app.errorhandler(404)
 def page_not_found(e):
     message = e.description
-    trace = traceback.format_exc()
-    trace = string.split(trace, '\n')
-    return 'Not Found'#render_template('404.html', message=message,
-                      #     trace=trace), 500
+    return render_template('404.html', message=message), 404
 
 @limiter.exempt
 @temp.errorhandler(Exception)
