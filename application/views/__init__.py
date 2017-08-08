@@ -5,6 +5,7 @@ import json
 import time
 from os.path import isdir, isfile, join, splitext
 import flask
+from flask import g
 import urllib
 from flask import render_template, render_template_string, request
 from flask import redirect, url_for, Response, flash, Blueprint
@@ -216,6 +217,14 @@ def show_source(project, branch, filename):
 def get_image(project, filename):
     return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
 
+@app.before_request
+def projects_before_request():
+    application.views.bookcloud.bookcloud_before_request()
+
+@app.context_processor
+def app_context_processor():
+    return { 'menu': g.menu }
+
 @limiter.exempt
 @app.errorhandler(404)
 def page_not_found(e):
@@ -224,6 +233,7 @@ def page_not_found(e):
 
 @limiter.exempt
 @app.errorhandler(Exception)
+@app.route('/aaa')
 def internal_server_error(e):
     message = repr(e)
     trace = traceback.format_exc()
