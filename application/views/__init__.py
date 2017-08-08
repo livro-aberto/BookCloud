@@ -257,6 +257,7 @@ def internal_server_error(e):
                       body=mail_message,
                       recipients=[app.config['ADMIN_MAIL']])
         mail.send(msg)
+        flash(_('A message has been sent to the administrator'), 'info')
     return render_template('500.html', message=message), 500
 
 
