@@ -67,6 +67,7 @@ def project_context_processor():
 @projects.route('/dashboard', methods = ['GET', 'POST'])
 @limiter.exempt
 def dashboard(project):
+    a = treres
     tree = [ get_sub_branches(project.get_master()) ]
     log = project.get_master().get_log()
     master_path = project.get_master().get_source_path()

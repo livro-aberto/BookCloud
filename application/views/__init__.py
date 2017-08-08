@@ -232,14 +232,24 @@ def internal_server_error(e):
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')
     # send email to admin
-    if (not app.config['TESTING']) and ('No such file or directory' not in message):
-        print 'email'
-        mail_message = message + '\n\n\n' + '\n'.join(trace)
+    if ((not app.config['TESTING'])
+        and ('No such file or directory' not in message)):
+        gathered_data = ('timestamp: %s\n'
+                         'ip: %s\n'
+                         'method: %s\n'
+                         'request.scheme: %s\n'
+                         'request.full_path: %s\n'
+                         'response.status: %s'
+                         'user: %s',
+                         timestamp, request.remote_addr,request.method,
+                         request.scheme, request.full_path, response.status,
+                         current_user)
+        mail_message = (message + '\n\n\n' + '\n'.join(trace) + '\n\nData:\n'
+                        + gathered_data)
         msg = Message('Error: ' + message[:40],
                       body=mail_message,
                       recipients=[app.config['ADMIN_MAIL']])
         mail.send(msg)
-    return render_template('500.html', message=message,
-                           trace=trace), 500
+    return render_template('500.html', message=message), 500
 
 

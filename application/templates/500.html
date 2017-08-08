@@ -1,17 +1,13 @@
-{% extends "layout.html" %}
+{% extends "base_template.html" %}
 
-{% block title %}Internal server error{% endblock %}
+{% block title %}{{ _('Internal server error') }}{% endblock %}
 
 {% macro contents() %}
-<h1>Internal serve error</h1>
+<h1>{{ _('Internal serve error') }}</h1>
 
 {{ message }}
 
-<h2>Execution stack</h2>
-
-{% for line in trace %}
-{{ line }}<br>
-{% endfor %}
+{{ _('A message has been sent to the administrator') }}
 
 {% endmacro %}
 
