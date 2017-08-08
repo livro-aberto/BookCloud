@@ -99,20 +99,23 @@
         {% if messages %}
           {% for category, message in messages %}
             {% if category == 'info' %}
-              <div class="uk-alert-success" uk-alert>
-                <a class="uk-alert-close" uk-close></a>
-                <p>{{ message }}</p>
-              </div>
+<script>
+  $(document).ready(function(){
+      UIkit.notification('{{ message }}', {status: 'primary', pos: 'bottom-right'});
+  });
+</script>
             {% elif category == 'error' %}
-              <div class="uk-alert-danger" uk-alert>
-                <a class="uk-alert-close" uk-close></a>
-                <p>{{ message}}</p>
-              </div>
+<script>
+  $(document).ready(function(){
+      UIkit.notification('{{ message }}', {status: 'danger', pos: 'bottom-right'});
+  });
+</script>
             {% else %}
-              <div class="uk-alert-primary" uk-alert>
-                <a class="uk-alert-close" uk-close></a>
-                <p>{{ message}}</p>
-              </div>
+<script>
+  $(document).ready(function(){
+      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-right'});
+  });
+</script>
             {% endif %}
           {% endfor %}
         {% endif %}

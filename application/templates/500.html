@@ -3,9 +3,17 @@
 {% block title %}{{ _('Internal server error') }}{% endblock %}
 
 {% macro contents() %}
-<h1>{{ _('Internal serve error') }}</h1>
+<h1>{{ _('Internal server error') }}</h1>
 
+<div class="code highlight-default">
+  <div class="highlight">
+    <pre>
+      <span class="n" style="font-size:small">
 {{ message }}
+      </span>
+    </pre>
+  </div>
+</div>
 
 {% endmacro %}
 

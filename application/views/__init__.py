@@ -238,26 +238,33 @@ def internal_server_error(e):
     message = repr(e)
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')
+    timestamp = (datetime.fromtimestamp(time.time())
+                 .strftime('%Y-%m-%d %H:%M:%S'))
+    if current_user.is_authenticated:
+        user = current_user.username
+    else:
+        user = 'anonymous'
+    gathered_data = ('message: {}\n\n\n'
+                     'timestamp: {}\n'
+                     'ip: {}\n'
+                     'method: {}\n'
+                     'request.scheme: {}\n'
+                     'request.full_path: {}\n'
+                     'user: {}\n\n\n'
+                     'trace: {}'.format(
+                     message, timestamp, request.remote_addr,request.method,
+                     request.scheme, request.full_path,
+                     user, '\n'.join(trace)))
     # send email to admin
     if ((not app.config['TESTING'])
         and ('No such file or directory' not in message)):
-        gathered_data = ('timestamp: %s\n'
-                         'ip: %s\n'
-                         'method: %s\n'
-                         'request.scheme: %s\n'
-                         'request.full_path: %s\n'
-                         'response.status: %s'
-                         'user: %s',
-                         timestamp, request.remote_addr,request.method,
-                         request.scheme, request.full_path, response.status,
-                         current_user)
-        mail_message = (message + '\n\n\n' + '\n'.join(trace) + '\n\nData:\n'
-                        + gathered_data)
+        mail_message = gathered_data
         msg = Message('Error: ' + message[:40],
                       body=mail_message,
                       recipients=[app.config['ADMIN_MAIL']])
         mail.send(msg)
         flash(_('A message has been sent to the administrator'), 'info')
-    return render_template('500.html', message=message), 500
+    print(gathered_data)
+    return render_template('500.html', message=gathered_data), 500
 
 

@@ -86,7 +86,7 @@ class Project(CRUDMixin, db.Model):
         git_api = self.get_master().get_git()
         git_api.mv(old_filename + file_extension,
                    new_filename + file_extension)
-        application.branches.build(self.name, 'master')
+        self.get_master().build()
 
     def delete_file(self, filename):
         file_extension = '.rst'
