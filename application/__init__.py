@@ -72,7 +72,7 @@ def create_app(extra_config_settings={}):
             'google-diff-match-patch/diff_match_patch.js',
             output='bundles/js_all.js'
         ),
-        filters='closure_js'
+        filters='rjsmin'
     )
     assets.register(
         'codemirror_js_all',
@@ -90,7 +90,7 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/merge/merge.js',
            ),
         output='bundles/codemirror_all.js',
-        filters='closure_js'
+        filters='rjsmin'
     )
     assets.register(
         'css_all',

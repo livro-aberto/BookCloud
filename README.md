@@ -26,11 +26,11 @@ when needed use `deactivate` to exit the virtualenv
 
 Create config file
 
-    cp conf_default.py conf.py
+    cp config_default.py config.py
 
     cp conf/conf_default.py conf/conf.py
 
-    cp manage_default.py manage.py
+    cp cp instance/instance_config_default.py instance/instance_config.py
 
 edit the `conf.py` file. Specially:
 
