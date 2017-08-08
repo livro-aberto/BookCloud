@@ -223,7 +223,7 @@ def page_not_found(e):
     return render_template('404.html', message=message), 404
 
 @limiter.exempt
-@temp.errorhandler(Exception)
+@app.errorhandler(Exception)
 def internal_server_error(e):
     message = repr(e)
     trace = traceback.format_exc()
