@@ -20,16 +20,22 @@ bookcloud = Blueprint('bookcloud', __name__)
 
 @bookcloud.before_request
 def bookcloud_before_request():
-    g.menu = {'left': [], 'right': [{
-        'name': 'Bookcloud',
-        'sub_menu': [
-        {
-            'name': 'Issues',
-            'url': 'https://github.com/gutosurrex/BookCloud/issues'
-        }, {
-            'name': 'Syntax',
-            'url': ('https://www.umlivroaberto.com/BookCloud/sintaxe/'
-                    'master/view/index.html')}]}]}
+    g.menu = {
+        'left': [{'name': 'Home',
+                  'url': url_for('bookcloud.home')}],
+        'right': [{
+            'name': 'Bookcloud',
+            'sub_menu': [
+            {
+                'name': 'Livro Aberto',
+                'url': 'https://www.umlivroaberto.com'
+            }, {
+                'name': 'Issues',
+                'url': 'https://github.com/gutosurrex/BookCloud/issues'
+            }, {
+                'name': 'Syntax',
+                'url': ('https://www.umlivroaberto.com/BookCloud/sintaxe/'
+                        'master/view/index.html')}]}]}
     if current_user.is_authenticated:
         g.menu['right'].append({
             'name': current_user.username,

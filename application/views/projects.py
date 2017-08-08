@@ -51,12 +51,13 @@ def projects_before_request():
             'url': url_for('branches.view', project=g.project.name,
                            branch='master', filename='index.html')
         }, {
-            'name': 'Dashboard',
+            'name': 'Project home',
             'url': url_for('projects.dashboard', project=g.project.name)
         }, {
-            'name': 'Download pdf',
+            'name': 'View pdf',
             'url': url_for('branches.pdf', project=g.project.name,
-                           branch='master')
+                           branch='master'),
+            'external': True
         }]})
 
 @projects.context_processor

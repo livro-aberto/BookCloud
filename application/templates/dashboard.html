@@ -25,7 +25,10 @@
                <b>(has requests)</b>
              {% endif %}
              - <a href="{{ url_for('branches.pdf', project=project.name,
-             branch='master') }}">pdf</a>
+                        branch='master') }}"
+                  target="_blank">
+                 pdf
+               </a>
   </p>
 
   {% if tree[0].subtree != [] %}
@@ -57,7 +60,9 @@
           {% endif %}
           -
           <a href="{{ url_for('branches.pdf', project=project.name,
-                   branch=item['branch'].name) }}">pdf
+                   branch=item['branch'].name) }}"
+             target="_blank">
+            pdf
           </a>
           {% if item['branch'].expires %}
             expires ({{ item['branch'].expiration }})

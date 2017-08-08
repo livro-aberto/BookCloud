@@ -9,7 +9,12 @@
         <div class="uk-navbar-dropdown">
           <ul class="uk-nav uk-navbar-dropdown-nav">
             {% for s in t.sub_menu %}
-              <li><a href="{{ s.url }}">{{ s.name }}</a></li>
+              <li>
+                <a href="{{ s.url }}"
+                  {%- if s.external -%} target="_blank" {%- endif -%}>
+                  {{ s.name }}
+                </a>
+              </li>
             {% endfor %}
           </ul>
         </div>
@@ -22,7 +27,12 @@
           </a>
         </div>
       {% else %}
-        <li><a href="{{ t.url }}">{{ t.name }}</a></li>
+        <li>
+          <a href="{{ t.url }}"
+             {%- if t.external -%} target="_blank" {%- endif -%}>
+            {{ t.name }}
+          </a>
+        </li>
       {% endif %}
     {% endif %}
   {% endfor %}
@@ -34,7 +44,6 @@
     <div class="uk-navbar-left uk-padding uk-padding-remove-top
                 uk-padding-remove-bottom">
       <ul class="uk-navbar-nav">
-        <li class="uk-active"><a href="/">Home</a></li>
         {{ menu_items(menu.left) }}
         {% if threads %}
           <li>
