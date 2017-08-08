@@ -290,7 +290,7 @@ def deletethread(project, thread_id):
     if 'return_url' in request.args:
         return redirect(urllib.unquote(request.args['return_url']))
     else:
-        return redirect(url_for('projects.dashboard', project=project))
+        return redirect(url_for('projects.dashboard', project=project.name))
 
 @threads.route('/<project>/delete_comment/<int:comment_id>')
 @login_required
@@ -313,6 +313,6 @@ def deletecomment(project, comment_id):
     if 'return_url' in request.args:
         return redirect(urllib.unquote(request.args['return_url']))
     else:
-        return redirect(url_for('projects.dashboard', project=project))
+        return redirect(url_for('projects.dashboard', project=project.name))
 
 
