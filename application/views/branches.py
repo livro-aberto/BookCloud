@@ -57,7 +57,6 @@ def branch_before_request():
         }]})
     if current_user.is_authenticated and current_user == g.branch.owner:
         if g.branch.is_dirty():
-            #flash(_('You have uncommitted changes!!!'), 'error')
             g.menu['right'].insert(0, {
                 'url': url_for('branches.commit',
                                project=g.project.name,
@@ -66,40 +65,6 @@ def branch_before_request():
             })
         else:
             if len(get_requests(g.project.name, g.branch.name)):
-                #flash(_('You have unreviewed requests!!!'), 'error')
-                g.menu['right'].insert(0, {
-                    'url': url_for('branches.requests',
-                                   project=g.project.name,
-                                   branch=g.branch.name),
-                    'name': 'Requests',
-                    'style': 'attention'
-                })
-@branches.before_request
-def branch_before_request():
-    application.views.projects.projects_before_request()
-    g.menu['left'].append({
-        'name': g.branch.name,
-        'sub_menu': [{
-            'name': 'View index',
-            'url': url_for('branches.view', project=g.project.name,
-                           branch=g.branch.name, filename='index.html')
-        }, {
-            'name': 'Dashboard',
-            'url': url_for('branches.branch', project=g.project.name,
-                           branch=g.branch.name)
-        }]})
-    if current_user.is_authenticated and current_user == g.branch.owner:
-        if g.branch.is_dirty():
-            #flash(_('You have uncommitted changes!!!'), 'error')
-            g.menu['right'].insert(0, {
-                'url': url_for('branches.commit',
-                               project=g.project.name,
-                               branch=g.branch.name),
-                'name': 'Commit', 'style': 'attention'
-            })
-        else:
-            if len(get_requests(g.project.name, g.branch.name)):
-                #flash(_('You have unreviewed requests!!!'), 'error')
                 g.menu['right'].insert(0, {
                     'url': url_for('branches.requests',
                                    project=g.project.name,
@@ -119,7 +84,6 @@ def before_return(func):
         return func(name, *args, **kargs)
     return func_wrapper
 
-redirect = before_return(redirect)
 render_template = before_return(render_template)
 
 @branches.context_processor

@@ -51,7 +51,7 @@ def projects_before_request():
             'url': url_for('branches.view', project=g.project.name,
                            branch='master', filename='index.html')
         }, {
-            'name': 'Project home',
+            'name': 'Manage',
             'url': url_for('projects.dashboard', project=g.project.name)
         }, {
             'name': 'View pdf',
