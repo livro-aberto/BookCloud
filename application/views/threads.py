@@ -216,13 +216,14 @@ def newcomment(project, thread_id, parent_lineage=''):
             with mail.connect() as conn:
                 thread = Thread.get_by_id(thread_id)
                 list_of_users = [ tag.username for tag in thread.user_tags]
-                message_head = (
-                    _('Thread: ') + thread.title + '\n' +\
-                    _('Project: ') + project.id + '\n' +\
-                    _('Author: ') + current_user.username + '\n' +\
-                    _('Type: ') + thread.flag + '\n' +\
-                    _('Created at: ') + str(datetime.utcnow()) + '\n' +\
-                    _('Contents:') + '\n\n')
+                msg_thread = _('Thread: ') + thread.title + '\n'
+                msg_project = _('Project: ') + project.name + '\n'
+                msg_owner = _('Owner: ') + current_user.username + '\n'
+                msg_type = _('Type: ') + thread.flag + '\n'
+                msg_time = _('Created at: ') + str(datetime.utcnow()) + '\n'
+                msg_contents = _('Contents: ') + '\n'
+                message_head = (msg_thread + msg_project + msg_owner
+                                + mst_type + msg_time + msg+contents + '\n')
                 links = (_('To reply to this comment follow: ')
                          + url_for('threads.newcomment',
                                    project=project.name,
