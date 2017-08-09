@@ -11,7 +11,7 @@
             {% for s in t.sub_menu %}
               <li>
                 <a href="{{ s.url }}"
-                  {%- if s.external -%} target="_blank" {%- endif -%}>
+                  {%- if s.external %} target="_blank" {% endif -%}>
                   {{ s.name }}
                 </a>
               </li>
@@ -49,7 +49,7 @@
           <li>
             <a href="#discussion">
               {{ _('discussion') }}
-              &nbsp
+              &nbsp;
               <span class="uk-badge">{{ threads.count() }}</span>
             </a>
           </li>
@@ -101,19 +101,19 @@
             {% if category == 'info' %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'primary', pos: 'bottom-right'});
+      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-left'});
   });
 </script>
             {% elif category == 'error' %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'danger', pos: 'bottom-right'});
+      UIkit.notification('{{ message }}', {status: 'danger', pos: 'bottom-left'});
   });
 </script>
             {% else %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-right'});
+      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-left'});
   });
 </script>
             {% endif %}
