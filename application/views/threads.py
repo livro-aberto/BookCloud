@@ -118,13 +118,14 @@ def newthread(project):
         # send emails
         if not app.config['TESTING']:
             with mail.connect() as conn:
-                message_head = (
-                    + _('Thread: ') + request.form['title'] + '\n'
-                    + _('Project: ') + project + '\n'
-                    + _('Owner: ') + current_user.username + '\n'
-                    + _('Type: ') + request.form['flag'] + '\n'
-                    + _('Created at: ') + str(datetime.utcnow()) + '\n'
-                    + _('Contents:') + '\n\n')
+                msg_thread = _('Thread: ') + request.form['title'] + '\n'
+                msg_project = _('Project: ') + project + '\n'
+                msg_owner = _('Owner: ') + current_user.username + '\n'
+                msg_type = _('Type: ') + request.form['flag'] + '\n'
+                msg_time = _('Created at: ') + str(datetime.utcnow()) + '\n'
+                msg_contents = _('Contents: ') + '\n'
+                message_head = (msg_thread + msg_project + msg_owner
+                                + mst_type + msg_time + msg+contents)
                 links = (_('To comment on this thread: ')
                          + url_for('threads.newcomment',
                                    project=project,
