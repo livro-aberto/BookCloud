@@ -119,7 +119,7 @@ def newthread(project):
         if not app.config['TESTING']:
             with mail.connect() as conn:
                 msg_thread = _('Thread: ') + request.form['title'] + '\n'
-                msg_project = _('Project: ') + project + '\n'
+                msg_project = _('Project: ') + project.name + '\n'
                 msg_owner = _('Owner: ') + current_user.username + '\n'
                 msg_type = _('Type: ') + request.form['flag'] + '\n'
                 msg_time = _('Created at: ') + str(datetime.utcnow()) + '\n'
