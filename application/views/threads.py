@@ -125,7 +125,7 @@ def newthread(project):
                 msg_time = _('Created at: ') + str(datetime.utcnow()) + '\n'
                 msg_contents = _('Contents: ') + '\n'
                 message_head = (msg_thread + msg_project + msg_owner
-                                + mst_type + msg_time + msg+contents)
+                                + msg_type + msg_time + msg+contents)
                 links = (_('To comment on this thread: ')
                          + url_for('threads.newcomment',
                                    project=project,
@@ -223,7 +223,7 @@ def newcomment(project, thread_id, parent_lineage=''):
                 msg_time = _('Created at: ') + str(datetime.utcnow()) + '\n'
                 msg_contents = _('Contents: ') + '\n'
                 message_head = (msg_thread + msg_project + msg_owner
-                                + mst_type + msg_time + msg+contents + '\n')
+                                + msg_type + msg_time + msg+contents + '\n')
                 links = (_('To reply to this comment follow: ')
                          + url_for('threads.newcomment',
                                    project=project.name,
