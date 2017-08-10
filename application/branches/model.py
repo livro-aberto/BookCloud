@@ -15,7 +15,7 @@ from flask_babel import gettext as _
 
 from application import db
 import application.projects
-from application.tools import Command, load_file
+from application.utils import Command, load_file
 from application.users import User
 from application.models import CRUDMixin
 

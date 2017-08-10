@@ -76,7 +76,7 @@
         <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}">
     {% endassets %}
 
-    <!-- MathJax has to be separated, since it call font files -->
+    {# MathJax has to be separated, since it call font files #}
     <script type="text/javascript"
             src="{{- url_for('static',
                  filename='vendor/bower_components/MathJax/MathJax.js') -}}
@@ -101,19 +101,19 @@
             {% if category == 'info' %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-left'});
+      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-center'});
   });
 </script>
             {% elif category == 'error' %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'danger', pos: 'bottom-left'});
+      UIkit.notification('{{ message }}', {status: 'danger', pos: 'bottom-center'});
   });
 </script>
             {% else %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-left'});
+      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-center'});
   });
 </script>
             {% endif %}
@@ -129,7 +129,7 @@
 
 {{ head() }}
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+{#<html xmlns="http://www.w3.org/1999/xhtml">#}
   <body>
 
     {{ navigation_bar() }}
@@ -356,7 +356,7 @@
                       </div>
                     </header>
                     <div class="uk-comment-body">
-                      {{ c.content | safe }}
+                      {{ c.content | rst2html | safe }}
                     </div>
                     <hr>
                   </article>
@@ -402,6 +402,6 @@
     </nav>
 
   </body>
-</html>
+{#</html>#}
 
 {% endblock document %}

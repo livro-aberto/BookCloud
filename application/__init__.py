@@ -1,3 +1,7 @@
+import os
+from os.path import join
+from flask_user import current_user
+
 from flask import Flask
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
@@ -7,24 +11,16 @@ from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter
 
 # limit number of visits
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from flask_assets import Environment, Bundle
 
-import os
-from os.path import join
-from flask_user import current_user
-
-def get_identifier():
-    if current_user.is_authenticated:
-        return current_user.username
-    return get_remote_address()
+import utils
 
 # Setup Flask app and app.config
 app = Flask(__name__, instance_relative_config=True)
 
 limiter = Limiter(
     app,
-    key_func=get_identifier,
+    key_func=utils.get_identifier,
     global_limits=["200 per day", "50 per hour"])
 
 # Initialize Flask-SQLAlchemy
@@ -128,6 +124,13 @@ def create_app(extra_config_settings={}):
     app.config.from_pyfile('instance_config.py')
     # Read extra config settings from extra arguments
     app.config.update(extra_config_settings)
+    # Register template filters
+    for (i, j) in [('force_unicode', utils.force_unicode),
+          ('extract_author_name', utils.extract_author_name),
+          ('formattimestamp', utils.formattimestamp),
+          ('timesince', utils.timesince),
+          ('rst2html', utils.rst2html)]:
+        app.jinja_env.filters[i] = j
     # Set languange
     app.config['LANGUAGE'] = 'pt_BR'
     if app.testing or app.config['TESTING']:

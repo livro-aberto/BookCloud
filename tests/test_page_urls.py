@@ -372,9 +372,9 @@ def test_page_urls(client):
                                    thread_id=thread_id,
                                    parent_lineage="000000:"),
                            follow_redirects=True,
-                           data=dict(comment="Please!"))
+                           data=dict(comment="Make it **bold**, please!"))
     reply = (Comment.query
-             .filter(Comment.content.like('%Please!%'))
+             .filter(Comment.content.like('%bold%'))
              .first())
     assert (("criado com sucesso" in response.data)
             or ("successfully created" in response.data))
@@ -382,7 +382,7 @@ def test_page_urls(client):
     # Check reply
     response = client.get(url_for('projects.dashboard',
                               project=new_project_name))
-    assert "Please!" in response.data
+    assert "<b>bold</b>" in response.data
 
     # Try to delete thread
     response = client.get(url_for('threads.deletethread',

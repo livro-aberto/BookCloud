@@ -15,6 +15,7 @@ from sqlalchemy import or_, desc
 import application
 from application import db, app, limiter, mail
 from application.users import User
+from application.utils import rst2html
 from application.threads import (
     Thread, Comment, File_Tag, Free_Tag, Named_Tag, CommentSearchForm,
     ThreadForm, NewThreadForm, CommentForm
@@ -317,4 +318,11 @@ def deletecomment(project, comment_id):
     else:
         return redirect(url_for('projects.dashboard', project=project.name))
 
+@threads.route('/<project>/preview_comment', methods = ['GET', 'POST'])
+def preview_comment(project):
+    input = ''
+    if request.method == 'POST':
+        if request.form.has_key('content'):
+            input = rst2html(request.form.get('content'))
+    return input
 

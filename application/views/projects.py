@@ -19,7 +19,7 @@ from application.branches import (
     get_merge_pendencies
 )
 import application.views
-from application.tools import write_file
+from application.utils import write_file
 
 projects = Blueprint('projects', __name__, url_prefix='/projects/<project>')
 

@@ -12,6 +12,7 @@ from flask import redirect, url_for, Response, flash, Blueprint
 from flask_user import login_required, SQLAlchemyAdapter, current_user
 from sqlalchemy import or_, desc
 
+from application import utils as utils
 
 from application import app, db, mail, limiter
 from application.diff import render_diff
@@ -43,8 +44,8 @@ from creole import html2rest
 
 from application.threads import NewThreadForm
 
-# import special tools for this platform
-from application.tools import window, rst2html, Command, load_file,\
+# import special utils for this platform
+from application.utils import window, rst2html, Command, load_file,\
     write_file, last_modified
 
 import users
@@ -82,9 +83,6 @@ def get_locale():
     #return request.accept_languages.best_match(app.config['LANGUAGES'].keys())
     return 'en'
 
-@app.before_request
-def before_request():
-    flask.g.locale = get_locale()
 
 def commit_diff(repo, old_commit, new_commit):
     """Return the list of changes introduced from old to new commit."""
@@ -142,55 +140,6 @@ def package():
     sent_package['commit_diff'] = commit_diff
     return sent_package
 
-
-@app.template_filter('force_unicode')
-def force_unicode(s):
-    """Do all kinds of magic to turn `s` into unicode"""
-    # It's already unicode, don't do anything:
-    #if isinstance(s, six.text_type):
-    #    return s
-    # Try some default encodings:
-    try:
-        return s.decode('utf-8')
-    except UnicodeDecodeError as exc:
-        pass
-    try:
-        return s.decode(locale.getpreferredencoding())
-    except UnicodeDecodeError:
-        pass
-    if chardet is not None:
-        # Try chardet, if available
-        encoding = chardet.detect(s)['encoding']
-        if encoding is not None:
-            return s.decode(encoding)
-    raise # Give up.
-
-@app.template_filter('extract_author_name')
-def extract_author_name(email):
-    """Extract the name from an email address --
-    >>> extract_author_name("John <john@example.com>")
-    "John"
-    -- or return the address if none is given.
-    >>> extract_author_name("noname@example.com")
-    "noname@example.com"
-    """
-    match = re.match('^(.*?)<.*?>$', email)
-    if match:
-        return match.group(1).strip()
-    return email
-
-@app.template_filter('formattimestamp')
-def formattimestamp(timestamp):
-    return (datetime.fromtimestamp(timestamp)
-            .strftime('%b %d, %Y %H:%M:%S'))
-
-@app.template_filter('timesince')
-def timesince(when, now=time.time):
-    """Return the difference between `when` and `now` in human
-    readable form."""
-    #return naturaltime(now() - when)
-    return (now() - when)
-
 @limiter.exempt
 @temp.route('/<project>/<action>/_static/<path:filename>')
 def get_static(project, action, filename):
@@ -218,7 +167,7 @@ def get_image(project, filename):
     return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
 
 @app.before_request
-def projects_before_request():
+def app_before_request():
     application.views.bookcloud.bookcloud_before_request()
 
 @app.context_processor

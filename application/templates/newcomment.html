@@ -4,18 +4,73 @@
 
 {% block title %}{{ _('New comment') }}{% endblock%}
 
+{% block scripts %}
+<script>
+  function pop_preview() {
+    myWindow = window.open("", "{{ _('Preview') }}", "height=300,width=500");
+    $.post("{{ url_for('threads.preview_comment', project=project.name) }}",
+           { content: $('#comment-content').val() },
+           function(data, status){          myWindow.document.write(data);});
+  }
+</script>
+<script>
+  function pop_help() {
+    myWindow = window.open("", "{{ _('Help') }}", "height=600,width=500");
+    myWindow.document.write($('#comment-help').val());
+  }
+</script>
+{% endblock %}
+
 {% macro contents() %}
-<h1>{{ _('Create new comment') }}</h1>
+<textarea id="comment-help" style="display: none;">
+<pre>
+<code>
+Usar **negrito** ou *itálico*.
 
-<ul id="navigation">
+Uma lista numerada:
 
-  <p>
+#. primeiro ítem
+#. segundo ítem
+
+Lista não numerada
+
+* um ítem
+* outro ítem
+
+.. table:: Uma tabela
+
+    +---+---+
+    | A | B |
+    +===+===+
+    | 0 | 1 |
+    +---+---+
+    | 2 | 3 |
+    +---+---+
+
+Podemos inserir figuras:
+
+.. figure:: http://lorempixel.com/400/200
+
+Links para o texto e equações matemáticas não funcionam :(
+</code>
+</pre>
+</textarea>
+
+<div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
+    <button class="uk-button uk-button-primary"
+            onclick="pop_preview()">{{ _('Preview') }}</button>
+    <button class="uk-button uk-button-primary"
+            onclick="pop_help()">{{ _('Help') }}</button>
     <form method="POST">
-      {{ render_field(form.comment, rows='20', cols='70') }}
-      <br>
-      <input type=submit value=Register>
+      <fieldset class="uk-fieldset">
+        <legend class="uk-legend">{{ _('Comment') }}</legend>
+        <div class="uk-margin">
+          {{ render_field(form.comment, id="comment-content", rows='20', cols='70') }}
+        </div>
+        <div class="uk-margin">
+          <button class="uk-button uk-button-primary">Submit</button>
+        </div>
     </form>
-  </p>
-</ul>
+  </div>
 {% endmacro %}
 
