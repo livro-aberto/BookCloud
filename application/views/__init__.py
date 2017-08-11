@@ -137,35 +137,6 @@ def package():
     sent_package['commit_diff'] = commit_diff
     return sent_package
 
-
-@limiter.exempt
-@temp.route('/<project>/<action>/_static/<path:filename>')
-def get_static(project, action, filename):
-    if (current_user.is_authenticated):
-        user_repo_path = join('repos', project, current_user.username)
-    else:
-        user_repo_path = join('repos', project, get_creator(project))
-    return flask.send_from_directory(os.path.abspath(join(user_repo_path, 'build/html/_static/')), filename)
-
-@limiter.exempt
-@temp.route('/_static/<path:filename>')
-def get_global_static(filename):
-    return flask.send_from_directory(os.path.abspath(join('conf/theme/static/', os.path.dirname(filename))),
-                                     os.path.basename(filename))
-
-@temp.route('/<project>/<branch>/view/_sources/<path:filename>')
-def show_source(project, branch, filename):
-    sources_path = join('repos', project, branch, 'build/html/_sources', filename)
-    content = load_file(sources_path)
-    return Response(content, mimetype='text/txt')
-
-@limiter.exempt
-@temp.route('/<project>/images/<path:filename>')
-def get_image(project, filename):
-    return flask.send_from_directory(os.path.abspath('repos/' + project + '/images'), filename)
-
-
-
 @app.before_request
 def app_before_request():
     application.views.bookcloud.bookcloud_before_request()

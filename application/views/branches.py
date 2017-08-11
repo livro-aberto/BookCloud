@@ -189,7 +189,7 @@ def edit(project, branch, filename):
         write_file(file_source_path, request.form['code'])
         branch.get_repo().index.add([filename + '.rst'])
         flash(_('File saved successfully'), 'info')
-    branch.build()
+        branch.build()
     rst = load_file(file_source_path)
     doc = load_file(file_html_path)
     return render_template('edit.html', doc=doc, rst=rst, filename=filename,

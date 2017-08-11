@@ -69,6 +69,7 @@ def create_app(extra_config_settings={}):
                    'jquery-textext/src/js/textext.plugin.arrow.js'
                ),
             'google-diff-match-patch/diff_match_patch.js',
+            'jquery.are-you-sure/jquery.are-you-sure.js',
             output='bundles/js_all.js'
         ),
         filters='rjsmin'
