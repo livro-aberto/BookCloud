@@ -38,8 +38,8 @@ def threads_context_processor():
     return { 'project': g.project,
              'menu': g.menu }
 
-@limiter.exempt
 @threads.route('/<project>/tagged_threads/<filetag>')
+@limiter.exempt
 def tagthreads(project, filetag):
     """ Find threads with a certain filetag """
     threads = (Thread.query.join(File_Tag)

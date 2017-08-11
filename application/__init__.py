@@ -7,6 +7,7 @@ from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_migrate import Migrate
+from flask_babel import Babel, gettext as _
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 
 # limit number of visits
@@ -30,6 +31,8 @@ db = SQLAlchemy(app)
 mail = Mail()
 
 assets = Environment()
+
+babel = Babel()
 
 from users import User
 
@@ -119,7 +122,11 @@ def create_app(extra_config_settings={}):
     )
 
     import application.views
-    app.register_blueprint(application.views.bookcloud.bookcloud)
+    import application.views.users
+    import application.views.projects
+    import application.views.threads
+    import application.views.branches
+    app.register_blueprint(application.views.bookcloud)
     app.register_blueprint(application.views.users.users)
     app.register_blueprint(application.views.projects.projects)
     app.register_blueprint(application.views.threads.threads)
@@ -141,12 +148,13 @@ def create_app(extra_config_settings={}):
         app.config['LANGUAGE'] = 'en_US'
         app.config['BOOKCLOUD_URL_PREFIX'] = ''
 
-    app.register_blueprint(application.views.temp,
-                           url_prefix=app.config['BOOKCLOUD_URL_PREFIX'])
+    #app.register_blueprint(application.views.temp,
+    #                       url_prefix=app.config['BOOKCLOUD_URL_PREFIX'])
 
     # Setup Flask-Mail
     mail.init_app(app)
-
+    # Setup babel
+    babel.init_app(app)
     # Setup Flask-User
     db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
     user_manager = UserManager(db_adapter, app)     # Initialize Flask-User

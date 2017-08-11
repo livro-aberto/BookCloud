@@ -4,6 +4,8 @@ from flask import redirect, url_for, flash
 
 from flask_babel import gettext as _
 
+from application.diff import render_diff
+
 def window(iterable):
     # Turns an iterable into a moving window
     # [0, ..., 10] -> [(None, 0, 1), (0, 1, 2), ..., (8, 9, None), (9, None, None)]
@@ -179,3 +181,36 @@ def select_multi_checkbox(field, ul_class='', **kwargs):
     html.append(u'</ul>')
     return u''.join(html)
 
+
+def commit_diff(repo, old_commit, new_commit):
+    """Return the list of changes introduced from old to new commit."""
+    summary = {'nfiles': 0, 'nadditions':  0, 'ndeletions':  0}
+    file_changes = []  # the changes in detail
+    dulwich_changes = repo.object_store.tree_changes(old_commit.tree,
+                                                     new_commit.tree)
+    for (oldpath, newpath), (oldmode, newmode), (oldsha, newsha) \
+        in dulwich_changes:
+        summary['nfiles'] += 1
+        try:
+            oldblob = (repo.object_store[oldsha] if oldsha
+                       else Blob.from_string(b''))
+            newblob = (repo.object_store[newsha] if newsha
+                       else Blob.from_string(b''))
+        except KeyError:
+            # newsha/oldsha are probably related to submodules.
+            # Dulwich will handle that.
+            pass
+        additions, deletions, chunks = render_diff(
+            oldblob.splitlines(), newblob.splitlines())
+        change = {
+            'is_binary': False,
+            'old_filename': oldpath or '/dev/null',
+            'new_filename': newpath or '/dev/null',
+            'chunks': chunks,
+            'additions': additions,
+            'deletions': deletions,
+        }
+        summary['nadditions'] += additions
+        summary['ndeletions'] += deletions
+        file_changes.append(change)
+    return summary, file_changes

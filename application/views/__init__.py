@@ -1,121 +1,62 @@
 import os
-import re
+from os.path import join, isdir
 import math
-import json
 import time
-from os.path import isdir, isfile, join, splitext
-import flask
-from flask import g
-import urllib
-from flask import render_template, render_template_string, request
-from flask import redirect, url_for, Response, flash, Blueprint
-from flask_user import login_required, SQLAlchemyAdapter, current_user
-from sqlalchemy import or_, desc
-
-from application import utils as utils
-
-from application import app, db, mail, limiter
-from application.diff import render_diff
-
-from application.projects import Project
-from application.branches import *
 import string
-from shutil import copyfile, rmtree
-import git
-from difflib import HtmlDiff
+import urllib
 import traceback
-from datetime import datetime, timedelta
-
-from flask_babel import Babel, gettext as _
-
-from flask_mail import Mail, Message
-
-from wtforms import Form, BooleanField, StringField, validators,\
-    RadioField, SelectMultipleField, TextAreaField, SelectField, HiddenField
-
-from wtforms.widgets import html_params
-
-# for identicon hashs
+from datetime import datetime
 import hashlib
 
-import sphinx
+from flask_user import login_required, current_user
+from flask_babel import gettext as _
 
-from creole import html2rest
+from flask import (
+    g, Blueprint, request, render_template,
+    url_for, flash, redirect
+)
+from flask import render_template, request, flash
+from flask_user import current_user
+from flask_babel import gettext as _
+from flask_mail import Message
 
-from application.threads import NewThreadForm
+from application import app, mail, limiter, babel, db
+from application.branches import *
+from application.utils import last_modified, commit_diff
+from application.projects import Project, ProjectForm
 
-# import special utils for this platform
-from application.utils import window, rst2html, Command, load_file,\
-    write_file, last_modified
+bookcloud = Blueprint('bookcloud', __name__)
 
-import users
-
-import projects
-
-import bookcloud
-
-import threads
-
-import branches
-
-
-mail.init_app(app)
-
-config_path = 'conf'
-
-temp = Blueprint('temp', __name__, template_folder='templates')
-
-babel = Babel(app)
-
-import pprint
-pp = pprint.PrettyPrinter(indent=4).pprint
-
-
-from ..utils import select_multi_checkbox
-
-@babel.localeselector
-def get_locale():
-    # if a user is logged in, use the locale from the user settings
-    # user = getattr(g, 'user', None)
-    # if user is not None:
-    #     return user.locale
-    #print(request.accept_languages.best_match(app.config['LANGUAGES'].keys()))
-    #return request.accept_languages.best_match(app.config['LANGUAGES'].keys())
-    return 'en'
-
-
-def commit_diff(repo, old_commit, new_commit):
-    """Return the list of changes introduced from old to new commit."""
-    summary = {'nfiles': 0, 'nadditions':  0, 'ndeletions':  0}
-    file_changes = []  # the changes in detail
-    dulwich_changes = repo.object_store.tree_changes(old_commit.tree,
-                                                     new_commit.tree)
-    for (oldpath, newpath), (oldmode, newmode), (oldsha, newsha) \
-        in dulwich_changes:
-        summary['nfiles'] += 1
-        try:
-            oldblob = (repo.object_store[oldsha] if oldsha
-                       else Blob.from_string(b''))
-            newblob = (repo.object_store[newsha] if newsha
-                       else Blob.from_string(b''))
-        except KeyError:
-            # newsha/oldsha are probably related to submodules.
-            # Dulwich will handle that.
-            pass
-        additions, deletions, chunks = render_diff(
-            oldblob.splitlines(), newblob.splitlines())
-        change = {
-            'is_binary': False,
-            'old_filename': oldpath or '/dev/null',
-            'new_filename': newpath or '/dev/null',
-            'chunks': chunks,
-            'additions': additions,
-            'deletions': deletions,
-        }
-        summary['nadditions'] += additions
-        summary['ndeletions'] += deletions
-        file_changes.append(change)
-    return summary, file_changes
+@bookcloud.before_request
+def bookcloud_before_request():
+    g.menu = {
+        'left': [{'name': 'Home',
+                  'url': url_for('bookcloud.home')}],
+        'right': [{
+            'name': 'Bookcloud',
+            'sub_menu': [
+            {
+                'name': 'Livro Aberto',
+                'url': 'https://www.umlivroaberto.com'
+            }, {
+                'name': 'Issues',
+                'url': 'https://github.com/gutosurrex/BookCloud/issues'
+            }, {
+                'name': 'Syntax',
+                'url': ('https://www.umlivroaberto.com/BookCloud/sintaxe/'
+                        'master/view/index.html')}]}]}
+    if current_user.is_authenticated:
+        g.menu['right'].append({
+            'name': current_user.username,
+            'sub_menu': [{
+                'name': 'Profile',
+                'url': url_for('users.profile')
+            }, {
+                'name': 'Logout',
+                'url': url_for('user.logout')}]})
+    else:
+        g.menu['right'] = [
+            {'name': 'Login', 'url': url_for('user.login')}]
 
 @app.context_processor
 def package():
@@ -137,23 +78,85 @@ def package():
     sent_package['commit_diff'] = commit_diff
     return sent_package
 
-@app.before_request
-def app_before_request():
-    application.views.bookcloud.bookcloud_before_request()
+@bookcloud.context_processor
+def bookcloud_context_processor():
+    return {'menu': g.menu}
 
-@app.context_processor
-def app_context_processor():
-    return { 'menu': g.menu }
+@bookcloud.route('/')
+@limiter.exempt
+def home():
+    path = 'repos'
+    projects = [d.name for d in Project.query.all()]
+    project_folders = [d for d in os.listdir(path) if isdir(join(path, d))]
+    projects_without_folder = set(projects) - set(project_folders)
+    if projects_without_folder:
+        flash('Some projects have no folder (%s)'
+              % ', '.join(projects_without_folder), 'error')
+    folders_without_project = set(project_folders) - set(projects)
+    if folders_without_project:
+        flash('Some folders have no project (%s)'
+              % ', '.join(folders_without_project), 'error')
+    projects = list(set(projects) - set(projects_without_folder))
+    return render_template('home.html', projects=projects,
+                           copyright='CC-BY-SA')
+
+@bookcloud.route('/new', methods = ['GET', 'POST'])
+@limiter.limit("4 per day")
+@login_required
+def new():
+    form = ProjectForm(request.form)
+    if request.method == 'POST' and form.validate():
+        user_repo_path = join('repos', form.name.data)
+        if os.path.isdir(user_repo_path):
+            flash(_('This project name already exists'), 'error')
+        else:
+            project = Project(form.name.data, current_user)
+            db.session.add(project)
+            db.session.commit()
+            #project.create_project(form.name.data, current_user)
+            flash(_('Project created successfuly!'), 'info')
+            return redirect(url_for('branches.view',
+                                    project=form.name.data,
+                                    branch='master', filename='index'))
+    return render_template('new.html', form=form)
+
+@bookcloud.route('/html2rst', methods = ['GET', 'POST'])
+@limiter.limit("300 per day")
+def html2rst():
+    if request.method == 'POST':
+        if request.form.has_key('content'):
+            input = request.form.get('content')
+            if not input:
+                input = 'undefined'
+            if input != 'undefined':
+                try:
+                    converted = html2rest(input)
+                    prefetch = None
+                except:
+                    converted = None
+                    prefetch = input
+                return render_template('html2rst.html', converted=converted,
+                                       prefetch=prefetch)
+    return render_template('html2rst.html')
+
+@babel.localeselector
+def get_locale():
+    # if a user is logged in, use the locale from the user settings
+    # user = getattr(g, 'user', None)
+    # if user is not None:
+    #     return user.locale
+    #print(request.accept_languages.best_match(app.config['LANGUAGES'].keys()))
+    #return request.accept_languages.best_match(app.config['LANGUAGES'].keys())
+    return 'en'
 
 @limiter.exempt
-@app.errorhandler(404)
+@bookcloud.errorhandler(404)
 def page_not_found(e):
     message = e.description
     return render_template('404.html', message=message), 404
 
 @limiter.exempt
-@app.errorhandler(Exception)
-@app.route('/aaa')
+@bookcloud.errorhandler(Exception)
 def internal_server_error(e):
     message = repr(e)
     trace = traceback.format_exc()
@@ -171,10 +174,10 @@ def internal_server_error(e):
                      'request.scheme: {}\n'
                      'request.full_path: {}\n'
                      'user: {}\n\n\n'
-                     'trace: {}'.format(
-                     message, timestamp, request.remote_addr,request.method,
-                     request.scheme, request.full_path,
-                     user, '\n'.join(trace)))
+                     'trace: {}'.format(message, timestamp,
+                                        request.remote_addr, request.method,
+                                        request.scheme, request.full_path,
+                                        user, '\n'.join(trace)))
     # send email to admin
     if not app.config['TESTING']:
         mail_message = gathered_data
@@ -183,7 +186,5 @@ def internal_server_error(e):
                       recipients=[app.config['ADMIN_MAIL']])
         mail.send(msg)
         flash(_('A message has been sent to the administrator'), 'info')
-    print(gathered_data)
     return render_template('500.html', message=gathered_data), 500
-
 

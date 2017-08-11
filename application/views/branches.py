@@ -15,7 +15,7 @@ from sqlalchemy import desc
 from flask import (
     g, Blueprint, request, render_template,
     render_template_string, url_for, flash, redirect,
-    send_from_directory
+    send_from_directory, abort
 )
 from flask_user import login_required, current_user
 
@@ -156,8 +156,11 @@ def view(project, branch, filename):
             if merge_pendencies:
                 return merge_pendencies
     ####################
-    content = load_file(join('repos', project.name, branch.name,
-                             'build/html', filename + file_extension))
+    try:
+        content = load_file(join('repos', project.name, branch.name,
+                                 'build/html', filename + file_extension))
+    except:
+        abort(404)
     threads = (Thread.query.join(File_Tag)
                .filter(File_Tag.filename==filename)
                .filter(Thread.project_id==project.id)
@@ -226,7 +229,6 @@ def commit(project, branch):
             git_api.push('origin', branch.name)
             flash(_('Page submitted to _%s') % origin.name, 'info')
         update_subtree(project, branch)
-        print(branch.is_dirty())
         flash('Change commited', 'info')
         return redirect(url_for('branches.branch', project=project.name,
                                 branch=branch.name))
@@ -406,9 +408,8 @@ def pdf(project, branch='master'):
 def genindex(project, branch):
     return redirect(url_for('branches.view', project=project, branch=branch, filename='index.html'))
 
-@limiter.exempt
 @branches.route('/<action>/_images/<path:filename>')
-#@temp.route('/edit/<project>/<branch>/images/<path:filename>', methods = ['GET'])
+@limiter.exempt
 def get_tikz(project, branch, action, filename):
     images_path = join('repos', project.name, branch.name,
                        'build/html/_images')
