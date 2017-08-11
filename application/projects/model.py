@@ -98,7 +98,7 @@ class Project(CRUDMixin, db.Model):
             raise FileNotEmpty
         git_api = self.get_master().get_git()
         git_api.rm('-f', filename + file_extension)
-        application.branches.build(self.name, 'master')
+        self.get_master().build()
 
     def get_threads_by_tag(self, filename):
         label_list = []

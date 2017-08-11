@@ -20,14 +20,14 @@ def logout():
 
 @users.before_request
 def projects_before_request():
-    application.views.bookcloud.bookcloud_before_request()
+    application.views.bookcloud_before_request()
 
 @users.context_processor
 def threads_context_processor():
     return { 'menu': g.menu }
 
-@limiter.exempt
 @users.route('/profile')
+@limiter.exempt
 @login_required
 def profile():
     projects = list(Project.query.all())
@@ -37,8 +37,8 @@ def profile():
                            properties=app.config['USER_PROPERTIES'],
                            threads=threads)
 
-@limiter.limit("10 per day")
 @users.route('/update_profile', methods = ['GET', 'POST'])
+@limiter.limit("10 per day")
 @login_required
 def update_profile():
     if request.method == 'POST':

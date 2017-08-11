@@ -43,11 +43,11 @@ def projects_url_value_preprocessor(endpoint, values):
 
 @projects.before_request
 def projects_before_request():
-    application.views.bookcloud.bookcloud_before_request()
+    application.views.bookcloud_before_request()
     g.menu['left'].append({
         'name': g.project.name,
         'sub_menu': [{
-            'name': _('Visit'),
+            'name': _('Visit master'),
             'url': url_for('branches.view', project=g.project.name,
                            branch='master', filename='index.html')
         }, {
@@ -150,5 +150,4 @@ def deletefile(project, filename):
         flash(_('File not found'), 'error')
     except application.projects.FileNotEmpty:
         flash(_('This file is not empty'), 'error')
-    project.get_master().build()
     return redirect(url_for('projects.dashboard', project=project.name))

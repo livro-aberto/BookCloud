@@ -17,6 +17,11 @@
       return '<h3>' + $(this).text() + '</h3>';
     });
 
+    $('link[rel="index"]').remove();
+    $('link[rel="top"]').remove();
+    $('link[rel="next"]').remove();
+
+
     $('div.align-center').addClass('uk-text-center');
     $('div.figure').addClass('uk-text-center');
 
