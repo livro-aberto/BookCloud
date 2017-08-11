@@ -145,8 +145,8 @@ def newthread(project):
         if 'return_url' in request.args:
             redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('projects.dashboard',
-                                    project=project.name))
+            return redirect(url_for('branches.view', project=project.name,
+                                    branch='master', filename='index'))
     return render_template('newthread.html', form=form)
 
 @threads.route('/<project>/edit_thread/<thread_id>', methods = ['GET', 'POST'])
@@ -155,7 +155,8 @@ def editthread(project, thread_id):
     thread = Thread.get_by_id(thread_id)
     if (current_user != thread.owner):
         flash(_('You are not allowed to edit this thread'), 'error')
-        return redirect(url_for('projects.dashboard', project=project))
+        return redirect(url_for('branches.view', project=project.name,
+                                branch='master', filename='index'))
     form = ThreadForm(
         request.form,
         title=thread.title,
@@ -187,8 +188,8 @@ def editthread(project, thread_id):
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('projects.dashboard',
-                                    project=project.name))
+            return redirect(url_for('branches.view', project=project.name,
+                                    branch='master', filename='index'))
     return render_template('editthread.html', form=form)
 
 @threads.route('/<project>/new_comment/<thread_id>', methods = ['GET', 'POST'])
@@ -259,7 +260,8 @@ def editcomment(project, comment_id):
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('projects.dashboard', project=project))
+            return redirect(url_for('branches.view', project=project.name,
+                                    branch='master', filename='index'))
     if request.method == 'POST' and form.validate():
             comment.content = form.comment.data
             db.session.commit()
@@ -267,7 +269,8 @@ def editcomment(project, comment_id):
             if 'return_url' in request.args:
                 return redirect(urllib.unquote(request.args['return_url']))
             else:
-                return redirect(url_for('projects.dashboard', project=project))
+                return redirect(url_for('branches.view', project=project.name,
+                                        branch='master', filename='index'))
     threads = (Thread.query.filter_by(id=comment.thread.id)
                .order_by(desc(Thread.posted_at)))
     return render_template('newcomment.html', form=form, threads=threads)
@@ -293,7 +296,8 @@ def deletethread(project, thread_id):
     if 'return_url' in request.args:
         return redirect(urllib.unquote(request.args['return_url']))
     else:
-        return redirect(url_for('projects.dashboard', project=project.name))
+        return redirect(url_for('branches.view', project=project.name,
+                                branch='master', filename='index'))
 
 @threads.route('/<project>/delete_comment/<int:comment_id>')
 @login_required
@@ -316,7 +320,8 @@ def deletecomment(project, comment_id):
     if 'return_url' in request.args:
         return redirect(urllib.unquote(request.args['return_url']))
     else:
-        return redirect(url_for('projects.dashboard', project=project.name))
+        return redirect(url_for('branches.view', project=project.name,
+                                branch='master', filename='index'))
 
 @threads.route('/<project>/preview_comment', methods = ['GET', 'POST'])
 def preview_comment(project):

@@ -1,10 +1,21 @@
 {% macro sphinx_uikit_script() %}
   <script>
   $(document).ready(function(){
-    $('div.admonition').addClass('uk-card');
-    $('div.admonition').addClass('uk-card-default');
-    $('div.admonition').addClass('uk-card-body');
-    $('div.admonition').addClass('uk-box-shadow-large');
+    counter = 0;
+    $('div.admonition').addClass('uk-card uk-card-default uk-card-body uk-box-shadow-large uk-margin-bottom');
+
+    $('div.admonition-habilidade').removeClass('uk-card-default');
+    $('div.admonition-habilidade').addClass('uk-card-primary');
+
+    $('div.admonition-para-o-professor').each( function() {
+      $(this).before('<button class="uk-button uk-button-primary" uk-toggle="target: #para-o-prof-label_' + counter + '" type="button">Para o professor</button>')
+      $(this).attr('id', 'para-o-prof-label_' + counter++);
+      //$(this).attr('hidden', 'true');
+    });
+
+    $('p.admonition-title').replaceWith(function() {
+      return '<h3>' + $(this).text() + '</h3>';
+    });
 
     $('div.align-center').addClass('uk-text-center');
     $('div.figure').addClass('uk-text-center');

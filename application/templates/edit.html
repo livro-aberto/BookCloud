@@ -111,26 +111,26 @@
         <ul class="uk-iconnav uk-iconnav-vertical">
           <li>
             <a onclick="insertAround('**','**')"
-               title="{{ _('Bold') }}"
+               title="{{ _('Bold') }}" uk-tooltip
                uk-icon="icon: bold"><b></b>
             </a>
           </li>
           <li>
             <a onclick="insertAround('*','*')"
                style="font-family:verdana;"
-               title="{{ _('Italic') }}"
+               title="{{ _('Italic') }}" uk-tooltip
                uk-icon="icon: italic"><i></i>
             </a>
           </li>
           <li>
             <a onclick="insertAround('\n* a\n* b','')"
-               title="{{ _('Itemize') }}"
+               title="{{ _('Itemize') }}" uk-tooltip
                uk-icon="icon: more-vertical">
             </a>
           </li>
           <li>
             <a onclick="insertAround('\n#. foo\n#. bar','')"
-               title="{{ _('Enumerate') }}"
+               title="{{ _('Enumerate') }}" uk-tooltip
                uk-icon="icon: list">
             </a>
           </li>
@@ -146,36 +146,36 @@
           <li>
             <button class="uk-button uk-button-text"
                onclick="insertAround('\n.. admonition:: Para o professor\n\n   texto','')"
-                    title="{{ _('Para o professor') }}">{{ _('Para o professor') }}
+                    title="{{ _('Para o professor') }}" uk-tooltip>{{ _('Para o professor') }}
             </button>
           </li>
           <li>
             <button class="uk-button uk-button-text"
                     onclick="insertAround('\n.. admonition:: Resposta \n\n   texto','')"
-                    title="{{ _('Resposta') }}">{{ _('Resposta') }}
+                    title="{{ _('Resposta') }}" uk-tooltip>{{ _('Resposta') }}
             </button>
           </li>
           <li>
             <button class="uk-button uk-button-text"
                     onclick="insertAround('\n.. admonition:: Definição \n\n   texto','')"
-                    title="{{ _('Definição') }}">{{ _('Definição') }}
+                    title="{{ _('Definição') }}" uk-tooltip>{{ _('Definição') }}
             </button>
           </li>
           <li>
             <button class="uk-button uk-button-text"
                     onclick="insertAround('\n.. admonition:: Teorema \n\n   texto','')"
-                    title="{{ _('Teorema') }}">{{ _('Teorema') }}
+                    title="{{ _('Teorema') }}" uk-tooltip>{{ _('Teorema') }}
             </button>
           </li>
           <li>
             <button class="uk-button uk-button-text"
                     onclick="insertAround('\n.. admonition:: Exemplo \n\n   texto','')"
-                    title="{{ _('Exemplo') }}">{{ _('Exemplo') }}
+                    title="{{ _('Exemplo') }}" uk-tooltip>{{ _('Exemplo') }}
             </button>
           </li>
           <li>
             <button class="uk-button uk-button-text" onclick="insertAround('\n.. _ativ-titulo-da-atividade:\n\nAtividade: título da atividade\n------------------------------\n\n','')"
-                    title="{{ _('Atividade') }}">{{ _('Atividade') }}
+                    title="{{ _('Atividade') }}" uk-tooltip>{{ _('Atividade') }}
             </button>
           </li>
         </ul>
@@ -189,20 +189,20 @@
         <ul class="uk-iconnav uk-iconnav-vertical">
           <li>
             <a onclick="insertAround('\n.. _fig-coloque-aqui-o-nome:\n\n.. figure:: <link da figura>\n   :width: 200px\n   :align: center\n\n   legenda', '')"
-               title="{{ _('figure') }}"
+               title="{{ _('figure') }}" uk-tooltip
                uk-icon="icon: image">
               <font size="1"></font>
             </a>
           <li>
           </li>
             <a onclick="insertAround('.. table:: Legenda\n   :widths: 1 3\n   :column-alignment: left center\n\n   +---+---+\n   | A | B |\n   +===+===+\n   | 0 | 1 |\n   +---+---+\n   | 2 | 3 |\n   +---+---+\n','')"
-               title="{{ _('Table') }}"
+               title="{{ _('Table') }}" uk-tooltip
                uk-icon="icon: thumbnails">
             </a>
           <li>
           </li>
             <a onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')"
-               title="{{ _('Tikz figure') }}"
+               title="{{ _('Tikz figure') }}" uk-tooltip
                uk-icon="icon: move">
             </a>
           </li>
@@ -212,7 +212,7 @@
       <a class="uk-button uk-button-small uk-background-default
                 uk-button-default" type="button"
          onclick="insertAround(':ref:`nome-da-referencia`', '')"
-         title="{{ _('Referência interna') }}"
+         title="{{ _('Referência interna') }}" uk-tooltip
          uk-icon="icon: bookmark">
       </a>
 
@@ -229,13 +229,13 @@
           <div>
             <button class="uk-button uk-button-default uk-button-small"
                     onclick="insertAround('`a = b`','')"
-                    title="{{ _('Inline') }}">{{ _('Inline') }}
+                    title="{{ _('Inline') }}" uk-tooltip>{{ _('Inline') }}
             </button>
           </div>
           <div>
             <button class="uk-button uk-button-default uk-button-small"
                     onclick="insertAround('\n.. math::\n\n   a^2 = b','')"
-                    title="{{ _('Displayed equation') }}">{{ _('Displayed equation') }}
+                    title="{{ _('Displayed equation') }}" uk-tooltip>{{ _('Displayed equation') }}
             </button>
           </div>
         </div>
@@ -301,7 +301,7 @@
       <a class="uk-button uk-button-small uk-background-default
                 uk-button-default" type="button"
                 onclick="return popitup('{{ url_for('bookcloud.html2rst') }}')"
-                title="{{ _('Visual writting tool') }}"
+                title="{{ _('Visual writting tool') }}" uk-tooltip
                 uk-icon="icon: pencil">
       </a>
               </div>
@@ -371,7 +371,7 @@
         <a class="uk-button uk-button-default uk-button-small
            uk-margin-small-bottom uk-margin-small-left
            uk-margin-small-top"
-           title="{{ _('Open menu bar') }}"
+           title="{{ _('Open menu bar') }}" uk-tooltip
            href="#modal-container" uk-toggle>Menu</a>
         <div id="modal-container" class="uk-modal-container" uk-modal>
           <div class="uk-modal-dialog uk-modal-body">

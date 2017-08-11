@@ -40,6 +40,9 @@ def create_app(extra_config_settings={}):
 
     # Setup Flask-Assets
     assets.init_app(app)
+    # Configure app
+    app.config.from_object('config')
+    app.config.from_pyfile('instance_config.py')
     with app.app_context():
         assets.load_path = [
             join(os.path.dirname(__file__), 'static/vendor/bower_components/'),
@@ -48,7 +51,7 @@ def create_app(extra_config_settings={}):
     assets.register(
         'js_all',
         Bundle(
-            #'klaus.js',
+            'klaus.js',
             'jquery/dist/jquery.min.js',
             Bundle('uikit/dist/js/uikit.min.js',
                    'uikit/dist/js/uikit-icons.min.js'
@@ -100,6 +103,7 @@ def create_app(extra_config_settings={}):
                    'jquery-textext/src/css/textext.plugin.clear.css',
                    'jquery-textext/src/css/textext.plugin.arrow.css'
                ),
+            'uikit-style.css',
             output='bundles/css_all.css'
         ),
         filters='cssmin'
@@ -119,9 +123,6 @@ def create_app(extra_config_settings={}):
     app.register_blueprint(application.views.projects.projects)
     app.register_blueprint(application.views.threads.threads)
     app.register_blueprint(application.views.branches.branches)
-    # Configure app
-    app.config.from_object('config')
-    app.config.from_pyfile('instance_config.py')
     # Read extra config settings from extra arguments
     app.config.update(extra_config_settings)
     # Register template filters

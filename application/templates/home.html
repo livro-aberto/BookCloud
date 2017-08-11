@@ -15,7 +15,8 @@
 
   <div class="uk-card uk-card-default uk-width-medium uk-card-body">
     <h3 class="uk-card-title">{{ project }}</h3>
-      <a href="{{ url_for('projects.dashboard', project=project) }}"
+      <a href="{{ url_for('branches.view', project=project,
+                           branch='master', filename='index') }}"
          class="uk-button uk-button-link">Visit</a>
       &nbsp &nbsp
       <a href="{{ url_for('branches.pdf', project=project,

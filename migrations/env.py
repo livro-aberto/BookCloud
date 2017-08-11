@@ -12,23 +12,19 @@ from flask import current_app
 from application import create_app, db
 
 
-from application import User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag, limiter, mail
+#from application import User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag, limiter, mail
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-app = create_app(dict(
+app = create_app()
+app.config.from_object('config')
+app.config.update(dict(
     TESTING=True,  # Propagate exceptions
     LOGIN_DISABLED=False,  # Enable @register_required
     MAIL_SUPPRESS_SEND=True,  # Disable Flask-Mail send
-    SQLALCHEMY_DATABASE_URI=('mysql://gutosurrex:8yutjgusuii3hf9kd9d99'
-                             '@localhost/bookcloud'),
-    WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
     BOOKCLOUD_URL_PREFIX = '',
-    #SQLALCHEMY_TRACK_MODIFICATIONS = True
-    #USER_AFTER_LOGIN_ENDPOINT                = 'user.login'
-    # v0.5.3 and up
 ))
 app.app_context()
 

@@ -101,7 +101,7 @@
             {% if category == 'info' %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-center'});
+      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-center',    timeout: 500000});
   });
 </script>
             {% elif category == 'error' %}
@@ -113,7 +113,7 @@
             {% else %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-center'});
+      UIkit.notification('{{ message }}', {status: 'primary', pos: 'bottom-center'});
   });
 </script>
             {% endif %}
@@ -189,7 +189,7 @@
              class="uk-tile uk-tile-muted uk-padding-remove
                     uk-width-1-3 uk-flex">
           <div class="uk-margin-left"
-               title="{{ '\n'.join(t['titles']) }}">
+               title="{{ '\n'.join(t['titles']) }}" uk-tooltip>
                Discussions
                <span class="uk-badge">{{ len(t['titles']) }}</span>
           </div>
@@ -368,7 +368,7 @@
                           return_url=url_encode(request.base_url)) }}"
                  class="uk-link-muted uk-margin-medium-left">
                 <span uk-icon="icon: reply"></span>
-                Comment
+                New comment
               </a>
             </article>
           {% endfor %}

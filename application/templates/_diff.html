@@ -87,11 +87,11 @@
       </span>
       <span class="line2 separated-by-dots">
         {% if commit.author != commit.committer %}
-          <span>{{ commit.author|force_unicode|extract_author_name }} authored <span class=hastooltip title="{{ commit.author_time|formattimestamp  }}">{{ commit.author_time|timesince }}</span></span>
-          <span>{{ commit.committer|force_unicode|extract_author_name }} committed <span class=hastooltip title="{{ commit.commit_time|formattimestamp  }}">{{ commit.commit_time|timesince }}</span></span>
+          <span>{{ commit.author|force_unicode|extract_author_name }} authored <span class=hastooltip title="{{ commit.author_time|formattimestamp  }}" uk-tooltip>{{ commit.author_time|timesince }}</span></span>
+          <span>{{ commit.committer|force_unicode|extract_author_name }} committed <span class=hastooltip title="{{ commit.commit_time|formattimestamp  }}" uk-tooltip>{{ commit.commit_time|timesince }}</span></span>
         {% else %}
           <span>{{ commit.committer|force_unicode|extract_author_name }}</span>
-          <span class=hastooltip title="{{ commit.commit_time|formattimestamp  }}">{{ commit.commit_time|timesince }}</span>
+          <span class=hastooltip title="{{ commit.commit_time|formattimestamp  }}" uk-tooltip>{{ commit.commit_time|timesince }}</span>
         {% endif %}
       </span>
       <span class=clearfloat></span>
@@ -131,7 +131,7 @@
         <div class=filename>
           {% if not file.get('is_binary') %}
           <div class="summary hastooltip"
-               title="{{ file.additions }} addition(s), {{ file.deletions }} deletion(s)">
+               title="{{ file.additions }} addition(s), {{ file.deletions }} deletion(s)" uk-tooltip>
             <div class=additions>+{{ file.additions }}</div>
             <div class=deletions>-{{ file.deletions }}</div>
           </div>
@@ -189,7 +189,7 @@
                       {#- lineno anchors -#}
                       <a name="{{ line_id }}"></a>
                       {#- the actual line of code -#}
-                      <span class=line>{% autoescape false %}{{ line.line|force_unicode }}{% endautoescape %}{% if line.no_newline %}<span class="hastooltip no-newline-marker" title="No newline at end of file">⏎</span>{% endif %}</span>
+                      <span class=line>{% autoescape false %}{{ line.line|force_unicode }}{% endautoescape %}{% if line.no_newline %}<span class="hastooltip no-newline-marker" title="No newline at end of file" uk-tooltip>⏎</span>{% endif %}</span>
                     </span>
                   </td>
 

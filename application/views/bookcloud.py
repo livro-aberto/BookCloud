@@ -86,8 +86,9 @@ def new():
             db.session.commit()
             #project.create_project(form.name.data, current_user)
             flash(_('Project created successfuly!'), 'info')
-            return redirect(url_for('projects.dashboard',
-                                    project=form.name.data))
+            return redirect(url_for('branches.view',
+                                    project=form.name.data,
+                                    branch='master', filename='index'))
     return render_template('new.html', form=form)
 
 @bookcloud.route('/html2rst', methods = ['GET', 'POST'])

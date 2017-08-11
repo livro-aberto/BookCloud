@@ -47,14 +47,17 @@ def projects_before_request():
     g.menu['left'].append({
         'name': g.project.name,
         'sub_menu': [{
-            'name': 'View master index',
+            'name': _('Visit'),
             'url': url_for('branches.view', project=g.project.name,
                            branch='master', filename='index.html')
         }, {
-            'name': 'Manage',
+            'name': _('Branches'),
+            'url': url_for('projects.branches', project=g.project.name)
+        }, {
+            'name': _('Manage'),
             'url': url_for('projects.dashboard', project=g.project.name)
         }, {
-            'name': 'View pdf',
+            'name': _('View pdf'),
             'url': url_for('branches.pdf', project=g.project.name,
                            branch='master'),
             'external': True
@@ -64,6 +67,12 @@ def projects_before_request():
 def project_context_processor():
     return { 'project': g.project,
              'menu': g.menu }
+
+@projects.route('/branches', methods = ['GET', 'POST'])
+@limiter.exempt
+def branches(project):
+    threads = (project.threads.order_by(desc(Thread.posted_at)))
+    return render_template('branches.html', threads=threads)
 
 @projects.route('/dashboard', methods = ['GET', 'POST'])
 @limiter.exempt
@@ -114,8 +123,9 @@ def renamefile(project, oldfilename):
         try:
             project.rename_file(oldfilename, form.name.data)
             flash(_('File renamed successfuly!'), 'info')
-            return redirect(url_for('projects.dashboard',
-                                    project=project.name))
+            return redirect(url_for('branches.view',
+                                    project=project.name,
+                                    branch='master', filename=form.name.data))
         except application.projects.FileExists:
             flash(_('This file name already exists'), 'error')
         except application.projects.FileNotFound:
@@ -134,8 +144,8 @@ def deletefile(project, filename):
     try:
         project.delete_file(filename)
         flash(_('File removed successfuly!'), 'info')
-        return redirect(url_for('projects.dashboard',
-                                    project=project.name))
+        return redirect(url_for('branches.view', project=project.name,
+                                branch='master', filename='index'))
     except application.projects.FileNotFound:
         flash(_('File not found'), 'error')
     except application.projects.FileNotEmpty:
