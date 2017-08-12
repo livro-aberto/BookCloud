@@ -119,7 +119,8 @@ class Command(object):
 
         thread.join(timeout)
         if thread.is_alive():
-            flash(_('Process is taking too long and will be terminated!'), 'error')
+            flash(_('Process is taking too long and will be terminated!'),
+                  'error')
             self.process.terminate()
             thread.join()
 

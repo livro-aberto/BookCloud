@@ -76,7 +76,7 @@
 
 <style>
 .CodeMirror-merge, .CodeMirror-merge .CodeMirror {
-  height: calc(100vh - 120px);
+  height: calc(100vh - 100px);
 }
 
 .CodeMirror { line-height: 1.2; }
@@ -108,14 +108,7 @@ div.bodywrapper {
 
 {{ head() }}
 
-<div style="height: 50px; overflow:hidden;">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <a class="uk-button uk-button-primary uk-button-small
-         uk-margin-small-bottom uk-margin-small-left
-         uk-margin-small-top"
-         title="{{ _('Open messages') }}" uk-tooltip
-         href="#modal-container" uk-toggle>{{ _('Messages') }}</a>
+<div style="height: 20px; overflow:hidden;">
       <div id="modal-container" class="uk-modal-container" uk-modal>
         <div class="uk-modal-dialog uk-modal-body">
           <button class="uk-modal-close-default" type="button" uk-close>
@@ -123,9 +116,9 @@ div.bodywrapper {
           {{ flash_messages() }}
         </div>
       </div>
-    {% endif %}
-  {% endwith %}
 </div>
+
+{{ flash_messages() }}
 
 {# Placeholders for text #}
 <textarea id="new_file" style="display:none">{{ new }}</textarea>

@@ -2,6 +2,8 @@ import os
 import git
 import string
 import json
+import time
+import os.path
 from os.path import join
 from functools import wraps
 from difflib import HtmlDiff
@@ -230,8 +232,8 @@ def commit(project, branch):
             flash(_('Page submitted to _%s') % origin.name, 'info')
         update_subtree(project, branch)
         flash('Change commited', 'info')
-        return redirect(url_for('branches.branch', project=project.name,
-                                branch=branch.name))
+        return redirect(url_for('branches.view', project=project.name,
+                                branch=branch.name, filename='index'))
     diff = repo.git.diff('--cached')
     return render_template('commit.html', form=form, diff=diff)
 
@@ -255,7 +257,14 @@ def clone(project, branch):
                                     branch=branch.name))
         else:
             branch.clone(form.name.data, current_user)
+            new_branch = project.get_branch(form.name.data)
             flash(_('Project cloned successfuly!'), 'info')
+            start_time = time.time()
+            # this while is a hack to wait for the build. waiting for celery...
+            while (time.time() < start_time + 30
+                   and not os.path.isfile(join(new_branch.get_html_path(),
+                                               'index.html'))):
+                pass
             return redirect(url_for('branches.view', project=project.name,
                                     branch=form.name.data,
                                     filename='index.html'))
@@ -393,8 +402,8 @@ def finish(project, branch):
         flash(_('Page submitted to _%s') % branch.origin.name, 'info')
     update_subtree(project, branch)
     flash(_('You have finished merging _%s') % merging['branch'], 'info')
-    return redirect(url_for('branches.branch', project=project.name,
-                            branch=branch.name))
+    return redirect(url_for('branches.view', project=project.name,
+                            branch=branch.name, filename='index'))
 
 @branches.route('/pdf')
 def pdf(project, branch='master'):
