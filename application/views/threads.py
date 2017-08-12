@@ -22,7 +22,7 @@ from application.threads import (
 )
 from application.projects import Project
 
-threads = Blueprint('threads', __name__, url_prefix='/threads')
+threads = Blueprint('threads', __name__)
 
 @threads.url_value_preprocessor
 def get_branch_object(endpoint, values):

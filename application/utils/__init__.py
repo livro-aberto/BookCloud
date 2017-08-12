@@ -4,7 +4,7 @@ from flask import redirect, url_for, flash
 
 from flask_babel import gettext as _
 
-from application.diff import render_diff
+from diff import render_diff
 
 def window(iterable):
     # Turns an iterable into a moving window

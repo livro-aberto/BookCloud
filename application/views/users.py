@@ -8,7 +8,7 @@ from application.projects import Project
 from application import app, limiter
 import application
 
-users = Blueprint('users', __name__, url_prefix='/users')
+users = Blueprint('users', __name__)
 
 @users.route('/login')
 def login():

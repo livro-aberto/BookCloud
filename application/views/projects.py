@@ -21,7 +21,7 @@ from application.branches import (
 import application.views
 from application.utils import write_file
 
-projects = Blueprint('projects', __name__, url_prefix='/projects/<project>')
+projects = Blueprint('projects', __name__, url_prefix='/<project>')
 
 def require_projct_owner(func):
     """

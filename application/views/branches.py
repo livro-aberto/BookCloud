@@ -32,7 +32,7 @@ from application.branches import (
 )
 
 branches = Blueprint('branches', __name__,
-                     url_prefix='/branches/<project>/<branch>')
+                     url_prefix='/<project>/<branch>')
 
 @branches.url_value_preprocessor
 def branches_url_value_preprocessor(endpoint, values):
