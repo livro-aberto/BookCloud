@@ -5,7 +5,7 @@ from os.path import join
 
 from flask import (
     Blueprint, request, render_template,
-    url_for, flash, redirect, g
+    url_for, flash, redirect, g, abort
 )
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
@@ -198,6 +198,12 @@ def editthread(project, thread_id):
 @login_required
 def newcomment(project, thread_id, parent_lineage=''):
     form = CommentForm(request.form)
+    if (parent_lineage != ''):
+        try:
+           (Comment.query.filter(Comment.thread_id==thread_id)
+            .filter(Comment.lineage==parent_lineage).one())
+        except:
+            abort(404)
     if request.method == 'POST' and form.validate():
         siblings_pattern = parent_lineage + '%'
         decend_comments = (Comment.query
