@@ -129,7 +129,7 @@ def newthread(project):
                                 + msg_type + msg_time + msg_contents)
                 links = (_('To comment on this thread: ')
                          + url_for('threads.newcomment',
-                                   project=project,
+                                   project=project.name,
                                    thread_id = new_thread.id,
                                    _external = True))
                 for user in form.user_tags.data:
@@ -169,7 +169,7 @@ def editthread(project, thread_id):
         [u.username for u in User.query.all()])
     form.file_tags.widget.choices = project.get_labels()
     form.custom_tags.widget.choices = json.dumps(
-        [t.name for t in Named_Tag.query.filter_by(project=project).all()])
+        [t.name for t in Named_Tag.query.filter_by(project=project.name).all()])
     master_path = join('repos', project.name, 'master', 'source')
     if request.method == 'POST' and form.validate():
         thread.title = form.title.data
