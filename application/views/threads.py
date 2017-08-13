@@ -233,18 +233,18 @@ def newcomment(project, thread_id, parent_lineage=''):
                 message_head = (msg_thread + msg_project + msg_owner
                                 + msg_type + msg_time + msg_contents + '\n')
                 links = (_('To reply to this comment follow: ')
-                         + url_for('threads.newcomment',
-                                   project=project.name,
-                                   thread_id=thread_id,
-                                   parent_lineage=new_comment_lineage,
-                                   _external=True))
+                         + '<a href="' + url_for('threads.newcomment',
+                                                 project=project.name,
+                                                 thread_id=thread_id,
+                                                 parent_lineage=new_comment_lineage,
+                                                 _external=True) + '>reply link</a>')
                 for user in list_of_users:
                     user_obj = User.query.filter_by(username=user).first()
                     message = (message_head + request.form['comment']
                                + '\n\n' + links)
                     subject = _('Thread: ') + thread.title
                     msg = Message(recipients=[user_obj.email],
-                                  body=message,
+                                  html=message,
                                   subject=subject)
                     conn.send(msg)
         flash(_('New comment successfully created'), 'info')
