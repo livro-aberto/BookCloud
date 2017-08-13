@@ -224,24 +224,24 @@ def newcomment(project, thread_id, parent_lineage=''):
             with mail.connect() as conn:
                 thread = Thread.get_by_id(thread_id)
                 list_of_users = [ tag.username for tag in thread.user_tags]
-                msg_thread = _('Thread: ') + thread.title + '\n'
-                msg_project = _('Project: ') + project.name + '\n'
-                msg_owner = _('Owner: ') + current_user.username + '\n'
-                msg_type = _('Type: ') + thread.flag + '\n'
-                msg_time = _('Created at: ') + str(datetime.utcnow()) + '\n'
-                msg_contents = _('Contents: ') + '\n'
+                msg_thread = _('Thread: ') + thread.title + '<br />'
+                msg_project = _('Project: ') + project.name + '<br />'
+                msg_owner = _('Owner: ') + current_user.username + '<br />'
+                msg_type = _('Type: ') + thread.flag + '<br />'
+                msg_time = _('Created at: ') + str(datetime.utcnow()) + '<br />'
+                msg_contents = _('Contents: ') + '<br />'
                 message_head = (msg_thread + msg_project + msg_owner
-                                + msg_type + msg_time + msg_contents + '\n')
+                                + msg_type + msg_time + msg_contents + '<br />')
                 links = (_('To reply to this comment follow: ')
                          + '<a href="' + url_for('threads.newcomment',
                                                  project=project.name,
                                                  thread_id=thread_id,
                                                  parent_lineage=new_comment_lineage,
-                                                 _external=True) + '>reply link</a>')
+                                                 _external=True) + '">reply link</a>')
                 for user in list_of_users:
                     user_obj = User.query.filter_by(username=user).first()
                     message = (message_head + request.form['comment']
-                               + '\n\n' + links)
+                               + '<br /><br />' + links)
                     subject = _('Thread: ') + thread.title
                     msg = Message(recipients=[user_obj.email],
                                   html=message,
