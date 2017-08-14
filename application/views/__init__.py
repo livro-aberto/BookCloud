@@ -37,14 +37,17 @@ def bookcloud_before_request():
             'sub_menu': [
             {
                 'name': 'Livro Aberto',
-                'url': 'https://www.umlivroaberto.com'
+                'url': 'https://www.umlivroaberto.com',
+                'external': True
             }, {
                 'name': 'Issues',
-                'url': 'https://github.com/gutosurrex/BookCloud/issues'
+                'url': 'https://github.com/gutosurrex/BookCloud/issues',
+                'external': True
             }, {
                 'name': 'Syntax',
                 'url': ('https://www.umlivroaberto.com/BookCloud/sintaxe/'
-                        'master/view/index.html')}]}]}
+                        'master/view/index.html'),
+                'external': True}]}]}
     if current_user.is_authenticated:
         g.menu['right'].append({
             'name': current_user.username,
