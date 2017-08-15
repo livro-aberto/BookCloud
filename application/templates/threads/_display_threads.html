@@ -1,0 +1,155 @@
+{% macro display_threads(threads) %}
+
+  <!-- Threads -->
+
+    <!-- Scroll Up -->
+    <a href="" class="uk-align-right" uk-scroll>
+      <span uk-icon="icon: chevron-up; ratio: 2"></span>
+    </a>
+    <hr class="uk-divider-icon">
+    <a name="discussion"></a>
+    <div class="uk-container uk-container-center">
+      {% for t in threads %}
+        <article class="uk-article">
+          <header class="uk-comment-header uk-position-relative
+                         uk-background-muted">
+            <hr>
+            <div class="uk-grid-small uk-flex-middle
+                        uk-margin-left" uk-grid>
+              <div class="uk-width-auto">
+                <canvas width="40" height="40"
+                        data-jdenticon-hash="{{ hash(t.author.username) }}"
+                        style="vertical-align: baseline;">
+                </canvas>
+              </div>
+              <div class="uk-width-expand">
+                <p style="margin: 0 0 0 0;">
+                  {{ t.author.username }} ({{ t.flag }}) -
+                  {{ t.posted_at }} - ({{ t.comments.count() }}
+                  {{ _('comments') }}):
+                </p>
+                <h4 style="margin-top: 0;"> {{ t.title }} </h4>
+              </div>
+              <div class="uk-position-top-right uk-position-small">
+                {% if ((current_user == t.author
+                       or current_user.username == project.owner)) %}
+                  <a href="{{ url_for('threads.editthread',
+                           project=t.project.name, thread_id=t.id,
+                           return_url=url_encode(request.base_url)) }}"
+                           class="uk-link-muted">
+                           Edit
+                  </a>
+                  {% if t.comments.count() == 0 %}
+                    <a href="{{ url_for('threads.deletethread',
+                             project=t.project.name, thread_id=t.id,
+                             return_url=url_encode(request.base_url)) }}"
+                             onclick="return confirm('Are you sure?')"
+                             class="uk-link-muted">
+                             Delete
+                    </a>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+            <div class="uk-grid-small uk-flex-middle
+                        uk-margin-left" uk-grid>
+              <div class="uk-width-auto">
+                {% if t.user_tags %}
+                  {{ _('Users:') }}
+                  {% for tag in t.user_tags %}
+                    &nbsp
+                    <span class="uk-label">{{ tag.username }}</span>
+                  {% endfor %} &emsp;
+                {% endif %}
+                {% if t.file_tags %}
+                  {{ _('Files:') }}
+                  {% for file in t.file_tags %}
+                    &nbsp
+                    <span class="uk-label">{{ file.filename }}</span>
+                  {% endfor %} &emsp;
+                {% endif %}
+                {% if t.custom_tags %}
+                  {{ _('Tags:') }}
+                  {% for custom in t.custom_tags %}
+                    &nbsp
+                    <span class="uk-label">{{ custom.name }}</span>
+                  {% endfor %} &emsp;
+                {% endif %}
+                {% if t.free_tags.count() %}
+                  {{ _('Others:') }}
+                  {% for free in t.free_tags.all() %}
+                    &nbsp
+                    <span class="uk-label">{{ free.name }}</span>
+                  {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+            <hr>
+          </header>
+          <ul class="uk-comment-list">
+            {% for c in t.get_comments(100) %}
+              <li class="uk-margin-remove">
+              <article class="uk-comment" style="margin-left:
+                                                 {{ c.get_indent() }}px;">
+                <header class="uk-comment-header uk-position-relative">
+                  <div class="uk-grid-medium uk-flex-middle" uk-grid>
+                    <div class="uk-width-auto">
+                      <canvas width="30" height="30"
+                              data-jdenticon-hash="{{ hash(c.author.username) }}">
+                      </canvas>
+                    </div>
+                    <div class="uk-width-expand">
+                      <a class="uk-link-reset" href="#">{{ c.author.username }}</a>
+                      &nbsp
+                      <span class="uk-comment-meta
+                                   uk-margin-remove-top uk-text-small">
+                        {{ c.posted_at }} -
+                        ({{ c.likes.count() }} {{ _('likes') }})
+                      </span>
+                    </div>
+                  </div>
+                  <div class="uk-position-top-right uk-position-small
+                              uk-hidden-hover">
+                    <a href="{{ url_for('threads.newcomment',
+                       project=t.project.name,
+                       thread_id = t.id, parent_lineage=c.lineage,
+                             return_url=url_encode(request.base_url)) }}"
+                       class="uk-link-muted">Reply</a>
+                    {% if current_user == c.author %}
+                      <a href="{{ url_for('threads.editcomment',
+                         project=t.project.name, comment_id=c.id,
+                               return_url=url_encode(request.base_url)) }}"
+                         class="uk-link-muted">Edit</a>
+                    {% endif %}
+                    {% if not c.has_replies()
+                      and (current_user == c.author
+                      or current_user.username == project.owner) %}
+                      <a href="{{ url_for('threads.deletecomment',
+                               project=t.project.name,
+                               comment_id=c.id,
+                               return_url=url_encode(request.base_url)) }}"
+                               onclick="return confirm('Are you sure?')"
+                         class="uk-link-muted">Delete</a>
+                    {% endif %}
+                  </div>
+                </header>
+                <div class="uk-comment-body">
+                  {{ c.content | rst2html | safe }}
+                </div>
+                <hr>
+              </article>
+              </li>
+            {% endfor %}
+          </ul>
+          <a href="{{ url_for('threads.newcomment',
+                      project=t.project.name, thread_id = t.id,
+                      return_url=url_encode(request.base_url)) }}"
+             class="uk-link-muted uk-margin-medium-left">
+            <span uk-icon="icon: reply"></span>
+            New comment
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+{% endmacro %}
+

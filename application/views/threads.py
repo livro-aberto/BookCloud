@@ -18,7 +18,7 @@ from application.users import User
 from application.utils import rst2html
 from application.threads import (
     Thread, Comment, File_Tag, Free_Tag, Named_Tag, CommentSearchForm,
-    ThreadForm, NewThreadForm, CommentForm
+    ThreadForm, NewThreadForm, CommentForm, ThreadQueryForm
 )
 from application.projects import Project
 
@@ -37,40 +37,6 @@ def threads_before_request():
 def threads_context_processor():
     return { 'project': g.project,
              'menu': g.menu }
-
-@threads.route('/<project>/tagged_threads/<filetag>')
-@limiter.exempt
-def tagthreads(project, filetag):
-    """ Find threads with a certain filetag """
-    threads = (Thread.query.join(File_Tag)
-               .filter(File_Tag.filename.like('%' + filetag + '%'))
-               .filter(Thread.project==project)
-               .order_by(desc(Thread.posted_at)))
-    description = (_('Threads with tag: ') + '&nbsp <span class="uk-label">'
-                   + filetag + '</span>')
-    return render_template('search_comments.html', threads=threads,
-                           description=description)
-
-@threads.route('/<project>/search_comments', methods = ['GET', 'POST'])
-def search_comments(project):
-    form = CommentSearchForm(request.form)
-    if request.method == 'POST' and form.validate():
-        if not form.search.data:
-            form.search.data = ""
-        threads = (
-            Thread.query.filter(Thread.project==project)
-            .join(Comment)
-            .filter(Comment.thread_id==Thread.id)
-            .filter(or_(Comment.content.like('%' + form.search.data + '%'),
-                        Thread.title.like('%' + form.search.data + '%')))
-            .order_by(desc(Thread.posted_at))
-            .limit(100))
-    else:
-        threads = (Thread.query
-                   .filter_by(project=project)
-                   .order_by(desc(Thread.posted_at))
-                   .limit(100))
-    return render_template('search_comments.html', threads=threads, form=form)
 
 @threads.route('/<project>/new_thread', methods = ['GET', 'POST'])
 @login_required
@@ -147,7 +113,7 @@ def newthread(project):
         else:
             return redirect(url_for('branches.view', project=project.name,
                                     branch='master', filename='index'))
-    return render_template('newthread.html', form=form)
+    return render_template('threads/newthread.html', form=form)
 
 @threads.route('/<project>/edit_thread/<thread_id>', methods = ['GET', 'POST'])
 @login_required
@@ -169,7 +135,8 @@ def editthread(project, thread_id):
         [u.username for u in User.query.all()])
     form.file_tags.widget.choices = project.get_labels()
     form.custom_tags.widget.choices = json.dumps(
-        [t.name for t in Named_Tag.query.filter_by(project=project.name).all()])
+        [t.name for t
+         in Named_Tag.query.filter_by(project=project).all()])
     master_path = join('repos', project.name, 'master', 'source')
     if request.method == 'POST' and form.validate():
         thread.title = form.title.data
@@ -190,7 +157,31 @@ def editthread(project, thread_id):
         else:
             return redirect(url_for('branches.view', project=project.name,
                                     branch='master', filename='index'))
-    return render_template('editthread.html', form=form)
+    return render_template('threads/editthread.html', form=form)
+
+@threads.route('/<project>/delete_thread/<int:thread_id>')
+@login_required
+def deletethread(project, thread_id):
+    thread = Thread.get_by_id(thread_id)
+    if Comment.query.filter_by(thread_id=thread_id).first():
+        flash(_('Thread is not empty'), 'error')
+    else:
+        thread = Thread.query.filter_by(id=thread_id).first()
+        if not current_user.is_authenticated:
+            flash(_('You must be logged in to delete a thread'), 'error')
+        else:
+            if (current_user != thread.owner
+                and current_user != project.get_master().owner):
+                flash(_('You are not allowed to delete this thread'), 'error')
+            else:
+                thread.delete()
+                db.session.commit()
+                flash(_('Thread successfully deleted'), 'info')
+    if 'return_url' in request.args:
+        return redirect(urllib.unquote(request.args['return_url']))
+    else:
+        return redirect(url_for('branches.view', project=project.name,
+                                branch='master', filename='index'))
 
 @threads.route('/<project>/new_comment/<thread_id>', methods = ['GET', 'POST'])
 @threads.route('/<project>/new_comment/<thread_id>/<parent_lineage>',
@@ -252,7 +243,8 @@ def newcomment(project, thread_id, parent_lineage=''):
             return redirect(urllib.unquote(request.args['return_url']))
     threads = (Thread.query.filter_by(id=thread_id)
                .order_by(desc(Thread.posted_at)))
-    return render_template('newcomment.html', form=form, threads=threads)
+    return render_template('threads/newcomment.html', form=form,
+                           threads=threads)
 
 @threads.route('/<project>/edit_comment/<comment_id>',
                methods = ['GET', 'POST'])
@@ -279,31 +271,8 @@ def editcomment(project, comment_id):
                                         branch='master', filename='index'))
     threads = (Thread.query.filter_by(id=comment.thread.id)
                .order_by(desc(Thread.posted_at)))
-    return render_template('newcomment.html', form=form, threads=threads)
-
-@threads.route('/<project>/delete_thread/<int:thread_id>')
-@login_required
-def deletethread(project, thread_id):
-    thread = Thread.get_by_id(thread_id)
-    if Comment.query.filter_by(thread_id=thread_id).first():
-        flash(_('Thread is not empty'), 'error')
-    else:
-        thread = Thread.query.filter_by(id=thread_id).first()
-        if not current_user.is_authenticated:
-            flash(_('You must be logged in to delete a thread'), 'error')
-        else:
-            if (current_user != thread.owner
-                and current_user != project.get_master().owner):
-                flash(_('You are not allowed to delete this thread'), 'error')
-            else:
-                thread.delete()
-                db.session.commit()
-                flash(_('Thread successfully deleted'), 'info')
-    if 'return_url' in request.args:
-        return redirect(urllib.unquote(request.args['return_url']))
-    else:
-        return redirect(url_for('branches.view', project=project.name,
-                                branch='master', filename='index'))
+    return render_template('threads/newcomment.html', form=form,
+                           threads=threads)
 
 @threads.route('/<project>/delete_comment/<int:comment_id>')
 @login_required
@@ -329,6 +298,61 @@ def deletecomment(project, comment_id):
         return redirect(url_for('branches.view', project=project.name,
                                 branch='master', filename='index'))
 
+@threads.route('/<project>/query_thread', methods = ['GET'])
+def query_thread(project):
+    form = ThreadQueryForm(request.args)
+    form.user_tags.widget.choices = json.dumps(
+        [u.username for u in User.query.all()])
+    form.file_tags.widget.choices = project.get_labels()
+    form.custom_tags.widget.choices = json.dumps(
+        [t.name for t in Named_Tag.query.filter_by(project=project).all()])
+    #if request.args.get('thread_id'):
+    #   threads = Thread.query.filter(Thread.id==request.args.get('thread_id'))
+    #   return render_template('threads/query_threads.html', threads=threads,
+    #                          form=form)
+    if form.validate():
+        threads = (Thread.query.filter(Thread.project==project)
+                   .join(Comment))
+        if request.args.get('search'):
+            threads = threads.filter(or_(
+                Comment.content.like('%' + request.args.get('search') + '%'),
+                Thread.title.like('%' + request.args.get('search') + '%')))
+        if request.args.get('user_tags'):
+            try:
+                user_list = json.loads(request.args.get('user_tags'))
+            except:
+                abort(404)
+            if len(user_list):
+                user_list_id = [User.get_by_name(n).id for n in user_list]
+                threads = threads.filter(or_(
+                    Thread.owner_id.in_(user_list_id),
+                    Comment.owner_id.in_(user_list_id)))
+        if request.args.get('file_tags'):
+            try:
+                file_list = json.loads(request.args.get('file_tags'))
+            except:
+                abort(404)
+            if len(file_list):
+                threads = threads.filter.join(File_Tag)(
+                    File_Tag.filename.in_(file_list))
+        if request.args.get('custom_tags'):
+            try:
+                custom_tag_list = json.loads(request.args.get('custom_tags'))
+            except:
+                abort(404)
+            if len(custom_tag_list):
+                threads = threads.join(Named_Tag, Thread.custom_tags).filter(
+                    Named_Tag.name.in_(custom_tag_list))
+        threads = threads.order_by(desc(Thread.posted_at)).limit(100)
+    else:
+        threads = (Thread.query
+                   .filter_by(project=project)
+                   .order_by(desc(Thread.posted_at))
+                   .limit(100))
+    return render_template('threads/query_threads.html', threads=threads,
+                           form=form)
+
+# API routes
 @threads.route('/<project>/preview_comment', methods = ['GET', 'POST'])
 def preview_comment(project):
     input = ''

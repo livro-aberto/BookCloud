@@ -1,0 +1,45 @@
+{% extends "base_template.html" %}
+
+{% from "_formhelpers.html" import render_field %}
+
+{% from "threads/_display_threads.html" import display_threads with context %}
+
+{% block title %}{{ _('List of comments') }}{% endblock%}
+
+{% macro contents() %}
+  <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
+    <legend class="uk-legend">{{ _('Threads') }}</legend>
+    <button id="button-show-form" class="uk-button uk-button-default"
+            type="button">Search</button>
+    <script>
+      $(document).ready(function(){
+        $("#button-show-form").click(function() {
+          $("#toggle-form").toggle();
+        });
+      });
+    </script>
+    <form method="GET" id="toggle-form" style="display: none;">
+      <fieldset class="uk-fieldset">
+        <div class="uk-margin">
+          {{ render_field(form.search, style="width: 500px;") }}
+        </div>
+        <div class="uk-margin">
+          {{ render_field(form.user_tags, style="width: 500px;") }}
+        </div>
+        <div class="uk-margin">
+          {{ render_field(form.file_tags, style="width: 500px;") }}
+        </div>
+        <div class="uk-margin">
+          {{ render_field(form.custom_tags, style="width: 500px;") }}
+        </div>
+        <div class="uk-margin">
+          <button class="uk-button uk-button-default">Submit</button>
+        </div>
+    </form>
+  </div>
+
+  {% if threads %}
+    {{ display_threads(threads)  }}
+  {% endif %}
+{% endmacro %}
+

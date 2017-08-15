@@ -2,6 +2,8 @@
 
 {% from "_formhelpers.html" import render_field %}
 
+{% from "threads/_display_threads.html" import display_threads with context %}
+
 {% block title %}{{ _('New comment') }}{% endblock%}
 
 {% block scripts %}
@@ -55,6 +57,10 @@ Links para o texto e equações matemáticas não funcionam :(
 </code>
 </pre>
 </textarea>
+
+  {% if threads %}
+    {{ display_threads(threads)  }}
+  {% endif %}
 
 <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
     <button class="uk-button uk-button-primary"

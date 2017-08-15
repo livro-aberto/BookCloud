@@ -72,7 +72,8 @@ class Comment(CRUDMixin, db.Model):
 
     thread = db.relationship('Thread', back_populates='comments')
     likes = db.relationship('User', secondary=likes, lazy='dynamic',
-                            backref=db.backref('liked_commends', lazy='dynamic'))
+                            backref=db.backref('liked_commends',
+                                               lazy='dynamic'))
 
     def __init__(self, lineage, thread_id, owner_id, content, posted_at):
         self.lineage = lineage
@@ -110,6 +111,11 @@ class Named_Tag(CRUDMixin, db.Model):
     name = db.Column(db.String(20), nullable=False, unique=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     project = relationship('Project')
+    # Seems unnecessary because of backref
+    #threads = relationship(
+    #    "Thread",
+    #    secondary=custom_tags,
+    #    back_populates="custom_tags")
 
     def __init__(self, name, project_id):
         self.name = name

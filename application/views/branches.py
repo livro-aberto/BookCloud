@@ -135,9 +135,7 @@ def branch(project, branch):
                 return merge_pendencies
     ####################
     log = branch.get_log()
-    threads = (Thread.query.filter_by(project_id=project.id).
-               order_by(desc(Thread.posted_at)))
-    return render_template('branch.html', log=log, threads=threads)
+    return render_template('branch.html', log=log)
 
 @branches.route('/view/<path:filename>')
 @limiter.exempt

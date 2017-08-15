@@ -113,11 +113,9 @@ class Project(CRUDMixin, db.Model):
                           .filter(File_Tag.thread_id==Thread.id).all())
         return [
             {'name': name,
-             'fullname': filename + '%23' + name,
+             'fullname': filename + '#' + name,
              'titles': [x[1] for x in threads_by_tag
                         if x[0].split('#')[1] == name]} for name in label_list]
-
-
 
     def __init__(self, name, user):
         self.name = name

@@ -23,7 +23,7 @@ def projects_before_request():
     application.views.bookcloud_before_request()
 
 @users.context_processor
-def threads_context_processor():
+def users_context_processor():
     return { 'menu': g.menu }
 
 @users.route('/profile')
@@ -31,11 +31,9 @@ def threads_context_processor():
 @login_required
 def profile():
     projects = list(Project.query.all())
-    threads = current_user.threads
     return render_template('profile.html', projects=projects,
                            user=current_user,
-                           properties=app.config['USER_PROPERTIES'],
-                           threads=threads)
+                           properties=app.config['USER_PROPERTIES'])
 
 @users.route('/update_profile', methods = ['GET', 'POST'])
 @limiter.limit("10 per day")

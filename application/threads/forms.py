@@ -84,3 +84,12 @@ class CommentForm(Form):
 
 class CommentSearchForm(Form):
     search = StringField('Search', [ validators.Length(min=3, max=60)])
+
+class ThreadQueryForm(Form):
+    search = StringField('Search', [ validators.Length(max=60)])
+    owner = StringField('Search', [ validators.Length(max=20)])
+    user_tags = user_tags = TextExtField('Users')
+    file_tags = TextExtField('Files')
+    custom_tags = TextExtField('Tags')
+
+

@@ -13,7 +13,6 @@ from sqlalchemy import desc
 
 from application import db, limiter
 from application.projects import Project, ProjectForm, FileForm
-from application.threads import Thread
 from application.branches import (
     Branch, get_sub_branches,
     get_merge_pendencies
@@ -45,6 +44,10 @@ def projects_url_value_preprocessor(endpoint, values):
 def projects_before_request():
     application.views.bookcloud_before_request()
     g.menu['left'].append({
+            'name': _('Discussion'),
+            'url': url_for('threads.query_thread', project=g.project.name),
+            'external': True})
+    g.menu['left'].append({
         'name': g.project.name,
         'sub_menu': [{
             'name': _('Visit master'),
@@ -60,8 +63,7 @@ def projects_before_request():
             'name': _('View pdf'),
             'url': url_for('branches.pdf', project=g.project.name,
                            branch='master'),
-            'external': True
-        }]})
+            'external': True}]})
 
 @projects.context_processor
 def project_context_processor():
@@ -71,8 +73,7 @@ def project_context_processor():
 @projects.route('/branches', methods = ['GET', 'POST'])
 @limiter.exempt
 def branches(project):
-    threads = (project.threads.order_by(desc(Thread.posted_at)))
-    return render_template('branches.html', threads=threads)
+    return render_template('branches.html')
 
 @projects.route('/dashboard', methods = ['GET', 'POST'])
 @limiter.exempt
@@ -84,9 +85,7 @@ def dashboard(project):
     files.sort()
     files = [(splitext(f)[0], splitext(f)[1],
               int(os.stat(join(master_path, f)).st_size / 500)) for f in files]
-    threads = (project.threads.order_by(desc(Thread.posted_at)))
-    return render_template('dashboard.html', tree=tree, log=log,
-                           files=files, threads=threads)
+    return render_template('dashboard.html', tree=tree, log=log, files=files)
 
 @projects.route('/newfile', methods = ['GET', 'POST'])
 @login_required
