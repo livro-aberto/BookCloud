@@ -236,7 +236,7 @@ def commit(project, branch):
     return render_template('commit.html', form=form, diff=diff)
 
 @branches.route('/clone', methods = ['GET', 'POST'])
-@limiter.limit("7 per day")
+@limiter.limit("50 per day")
 @login_required
 def clone(project, branch):
     form = BranchForm(request.form)
