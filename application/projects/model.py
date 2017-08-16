@@ -44,6 +44,18 @@ class Project(CRUDMixin, db.Model):
                                              data, re.MULTILINE))
         return json.dumps(label_list)
 
+    def get_label_file_dict(self):
+        master_path = join('repos', self.name, 'master', 'source')
+        label_dict = {}
+        for f in os.listdir(master_path):
+            if (isfile(join(master_path, f)) and f[0] != '.'):
+                stem, file_extension = os.path.splitext(f)
+                data = load_file(join(master_path, f))
+                more_data = {x: stem for x in re.findall(
+                    r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)}
+                label_dict.update(more_data)
+        return label_dict
+
     #def get_repo_path(self):
     #    return join('repos', self.name)
 

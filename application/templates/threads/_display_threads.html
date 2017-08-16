@@ -65,7 +65,12 @@
                   {{ _('Files:') }}
                   {% for file in t.file_tags %}
                     &nbsp
-                    <span class="uk-label">{{ file.filename }}</span>
+                    <a class="uk-label"
+                       href="{{ url_for('branches.view',
+                                        project=project.name,
+                                        branch='master',
+                                        filename=label_file_dict[file.filename]) }}#{{ file.filename }}"
+                       >{{ file.filename }}</a>
                   {% endfor %} &emsp;
                 {% endif %}
                 {% if t.custom_tags %}

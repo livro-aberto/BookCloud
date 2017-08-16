@@ -306,10 +306,6 @@ def query_thread(project):
     form.file_tags.widget.choices = project.get_labels()
     form.custom_tags.widget.choices = json.dumps(
         [t.name for t in Named_Tag.query.filter_by(project=project).all()])
-    #if request.args.get('thread_id'):
-    #   threads = Thread.query.filter(Thread.id==request.args.get('thread_id'))
-    #   return render_template('threads/query_threads.html', threads=threads,
-    #                          form=form)
     if form.validate():
         threads = (Thread.query.filter(Thread.project==project)
                    .join(Comment))
@@ -349,8 +345,9 @@ def query_thread(project):
                    .filter_by(project=project)
                    .order_by(desc(Thread.posted_at))
                    .limit(100))
+    label_file_dict = project.get_label_file_dict()
     return render_template('threads/query_threads.html', threads=threads,
-                           form=form)
+                           form=form, label_file_dict=label_file_dict)
 
 # API routes
 @threads.route('/<project>/preview_comment', methods = ['GET', 'POST'])
