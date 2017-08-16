@@ -179,12 +179,12 @@
                       uk-margin-left"
                href="{{ url_for('threads.query_thread',
                                 project=project.name,
-                                file_tags='["' + t['fullname'] + '"]') }}"
+                                file_tags='["' + t['name'] + '"]') }}"
                target="_blank">view
             </a>
             <a class="uk-button uk-button-default uk-button-small"
                href="{{ url_for('threads.newthread',
-                      project=project.name) }}?file_tags={{ t['fullname'] }}"
+                      project=project.name) }}?file_tags={{ t['name'] }}"
                target="_blank">new
             </a>
           </div>

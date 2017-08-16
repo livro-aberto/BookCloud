@@ -40,9 +40,8 @@ class Project(CRUDMixin, db.Model):
         for f in os.listdir(master_path):
             if (isfile(join(master_path, f)) and f[0] != '.'):
                 data = load_file(join(master_path, f))
-                label_list.extend(
-                    [splitext(f)[0] + '#' + l for l in
-                     re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)])
+                label_list.extend(re.findall(r'^\.\. _([a-z\-]+):\s$',
+                                             data, re.MULTILINE))
         return json.dumps(label_list)
 
     #def get_repo_path(self):
@@ -101,21 +100,17 @@ class Project(CRUDMixin, db.Model):
         self.get_master().build()
 
     def get_threads_by_tag(self, filename):
-        label_list = []
         data = load_file(join('repos', self.name, 'master',
                               'source', filename + '.rst'))
-        label_list.extend([l for l in re.findall(r'^\.\. _([a-z\-]+):\s$',
-                                                 data, re.MULTILINE)])
+        label_list = re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)
         File_Tag = application.threads.File_Tag
         Thread = application.threads.Thread
         threads_by_tag = (db.session.query(File_Tag.filename, Thread.title)
-                          .filter(File_Tag.filename.like(filename + '#' + '%'))
-                          .filter(File_Tag.thread_id==Thread.id).all())
-        return [
-            {'name': name,
-             'fullname': filename + '#' + name,
-             'titles': [x[1] for x in threads_by_tag
-                        if x[0].split('#')[1] == name]} for name in label_list]
+                          .filter(File_Tag.thread_id==Thread.id)
+                          .filter(File_Tag.filename.in_(label_list)).all())
+        return [{'name': l,
+                 'titles': [x[1] for x in threads_by_tag if x[0]==l]}
+                for l in label_list]
 
     def __init__(self, name, user):
         self.name = name
