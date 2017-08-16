@@ -44,6 +44,10 @@ def bookcloud_before_request():
                 'url': 'https://github.com/gutosurrex/BookCloud/issues',
                 'external': True
             }, {
+                'name': 'Staff only',
+                'url': 'https://www.umlivroaberto.com/wiki/doku.php',
+                'external': True
+            }, {
                 'name': 'Syntax',
                 'url': ('https://www.umlivroaberto.com/BookCloud/sintaxe/'
                         'master/view/index.html'),
