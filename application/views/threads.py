@@ -333,7 +333,7 @@ def query_thread(project):
             except:
                 abort(404)
             if len(file_list):
-                threads = threads.filter.join(File_Tag)(
+                threads = threads.join(File_Tag).filter(
                     File_Tag.filename.in_(file_list))
         if request.args.get('custom_tags'):
             try:

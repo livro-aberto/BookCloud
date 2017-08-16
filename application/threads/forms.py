@@ -1,10 +1,11 @@
+from flask_babel import gettext as _
 from wtforms import (
     Form, StringField, validators, RadioField,
     TextAreaField, Field
 )
 from wtforms.widgets.core import HTMLString, html_params
 
-from application.utils import create_message
+from application.utils import create_message, create_message_special
 
 import json
 import re
@@ -64,7 +65,7 @@ class TextExtField(Field):
             self.data = []
 
 class ThreadForm(Form):
-    title = create_message('Title')
+    title = create_message_special('Title')
     flag = RadioField('Flag', default='discussion',
                       choices=[('discussion', 'disucussion'),
                                ('issue', 'issue')])

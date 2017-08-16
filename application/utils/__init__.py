@@ -161,6 +161,15 @@ def create_message(name):
         validators.Regexp('^[\w ,.?!-]+$',
                           message="Messages must contain only a-zA-Z0-9_-,.!? and space")])
 
+def create_message_special(name):
+    return StringField(name, [
+        validators.Length(min=4, max=60),
+        validators.Regexp(
+            '^[\xe3\xf5\xe2\xea\xf4\xe1\xe9\xed\xf3\xfa\xfc\xe0\xe7\xc3\xd5'
+            '\xc2\xca\xd4\xc1\xc9\xcd\xd3\xda\xdc\xc0\xc7\w ,.?!-]+$',
+            message='Messages must contain only a-zA-Z0-9_-,.!?'
+            'and space')])
+
 def create_identifier(name):
     return StringField(name, [
         validators.Length(min=4, max=25),
