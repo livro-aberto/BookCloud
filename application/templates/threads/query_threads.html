@@ -10,15 +10,9 @@
   <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
     <legend class="uk-legend">{{ _('Threads') }}</legend>
     <button id="button-show-form" class="uk-button uk-button-default"
-            type="button">Search</button>
-    <script>
-      $(document).ready(function(){
-        $("#button-show-form").click(function() {
-          $("#toggle-form").toggle();
-        });
-      });
-    </script>
-    <form method="GET" id="toggle-form" style="display: none;">
+            uk-toggle="target: #toggle-form" type="button">Search</button>
+    <form method="GET" id="toggle-form"
+          aria-hidden="true" hidden="hidden">
       <fieldset class="uk-fieldset">
         <div class="uk-margin">
           {{ render_field(form.search, style="width: 500px;") }}

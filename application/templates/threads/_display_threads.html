@@ -4,13 +4,14 @@
 
     <!-- Scroll Up -->
     <a href="" class="uk-align-right" uk-scroll>
-      <span uk-icon="icon: chevron-up; ratio: 2"></span>
+      <span uk-icon="icon: chevron-up; ratio: 2"
+            title="{{ _('Go to top') }}" uk-tooltip></span>
     </a>
     <hr class="uk-divider-icon">
     <a name="discussion"></a>
     <div class="uk-container uk-container-center">
       {% for t in threads %}
-        <article class="uk-article">
+        <article class="uk-article uk-margin-top">
           <header class="uk-comment-header uk-position-relative
                          uk-background-muted">
             <hr>
@@ -36,16 +37,16 @@
                   <a href="{{ url_for('threads.editthread',
                            project=t.project.name, thread_id=t.id,
                            return_url=url_encode(request.base_url)) }}"
-                           class="uk-link-muted">
-                           Edit
+                           class="uk-link-muted" uk-icon="icon: pencil"
+                           title="{{ _('Edit thread') }}" uk-tooltip>
                   </a>
                   {% if t.comments.count() == 0 %}
                     <a href="{{ url_for('threads.deletethread',
                              project=t.project.name, thread_id=t.id,
                              return_url=url_encode(request.base_url)) }}"
                              onclick="return confirm('Are you sure?')"
-                             class="uk-link-muted">
-                             Delete
+                             class="uk-link-muted" uk-icon="icon: trash"
+                             title="{{ _('Delete thread') }}" uk-tooltip>
                     </a>
                   {% endif %}
                 {% endif %}
@@ -55,16 +56,18 @@
                         uk-margin-left" uk-grid>
               <div class="uk-width-auto">
                 {% if t.user_tags %}
-                  {{ _('Users:') }}
+                  <span uk-icon="icon: users"
+                        title="{{ _('Users') }}" uk-tooltip></span>
                   {% for tag in t.user_tags %}
-                    &nbsp
+                    &nbsp;
                     <span class="uk-label">{{ tag.username }}</span>
                   {% endfor %} &emsp;
                 {% endif %}
                 {% if t.file_tags %}
-                  {{ _('Files:') }}
+                  <span uk-icon="icon: link"
+                        title="{{ _('Link to text') }}" uk-tooltip></span>
                   {% for file in t.file_tags %}
-                    &nbsp
+                    &nbsp;
                     <a class="uk-label"
                        href="{{ url_for('branches.view',
                                         project=project.name,
@@ -74,16 +77,18 @@
                   {% endfor %} &emsp;
                 {% endif %}
                 {% if t.custom_tags %}
-                  {{ _('Tags:') }}
+                  <span uk-icon="icon: tag"
+                        title="{{ _('Tags') }}" uk-tooltip></span>
                   {% for custom in t.custom_tags %}
-                    &nbsp
+                    &nbsp;
                     <span class="uk-label">{{ custom.name }}</span>
                   {% endfor %} &emsp;
                 {% endif %}
                 {% if t.free_tags.count() %}
-                  {{ _('Others:') }}
+                  <span uk-icon="icon: hashtag"
+                        title="{{ _('Hashtags') }}" uk-tooltip></span>
                   {% for free in t.free_tags.all() %}
-                    &nbsp
+                    &nbsp;
                     <span class="uk-label">{{ free.name }}</span>
                   {% endfor %}
                 {% endif %}
@@ -91,7 +96,13 @@
             </div>
             <hr>
           </header>
-          <ul class="uk-comment-list">
+          <a class="uk-link-muted"
+             uk-toggle="target: #thread-{{ t.id }}" type="button">
+            <span class="uk-margin-left" uk-icon="icon: commenting"></span>
+            {{ _('Show comments') }}
+          </a>
+          <ul class="uk-comment-list" id="thread-{{ t.id }}"
+              aria-hidden="true" hidden="hidden">
             {% for c in t.get_comments(100) %}
               <li class="uk-margin-remove">
               <article class="uk-comment" style="margin-left:
@@ -105,7 +116,7 @@
                     </div>
                     <div class="uk-width-expand">
                       <a class="uk-link-reset" href="#">{{ c.author.username }}</a>
-                      &nbsp
+                      &nbsp;
                       <span class="uk-comment-meta
                                    uk-margin-remove-top uk-text-small">
                         {{ c.posted_at }} -
@@ -119,12 +130,14 @@
                        project=t.project.name,
                        thread_id = t.id, parent_lineage=c.lineage,
                              return_url=url_encode(request.base_url)) }}"
-                       class="uk-link-muted">Reply</a>
+                       class="uk-link-muted" uk-icon="icon: reply"
+                       title="{{ _('Reply') }}" uk-tooltip></a>
                     {% if current_user == c.author %}
                       <a href="{{ url_for('threads.editcomment',
                          project=t.project.name, comment_id=c.id,
                                return_url=url_encode(request.base_url)) }}"
-                         class="uk-link-muted">Edit</a>
+                         class="uk-link-muted" uk-icon="icon: pencil"
+                         title="{{ _('Edit comment') }}" uk-tooltip></a>
                     {% endif %}
                     {% if not c.has_replies()
                       and (current_user == c.author
@@ -134,7 +147,8 @@
                                comment_id=c.id,
                                return_url=url_encode(request.base_url)) }}"
                                onclick="return confirm('Are you sure?')"
-                         class="uk-link-muted">Delete</a>
+                         class="uk-link-muted" uk-icon="icon: trash"
+                         title="{{ _('Delete comment') }}" uk-tooltip></a>
                     {% endif %}
                   </div>
                 </header>
