@@ -79,14 +79,13 @@ def create_app(extra_config_settings={}):
     )
     assets.register(
         'codemirror_js_all',
-        Bundle(
-            'codemirror/lib/codemirror.js',
+        Bundle('codemirror/lib/codemirror.js',
                'codemirror/mode/rst/rst.js',
                'codemirror/mode/xml/xml.js',
                'codemirror/addon/mode/overlay.js',
-               'codemirror/addon/search/search.js',
-               'codemirror/addon/search/searchcursor.js',
                'codemirror/addon/dialog/dialog.js',
+               'codemirror/addon/search/searchcursor.js',
+               'codemirror/addon/search/search.js',
                'codemirror/addon/scroll/annotatescrollbar.js',
                'codemirror/addon/search/matchesonscrollbar.js',
                'codemirror/addon/search/jump-to-line.js',
@@ -116,6 +115,7 @@ def create_app(extra_config_settings={}):
         'codemirror_css_all',
         Bundle('codemirror/lib/codemirror.css',
                'codemirror/addon/merge/merge.css',
+               'codemirror/addon/dialog/dialog.css',
                'codemirror/addon/search/matchesonscrollbar.css'),
         output='bundles/codemirror_all.css',
         filters='cssmin'
