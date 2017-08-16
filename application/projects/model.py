@@ -40,8 +40,9 @@ class Project(CRUDMixin, db.Model):
         for f in os.listdir(master_path):
             if (isfile(join(master_path, f)) and f[0] != '.'):
                 data = load_file(join(master_path, f))
-                label_list.extend(re.findall(r'^\.\. _([a-z\-]+):\s$',
+                label_list.extend(re.findall(r'^\.\. _([0-9a-z\-]+):\s$',
                                              data, re.MULTILINE))
+        print(json.dumps(label_list))
         return json.dumps(label_list)
 
     def get_label_file_dict(self):
@@ -52,7 +53,7 @@ class Project(CRUDMixin, db.Model):
                 stem, file_extension = os.path.splitext(f)
                 data = load_file(join(master_path, f))
                 more_data = {x: stem for x in re.findall(
-                    r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)}
+                    r'^\.\. _([0-9a-z\-]+):\s$', data, re.MULTILINE)}
                 label_dict.update(more_data)
         return label_dict
 
@@ -114,7 +115,7 @@ class Project(CRUDMixin, db.Model):
     def get_threads_by_tag(self, filename):
         data = load_file(join('repos', self.name, 'master',
                               'source', filename + '.rst'))
-        label_list = re.findall(r'^\.\. _([a-z\-]+):\s$', data, re.MULTILINE)
+        label_list = re.findall(r'^\.\. _([0-9a-z\-]+):\s$', data, re.MULTILINE)
         File_Tag = application.threads.File_Tag
         Thread = application.threads.Thread
         threads_by_tag = (db.session.query(File_Tag.filename, Thread.title)
