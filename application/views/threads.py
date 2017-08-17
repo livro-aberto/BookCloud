@@ -403,7 +403,7 @@ def like_comment(project, comment_id):
 def mark_read(project, thread_id):
     if not current_user.is_authenticated:
         return json.dumps({
-            'message': _('You must be logged in to like a comment'),
+            'message': _('You must be logged in to mark a comment read'),
             'status': 'error'
             })
     thread = Thread.get_by_id(thread_id)

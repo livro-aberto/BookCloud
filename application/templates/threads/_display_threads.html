@@ -127,31 +127,39 @@
         </div>
         <hr>
       </header>
-      {% if not current_user in t.user_read_thread %}
-        <a class="uk-link-muted"
-           uk-toggle="target: #thread-{{ t.id }}" type="button"
-           onclick="showComments('{{ url_for('threads.mark_read',
-                                 project=project.name, thread_id=t.id) }}',
-                                 true, {{ t.id }})">
-          <span class="uk-margin-left" uk-icon="icon: commenting"></span>
-          {{ _('Show/hide comments') }}
-        </a>
-        <span id="unread-label-{{ t.id }}"
-              class="uk-label uk-label-danger">Unread</span>
+      {% if current_user.is_authenticated %}
+        {% if not current_user in t.user_read_thread %}
+          <a class="uk-link-muted"
+             uk-toggle="target: #thread-{{ t.id }}" type="button"
+             onclick="showComments('{{ url_for('threads.mark_read',
+                                   project=project.name, thread_id=t.id) }}',
+                                   true, {{ t.id }})">
+            <span class="uk-margin-left" uk-icon="icon: commenting"></span>
+            {{ _('Show/hide comments') }}
+          </a>
+          <span id="unread-label-{{ t.id }}"
+                class="uk-label uk-label-danger">Unread</span>
+        {% else %}
+          <a class="uk-link-muted"
+             onclick="showComments('{{ url_for('threads.mark_read',
+                                   project=project.name, thread_id=t.id) }}',
+                                   false, {{ t.id }})"
+             uk-toggle>
+            <span class="uk-margin-left" uk-icon="icon: mail"></span>
+            {{ _('Mark unread') }}
+          </a>
+          <a class="uk-link-muted uk-margin-left"
+             uk-toggle="target: #thread-{{ t.id }}" type="button"
+            <span class="uk-margin-left" uk-icon="icon: commenting"></span>
+            {{ _('Show/hide comments') }}
+          </a>
+        {% endif %}
       {% else %}
-        <a class="uk-link-muted"
-           onclick="showComments('{{ url_for('threads.mark_read',
-                                 project=project.name, thread_id=t.id) }}',
-                                 false, {{ t.id }})"
-           uk-toggle>
-          <span class="uk-margin-left" uk-icon="icon: mail"></span>
-          {{ _('Mark unread') }}
-        </a>
-        <a class="uk-link-muted uk-margin-left"
-           uk-toggle="target: #thread-{{ t.id }}" type="button"
-          <span class="uk-margin-left" uk-icon="icon: commenting"></span>
-          {{ _('Show/hide comments') }}
-        </a>
+          <a class="uk-link-muted uk-margin-left"
+             uk-toggle="target: #thread-{{ t.id }}" type="button"
+            <span class="uk-margin-left" uk-icon="icon: commenting"></span>
+            {{ _('Show/hide comments') }}
+          </a>
       {% endif %}
       <ul class="uk-comment-list" id="thread-{{ t.id }}"
           aria-hidden="true" hidden="hidden">
