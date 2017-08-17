@@ -358,3 +358,44 @@ def preview_comment(project):
             input = rst2html(request.form.get('content'))
     return input
 
+@threads.route('/<project>/<comment_id>/like', methods = ['POST'])
+def like_comment(project, comment_id):
+    if not current_user.is_authenticated:
+        return json.dumps({
+            'message': _('You must be logged in to like a comment'),
+            'status': 'error'
+            })
+    comment = Comment.get_by_id(comment_id)
+    if current_user == comment.owner:
+        return json.dumps({
+            'message': _('You cannot like/unlike your own comment'),
+            'status': 'error'
+            })
+    if request.form.get('is_like') == 'true':
+        if current_user in comment.likes:
+            return json.dumps({
+                'message': _('You have already liked this comment'),
+                'status': 'error'
+                })
+        comment.likes.append(current_user)
+        db.session.commit()
+        return json.dumps({
+            'message': _('Like registered!'),
+            'number_of_likes': comment.likes.count(),
+            'status': 'success'})
+    else:
+        if not current_user in comment.likes:
+            return json.dumps({
+                'message': _('You have not liked this comment'),
+                'status': 'error'
+                })
+        comment.likes.remove(current_user)
+        db.session.commit()
+        return json.dumps({
+            'message': _('Like removed!'),
+            'number_of_likes': comment.likes.count(),
+            'status': 'success'})
+
+
+
+

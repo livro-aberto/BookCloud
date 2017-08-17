@@ -101,7 +101,7 @@
             {% if category == 'info' %}
 <script>
   $(document).ready(function(){
-      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-center',    timeout: 500000});
+      UIkit.notification('{{ message }}', {status: 'success', pos: 'bottom-center'});
   });
 </script>
             {% elif category == 'error' %}
