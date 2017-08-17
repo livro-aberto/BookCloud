@@ -14,6 +14,10 @@ Check if the generated file is correct.
 
     alembic upgrade head
 
+There is a nice way to check what is going on:
+
+    alembic history -r current:head
+
 ## Init translations
 
 You may need:
