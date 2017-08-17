@@ -1,6 +1,9 @@
 from __future__ import with_statement
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+
+from sqlalchemy.dialects import mysql
+
+from sqlalchemy import engine_from_config, pool, Table, event, Boolean
 from logging.config import fileConfig
 import logging
 
@@ -11,6 +14,12 @@ from flask import current_app
 
 from application import create_app, db
 
+
+# Hack to deal with the fact that MySQL treats boolean as tinyint
+@event.listens_for(Table, "column_reflect")
+def column_reflect(inspector, table, column_info):
+    if type(column_info['type']) is mysql.TINYINT:
+        column_info['type'] = Boolean()
 
 #from application import User, Project, Branch, Thread, Comment, Likes, User_Tag, File_Tag, Named_Tag, Custom_Tag, Free_Tag, limiter, mail
 
