@@ -20,6 +20,11 @@ custom_tags = db.Table('custom_tag',
     db.Column('named_tag_id', db.Integer, db.ForeignKey('named_tag.id'))
 )
 
+user_read_thread = db.Table('user_read_thread',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('thread_id', db.Integer, db.ForeignKey('thread.id'))
+)
+
 class Thread(CRUDMixin, db.Model):
     # One thread holds several comments
     # and is associated to a project
@@ -45,6 +50,9 @@ class Thread(CRUDMixin, db.Model):
                                 lazy='dynamic')
     free_tags = db.relationship('Free_Tag', back_populates='thread',
                                 lazy='dynamic')
+    user_read_thread = db.relationship(
+        'User', secondary=user_read_thread,
+        backref=db.backref('thread', lazy='dynamic'))
 
     def __init__(self, title, owner_id, project_id, flag, posted_at):
         self.title = title

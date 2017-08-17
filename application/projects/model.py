@@ -42,7 +42,6 @@ class Project(CRUDMixin, db.Model):
                 data = load_file(join(master_path, f))
                 label_list.extend(re.findall(r'^\.\. _([0-9a-z\-]+):\s$',
                                              data, re.MULTILINE))
-        print(json.dumps(label_list))
         return json.dumps(label_list)
 
     def get_label_file_dict(self):

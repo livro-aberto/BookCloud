@@ -421,7 +421,6 @@ def get_tikz(project, branch, action, filename):
     images_path = join('repos', project.name, branch.name,
                        'build/html/_images')
     response = send_from_directory(os.path.abspath(images_path), filename)
-    print(request.url)
     if '/_images/tikz-' in request.url:
         response.cache_control.max_age = 5256000
     return response

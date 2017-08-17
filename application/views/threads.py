@@ -10,7 +10,7 @@ from flask import (
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
 from flask_mail import Message
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, not_, desc
 
 import application
 from application import db, app, limiter, mail
@@ -18,7 +18,7 @@ from application.users import User
 from application.utils import rst2html
 from application.threads import (
     Thread, Comment, File_Tag, Free_Tag, Named_Tag, CommentSearchForm,
-    ThreadForm, NewThreadForm, CommentForm, ThreadQueryForm
+    ThreadForm, NewThreadForm, CommentForm, ThreadQueryForm, user_read_thread
 )
 from application.projects import Project
 
@@ -313,6 +313,9 @@ def query_thread(project):
             threads = threads.filter(or_(
                 Comment.content.like('%' + request.args.get('search') + '%'),
                 Thread.title.like('%' + request.args.get('search') + '%')))
+        if (request.args.get('unread') and request.args.get('unread') == 'y'):
+            threads = (threads.filter(
+                not_(Thread.user_read_thread.any(id=current_user.id))))
         if request.args.get('user_tags'):
             try:
                 user_list = json.loads(request.args.get('user_tags'))
@@ -394,6 +397,37 @@ def like_comment(project, comment_id):
         return json.dumps({
             'message': _('Like removed!'),
             'number_of_likes': comment.likes.count(),
+            'status': 'success'})
+
+@threads.route('/<project>/<thread_id>/mark_read', methods = ['POST'])
+def mark_read(project, thread_id):
+    if not current_user.is_authenticated:
+        return json.dumps({
+            'message': _('You must be logged in to like a comment'),
+            'status': 'error'
+            })
+    thread = Thread.get_by_id(thread_id)
+    if request.form.get('is_read') == 'true':
+        if current_user in thread.user_read_thread:
+            return json.dumps({
+                'message': _('You have already read this thread'),
+                'status': 'error'
+                })
+        thread.user_read_thread.append(current_user)
+        db.session.commit()
+        return json.dumps({
+            'message': _('Marked as read!'),
+            'status': 'success'})
+    else:
+        if not current_user in thread.user_read_thread:
+            return json.dumps({
+                'message': _('You have not read this thread'),
+                'status': 'error'
+                })
+        thread.user_read_thread.remove(current_user)
+        db.session.commit()
+        return json.dumps({
+            'message': _('Marked as unread!'),
             'status': 'success'})
 
 

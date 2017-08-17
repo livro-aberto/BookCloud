@@ -8,7 +8,10 @@
 
 {% macro contents() %}
   <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
-    <legend class="uk-legend">{{ _('Threads') }}</legend>
+    <legend class="uk-legend">
+      {{ _('Threads') }}
+      <span class="uk-badge">{{ len(threads.all()) }}</span>
+    </legend>
     <button id="button-show-form" class="uk-button uk-button-default"
             uk-toggle="target: #toggle-form" type="button">Search</button>
     <form method="GET" id="toggle-form"
@@ -16,6 +19,9 @@
       <fieldset class="uk-fieldset">
         <div class="uk-margin">
           {{ render_field(form.search, style="width: 500px;") }}
+        </div>
+        <div class="uk-margin">
+          {{ render_field(form.unread) }}
         </div>
         <div class="uk-margin">
           {{ render_field(form.user_tags, style="width: 500px;") }}

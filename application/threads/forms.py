@@ -1,7 +1,7 @@
 from flask_babel import gettext as _
 from wtforms import (
     Form, StringField, validators, RadioField,
-    TextAreaField, Field
+    TextAreaField, Field, BooleanField
 )
 from wtforms.widgets.core import HTMLString, html_params
 
@@ -88,6 +88,7 @@ class CommentSearchForm(Form):
 
 class ThreadQueryForm(Form):
     search = StringField('Search', [ validators.Length(max=60)])
+    unread = BooleanField('Only unread')
     owner = StringField('Search', [ validators.Length(max=20)])
     user_tags = user_tags = TextExtField('Users')
     file_tags = TextExtField('Files')
