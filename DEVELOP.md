@@ -158,3 +158,9 @@ Add the corresponding components in `application/__init__.py`.
 ## Code style
 
   - indent always by 2 spaces.
+
+## Thanks to
+
+    https://github.com/jonashaag/klaus
+
+    https://github.com/mailgun/transactional-email-templates

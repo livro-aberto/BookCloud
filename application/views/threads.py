@@ -90,7 +90,7 @@ def newthread(project):
             with mail.connect() as conn:
                 for user in form.user_tags.data:
                     user_obj = User.get_by_name(user)
-                    subject = _('Thread: ') + thread.title
+                    subject = _('Thread: ') + new_thread.title
                     msg = Message(recipients=[user_obj.email],
                                   subject=subject,
                                   html=message)
