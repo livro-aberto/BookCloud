@@ -103,8 +103,9 @@
                    href="{{ url_for('branches.view',
                                     project=project.name,
                                     branch='master',
-                                    filename=label_file_dict[file.filename]) }}#{{ file.filename }}"
-                   >{{ file.filename }}</a>
+                                    filename=label_file_dict[file.filename]) }}#{{ file.filename }}">
+                  {{ file.filename }}
+                </a>
               {% endfor %} &emsp;
             {% endif %}
             {% if t.custom_tags %}

@@ -83,30 +83,20 @@ def newthread(project):
         db.session.add(new_thread)
         db.session.commit()
         # send emails
-        if not app.config['TESTING']:
+        message = render_template('threads/email.html', comment=new_comment)
+        if app.config['TESTING']:
+            print(message)
+        else:
             with mail.connect() as conn:
-                msg_thread = _('Thread: ') + request.form['title'] + '\n'
-                msg_project = _('Project: ') + project.name + '\n'
-                msg_owner = _('Owner: ') + current_user.username + '\n'
-                msg_type = _('Type: ') + request.form['flag'] + '\n'
-                msg_time = _('Created at: ') + str(datetime.utcnow()) + '\n'
-                msg_contents = _('Contents: ') + '\n'
-                message_head = (msg_thread + msg_project + msg_owner
-                                + msg_type + msg_time + msg_contents)
-                links = (_('To comment on this thread: ')
-                         + url_for('threads.newcomment',
-                                   project=project.name,
-                                   thread_id = new_thread.id,
-                                   _external = True))
                 for user in form.user_tags.data:
                     user_obj = User.get_by_name(user)
-                    message = (message_head + request.form['firstcomment']
-                               + '\n\n' + links)
-                    subject = _('Thread: ') + request.form['title']
+                    subject = _('Thread: ') + thread.title
                     msg = Message(recipients=[user_obj.email],
-                                  body=message,
-                                  subject=subject)
+                                  subject=subject,
+                                  html=message)
                     conn.send(msg)
+            flash(_('Emails sent to {} user(s)')
+                    .format(len(form.user_tags.data)))
         flash(_('New thread successfully created'), 'info')
         if 'return_url' in request.args:
             redirect(urllib.unquote(request.args['return_url']))
@@ -196,6 +186,7 @@ def newcomment(project, thread_id, parent_lineage=''):
         except:
             abort(404)
     if request.method == 'POST' and form.validate():
+        thread = Thread.get_by_id(thread_id)
         siblings_pattern = parent_lineage + '%'
         decend_comments = (Comment.query
                            .filter(Comment.thread_id==thread_id)
@@ -211,28 +202,14 @@ def newcomment(project, thread_id, parent_lineage=''):
         db.session.add(new_comment)
         db.session.commit()
         # send emails
-        if not app.config['TESTING']:
+        list_of_users = [ tag.username for tag in thread.user_tags]
+        message = render_template('threads/email.html', comment=new_comment)
+        if app.config['TESTING']:
+            print(message)
+        else:
             with mail.connect() as conn:
-                thread = Thread.get_by_id(thread_id)
-                list_of_users = [ tag.username for tag in thread.user_tags]
-                msg_thread = _('Thread: ') + thread.title + '<br />'
-                msg_project = _('Project: ') + project.name + '<br />'
-                msg_owner = _('Owner: ') + current_user.username + '<br />'
-                msg_type = _('Type: ') + thread.flag + '<br />'
-                msg_time = _('Created at: ') + str(datetime.utcnow()) + '<br />'
-                msg_contents = _('Contents: ') + '<br />'
-                message_head = (msg_thread + msg_project + msg_owner
-                                + msg_type + msg_time + msg_contents + '<br />')
-                links = (_('To reply to this comment follow: ')
-                         + '<a href="' + url_for('threads.newcomment',
-                                                 project=project.name,
-                                                 thread_id=thread_id,
-                                                 parent_lineage=new_comment_lineage,
-                                                 _external=True) + '">reply link</a>')
                 for user in list_of_users:
                     user_obj = User.query.filter_by(username=user).first()
-                    message = (message_head + request.form['comment']
-                               + '<br /><br />' + links)
                     subject = _('Thread: ') + thread.title
                     msg = Message(recipients=[user_obj.email],
                                   html=message,
@@ -241,10 +218,9 @@ def newcomment(project, thread_id, parent_lineage=''):
         flash(_('New comment successfully created'), 'info')
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))
-    threads = (Thread.query.filter_by(id=thread_id)
-               .order_by(desc(Thread.posted_at)))
+    label_file_dict = project.get_label_file_dict()
     return render_template('threads/newcomment.html', form=form,
-                           threads=threads)
+                           label_file_dict=label_file_dict)
 
 @threads.route('/<project>/edit_comment/<comment_id>',
                methods = ['GET', 'POST'])
@@ -271,8 +247,7 @@ def editcomment(project, comment_id):
                                         branch='master', filename='index'))
     threads = (Thread.query.filter_by(id=comment.thread.id)
                .order_by(desc(Thread.posted_at)))
-    return render_template('threads/newcomment.html', form=form,
-                           threads=threads)
+    return render_template('threads/newcomment.html', form=form)
 
 @threads.route('/<project>/delete_comment/<int:comment_id>')
 @login_required
@@ -313,6 +288,8 @@ def query_thread(project):
             threads = threads.filter(or_(
                 Comment.content.like('%' + request.args.get('search') + '%'),
                 Thread.title.like('%' + request.args.get('search') + '%')))
+        if request.args.get('thread_id'):
+            threads = threads.filter(Thread.id==request.args.get('thread_id'))
         if (request.args.get('unread') and request.args.get('unread') == 'y'):
             threads = (threads.filter(
                 not_(Thread.user_read_thread.any(id=current_user.id))))
