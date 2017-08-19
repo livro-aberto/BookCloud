@@ -72,7 +72,7 @@ def newthread(project):
         new_thread.custom_tags = [Named_Tag.get_by_name(n)
                                   for n in form.custom_tags.data]
         new_thread.free_tags = [Free_Tag(new_thread.id, n)
-                            for n in form.free_tags.data]
+                                for n in form.free_tags.data]
         # add first comment
         new_comment = Comment('000000:',
                               new_thread.id,
