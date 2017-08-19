@@ -29,6 +29,7 @@ config = context.config
 
 app = create_app()
 app.config.from_object('config')
+app.config.from_pyfile('instance_config.py')
 app.config.update(dict(
     TESTING=True,  # Propagate exceptions
     LOGIN_DISABLED=False,  # Enable @register_required

@@ -6,7 +6,6 @@ from flask import Flask
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
-from flask_migrate import Migrate
 from flask_babel import Babel, gettext as _
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter, current_user
 

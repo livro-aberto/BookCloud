@@ -3,7 +3,7 @@
 A collaborative platform to write books based on git
 
 
-## Installation
+## Install requisites
 
 These are some installation instructions (for Ubuntu or Debian):
 
@@ -13,76 +13,105 @@ These are some installation instructions (for Ubuntu or Debian):
 
     sudo apt-get install poppler-utils npm
 
-    sudo apt-get install mysql-server libmysqlclient-dev
+    sudo apt-get install libmysqlclient-dev
 
     sudo apt-get install libffi-dev libssl-dev python-bcrypt
 
     virtualenv vir
+
+Enter the virtual environment:
+
     source vir/bin/activate
 
-when needed use `deactivate` to exit the virtualenv
+Then install the python requirements:
 
     pip install -r requirements.txt
 
-Create config file
+Type `deactivate` if you want to exit the virtualenv.
 
-    cp config_default.py config.py
-
-    cp conf/conf_default.py conf/conf.py
-
-    cp cp instance/instance_config_default.py instance/instance_config.py
-
-edit the `conf.py` file. Specially:
-
-  1. Change your secret key
-  2. Setup your email
-
-## Bower installation
-
-First install bower
-
-    sudo npm install -g bower
-
-
-
-Then go to folder `application/static/vendor` and try `bower install`. If you get `/usr/bin/env: node: No such file or directory`, then you may have to change the name of the executable for node.js like that:
-
-    sudo ln -s /usr/bin/nodejs /usr/bin/node
 
 ## To install sql
 
 Install
 
-    sudo apt-get install mysql
+    sudo apt-get install mysql mysql-server
 
-add a root password
+Add a root password
 
     login as root
     mysql -u root -p
 
-create a new user
+Create a new user for bookcloud
 
-    CREATE USER 'newusersname'@'localhost' IDENTIFIED BY 'password';
+    CREATE USER '<newusersname>'@'localhost' IDENTIFIED BY '<password>';
 
-grant user access to anything
+Grant user access to the database. To simplify, you can grant access to anything:
 
-    GRANT ALL PRIVILEGES ON * . * TO 'newusersname'@'localhost';
+    GRANT ALL PRIVILEGES ON * . * TO '<newusersname>'@'localhost';
     FLUSH PRIVILEGES;
 
-log out with root (Ctr-D) log in with user
+Log out with root (pressing `Ctr-D`), then log in with the new user:
 
-    mysql -u newusersname -p
+    mysql -u <newusersname> -p
 
-create a new database
+Create a new database
 
-    CREATE DATABASE databasename;
+    CREATE DATABASE <databasename>;
 
-## Notation
+Usually `bookcloud` is a good name for the database.
 
+## Configuring the app
 
-users: @john
-branches: _fixing
-files: #intro
+Create config file for sphinx:
 
+    cp conf/conf_default.py conf/conf.py
 
-## Add instructions for locale compilation
+and check there all the parameters you would like to change for the compilation.
+
+Now create the config for the app
+
+    cp instance/instance_config_default.py instance/instance_config.py
+
+and edit the `instance/instance_config.py` file. Specially:
+
+  1. Change your secret key
+  2. Setup your email
+
+## Create all tables in database
+
+Remember to enter the virtual environment if not yet there:
+
+    source vir/bin/activate
+
+Enter the `migrations` folder and type
+
+    alembic upgrade head
+
+You could get an error of package not found if your alembic is installed system-wide (thus it will not find the packages in the virtual environment). In this case run
+
+    python -m alembic.config upgrade head
+
+## Install JavaScript requirements
+
+First install bower
+
+    sudo npm install -g bower
+
+Then go to folder `application/static/vendor` and try
+
+    bower install
+
+If you get `/usr/bin/env: node: No such file or directory`, then you may have to change the name of the executable for node.js like that:
+
+    sudo ln -s /usr/bin/nodejs /usr/bin/node
+
+## Add translations
+
+You may need:
+
+    source vir/bin/activate
+
+Then in `application` folder type:
+
+    pybabel compile -d translations
+

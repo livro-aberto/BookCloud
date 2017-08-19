@@ -23,4 +23,6 @@ Flask-Assets==0.12
 cssmin==0.2.0
 closure==20161201
 dulwich==0.18.2
+Flask-Migrate==2.0.4
+alembic==0.9.2
 
