@@ -157,13 +157,13 @@ def get_locale():
     return 'en'
 
 @limiter.exempt
-@bookcloud.errorhandler(404)
+@app.errorhandler(404)
 def page_not_found(e):
     message = e.description
     return render_template('404.html', message=message), 404
 
 @limiter.exempt
-@bookcloud.errorhandler(Exception)
+@app.errorhandler(Exception)
 def internal_server_error(e):
     message = repr(e)
     trace = traceback.format_exc()

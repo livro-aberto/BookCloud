@@ -38,9 +38,12 @@ branches = Blueprint('branches', __name__,
 
 @branches.url_value_preprocessor
 def branches_url_value_preprocessor(endpoint, values):
-    g.project = Project.get_by_name(values.get('project'))
+    try:
+        g.project = Project.get_by_name(values.get('project'))
+        g.branch = g.project.get_branch(values.get('branch'))
+    except:
+        abort(404)
     values['project'] = g.project
-    g.branch = g.project.get_branch(values.get('branch'))
     values['branch'] = g.branch
 
 @branches.before_request
