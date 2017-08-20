@@ -25,13 +25,11 @@ from application.branches import *
 from application.utils import last_modified, commit_diff
 from application.projects import Project, ProjectForm
 
-bookcloud = Blueprint('bookcloud', __name__)
-
-@bookcloud.before_request
+@app.before_request
 def bookcloud_before_request():
     g.menu = {
         'left': [{'name': 'Home',
-                  'url': url_for('bookcloud.home')}],
+                  'url': url_for('home')}],
         'right': [{
             'name': 'Bookcloud',
             'sub_menu': [
@@ -85,11 +83,11 @@ def package():
     sent_package['commit_diff'] = commit_diff
     return sent_package
 
-@bookcloud.context_processor
+@app.context_processor
 def bookcloud_context_processor():
     return {'menu': g.menu}
 
-@bookcloud.route('/')
+@app.route('/')
 @limiter.exempt
 def home():
     path = 'repos'
@@ -104,10 +102,9 @@ def home():
         flash('Some folders have no project (%s)'
               % ', '.join(folders_without_project), 'error')
     projects = list(set(projects) - set(projects_without_folder))
-    return render_template('home.html', projects=projects,
-                           copyright='CC-BY-SA')
+    return render_template('home.html', projects=projects)
 
-@bookcloud.route('/new', methods = ['GET', 'POST'])
+@app.route('/new', methods = ['GET', 'POST'])
 @limiter.limit("4 per day")
 @login_required
 def new():
@@ -127,7 +124,7 @@ def new():
                                     branch='master', filename='index'))
     return render_template('new.html', form=form)
 
-@bookcloud.route('/html2rst', methods = ['GET', 'POST'])
+@app.route('/html2rst', methods = ['GET', 'POST'])
 @limiter.limit("300 per day")
 def html2rst():
     if request.method == 'POST':
@@ -186,12 +183,15 @@ def internal_server_error(e):
                                         request.scheme, request.full_path,
                                         user, '\n'.join(trace)))
     # send email to admin
-    if not app.config['TESTING']:
+    if app.config['TESTING']:
+        print(gathered_data)
+    else:
         mail_message = gathered_data
         msg = Message('Error: ' + message[:40],
                       body=mail_message,
                       recipients=[app.config['ADMIN_MAIL']])
         mail.send(msg)
         flash(_('A message has been sent to the administrator'), 'info')
+    g.menu = {}
     return render_template('500.html', message=gathered_data), 500
 

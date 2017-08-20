@@ -125,7 +125,6 @@ def create_app(extra_config_settings={}):
     import application.views.projects
     import application.views.threads
     import application.views.branches
-    app.register_blueprint(application.views.bookcloud)
     app.register_blueprint(application.views.users.users)
     app.register_blueprint(application.views.projects.projects)
     app.register_blueprint(application.views.threads.threads)

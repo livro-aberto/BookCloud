@@ -30,7 +30,7 @@ test_page = (u'Title of test page\n'
 
 def test_page_urls(client):
     # Visit home page
-    response = client.get(url_for('bookcloud.home'))
+    response = client.get(url_for('home'))
     assert _('Projects list').encode('utf8') in response.data
 
     # Login
@@ -51,17 +51,17 @@ def test_page_urls(client):
     assert b'NY' in response.data
 
     # Get page for new()
-    response = client.get(url_for('bookcloud.new'))
+    response = client.get(url_for('new'))
     assert _('Create new project') in response.data
 
     # Create a new project
     new_project_name = ''.join(random.sample(char_set, 20))
-    response = client.post(url_for('bookcloud.new'), follow_redirects=True,
+    response = client.post(url_for('new'), follow_redirects=True,
                            data=dict(name=new_project_name))
     assert new_project_name in response.data
 
     # Check that project is there
-    response = client.get(url_for('bookcloud.home'))
+    response = client.get(url_for('home'))
     assert new_project_name in response.data
 
     # Visit new project
@@ -389,7 +389,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   thread_id=thread_id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('bookcloud.home',
+                          data=dict(return_url=url_for('home',
                                                        _external=True)))
     assert (_('Thread is not empty')).encode('utf8') in response.data
 
@@ -398,7 +398,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   comment_id=comment.id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('bookcloud.home',
+                          data=dict(return_url=url_for('home',
                                                        _external=True)))
     assert (_('This comment has replies and cannot be deleted').encode('utf8')
             in response.data)
@@ -408,7 +408,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   comment_id=reply.id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('bookcloud.home',
+                          data=dict(return_url=url_for('home',
                                                        _external=True)))
     assert (_('Comment successfully deleted').encode('utf8')
             in response.data)
@@ -418,7 +418,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   comment_id=comment.id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('bookcloud.home',
+                          data=dict(return_url=url_for('home',
                                                        _external=True)))
     assert (_('Comment successfully deleted').encode('utf8')
             in response.data)
@@ -428,7 +428,7 @@ def test_page_urls(client):
                                   project=new_project_name,
                                   thread_id=thread_id),
                           follow_redirects=True,
-                          data=dict(return_url=url_for('bookcloud.home',
+                          data=dict(return_url=url_for('home',
                                                        _external=True)))
     assert (_('Thread successfully deleted').encode('utf8')
             in response.data)
