@@ -24,7 +24,7 @@ from flask_user import login_required, current_user
 import application
 from application import limiter
 from application import db
-from application.utils import load_file, write_file
+from application.utils import load_file, write_file, Custom404
 from .projects import Project
 from .threads import Thread, File_Tag
 from application.branches import (
@@ -40,9 +40,16 @@ branches = Blueprint('branches', __name__,
 def branches_url_value_preprocessor(endpoint, values):
     try:
         g.project = Project.get_by_name(values.get('project'))
+    except:
+        g.project = g.branch = {}
+        raise Custom404('Could not find project {}'
+                        .format(values.get('project')))
+    try:
         g.branch = g.project.get_branch(values.get('branch'))
     except:
-        abort(404)
+        g.project = g.branch = {}
+        raise Custom404('Could not find branch {}'
+              .format(values.get('branch')))
     values['project'] = g.project
     values['branch'] = g.branch
 
@@ -163,7 +170,7 @@ def view(project, branch, filename):
         content = load_file(join('repos', project.name, branch.name,
                                  'build/html', filename + file_extension))
     except:
-        abort(404)
+        raise Custom404(_('Could not find file {}').format(filename))
     threads = (Thread.query.join(File_Tag)
                .filter(File_Tag.filename==filename)
                .filter(Thread.project_id==project.id)

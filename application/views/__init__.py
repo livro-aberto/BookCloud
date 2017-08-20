@@ -22,7 +22,7 @@ from flask_mail import Message
 
 from application import app, mail, limiter, babel, db
 from application.branches import *
-from application.utils import last_modified, commit_diff
+from application.utils import last_modified, commit_diff, Custom404
 from application.projects import Project, ProjectForm
 
 @app.before_request
@@ -155,8 +155,10 @@ def get_locale():
 
 @limiter.exempt
 @app.errorhandler(404)
+@app.errorhandler(Custom404)
 def page_not_found(e):
-    message = e.description
+    bookcloud_before_request()
+    message = e.message
     return render_template('404.html', message=message), 404
 
 @limiter.exempt
@@ -192,6 +194,6 @@ def internal_server_error(e):
                       recipients=[app.config['ADMIN_MAIL']])
         mail.send(msg)
         flash(_('A message has been sent to the administrator'), 'info')
-    g.menu = {}
+    bookcloud_before_request()
     return render_template('500.html', message=gathered_data), 500
 

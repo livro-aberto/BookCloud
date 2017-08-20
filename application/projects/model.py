@@ -112,8 +112,11 @@ class Project(CRUDMixin, db.Model):
         self.get_master().build()
 
     def get_threads_by_tag(self, filename):
-        data = load_file(join('repos', self.name, 'master',
-                              'source', filename + '.rst'))
+        try:
+            data = load_file(join('repos', self.name, 'master',
+                                  'source', filename + '.rst'))
+        except:
+            return []
         label_list = re.findall(r'^\.\. _([0-9a-z\-]+):\s$', data, re.MULTILINE)
         File_Tag = application.threads.File_Tag
         Thread = application.threads.Thread

@@ -6,6 +6,10 @@ from flask_babel import gettext as _
 
 from diff import render_diff
 
+class Custom404(Exception):
+    def __init__(self,*args,**kwargs):
+        Exception.__init__(self,*args,**kwargs)
+
 def window(iterable):
     # Turns an iterable into a moving window
     # [0, ..., 10] -> [(None, 0, 1), (0, 1, 2), ..., (8, 9, None), (9, None, None)]
