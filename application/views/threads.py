@@ -1,5 +1,6 @@
 import urllib
 import json
+from sets import Set
 from datetime import datetime
 from os.path import join
 
@@ -45,7 +46,6 @@ def newthread(project):
               'custom_tags': '', 'free_tags': ''}
     for t in inputs:
         inputs[t] = request.args.get(t) if request.args.get(t) else ''
-    print(inputs)
     # In the next line we are deleting some inputs if they
     # were inserted but not validated in a previous new_thread view
     form = NewThreadForm(request.form,
@@ -85,11 +85,16 @@ def newthread(project):
         db.session.commit()
         # send emails
         message = render_template('threads/email.html', comment=new_comment)
+        recipients = Set(form.user_tags.data)
+        for tags in new_thread.custom_tags:
+            recipients = recipients | Set([u.username for u in
+                                           tags.subscribed_users])
         if app.config['TESTING']:
+            print('Email should be sent to: ' + str(recipients))
             print(message)
         else:
             with mail.connect() as conn:
-                for user in form.user_tags.data:
+                for user in recipients:
                     user_obj = User.get_by_name(user)
                     subject = _('Thread: ') + new_thread.title
                     msg = Message(recipients=[user_obj.email],

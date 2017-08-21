@@ -65,17 +65,17 @@ def update_profile():
 @login_required
 def subscriptions():
     form = SubscriptionForm(request.form)
-    form.subscriptions.choices = [(t.name, t.name)
+    form.subscriptions.choices = [(str(t.id), t.project.name + ' - ' + t.name)
                                   for t in Named_Tag.query.all()]
     if request.method == 'POST' and form.validate():
         if not form.subscriptions.data:
             form.subscriptions.data = []
         subscription_list = (Named_Tag
-            .query.filter(Named_Tag.name.in_(form.subscriptions.data))).all()
+            .query.filter(Named_Tag.id.in_(form.subscriptions.data))).all()
         current_user.subscriptions = subscription_list
         db.session.commit()
         flash(_('Subscriptions updated'), 'info')
         return redirect(url_for('users.profile'))
-    form.subscriptions.default = [t.name for t in current_user.subscriptions]
+    form.subscriptions.default = [t.id for t in current_user.subscriptions]
     form.subscriptions.process(request.form)
     return render_template('subscriptions.html', form=form)

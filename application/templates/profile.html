@@ -26,6 +26,18 @@
     </div>
   </div>
 
+  <h2>{{ _('Subscriptions' )}}</h2>
+
+  <ul class="uk-list">
+    {% for s in current_user.subscriptions %}
+    <li>
+      <span class="uk-label uk-label-success">{{ s.project.name + ' - ' + s.name }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  <a href="{{ url_for('users.subscriptions') }}"
+     class="uk-button uk-button-primary">{{ _('Manage') }}</a>
+
   <!-- Branches -->
   <h2>{{ _('Your branches') }}</h2>
   <table class="uk-table uk-table-striped">
