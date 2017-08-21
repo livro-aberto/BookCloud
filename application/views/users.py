@@ -5,6 +5,7 @@ from flask_babel import gettext as _
 
 from application import db
 from application.projects import Project
+from application.branches import Branch
 from application.threads import Named_Tag
 from application import app, limiter
 import application
@@ -34,7 +35,8 @@ def users_context_processor():
 @login_required
 def profile():
     projects = list(Project.query.all())
-    return render_template('profile.html', projects=projects,
+    branches = list(Branch.query.filter(Branch.owner==current_user).all())
+    return render_template('profile.html', projects=projects, branches=branches,
                            user=current_user,
                            properties=app.config['USER_PROPERTIES'])
 
