@@ -179,7 +179,8 @@ def view(project, branch, filename):
     threads_by_tag = project.get_threads_by_tag(filename)
     named_tags = ','.join([
         t.name if re.search(t.file_regexp, filename) else ''
-        for t in Named_Tag.query.all()])
+        for t in (Named_Tag.query
+                  .filter(Named_Tag.project_id==project.id).all())])
     return render_template('view.html', content=content,
                            threads=threads, filename=filename,
                            threads_by_tag=threads_by_tag,
