@@ -208,9 +208,13 @@ def newcomment(project, thread_id, parent_lineage=''):
         db.session.add(new_comment)
         db.session.commit()
         # send emails
-        list_of_users = [ tag.username for tag in thread.user_tags]
+        recipients = Set([tag.username for tag in thread.user_tags])
+        for tags in new_thread.custom_tags:
+            recipients = recipients | Set([u.username for u in
+                                           tags.subscribed_users])
         message = render_template('threads/email.html', comment=new_comment)
         if app.config['TESTING']:
+            print('Email should be sent to: ' + str(recipients))
             print(message)
         else:
             with mail.connect() as conn:
