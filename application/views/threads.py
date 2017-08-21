@@ -102,7 +102,7 @@ def newthread(project):
                                   html=message)
                     conn.send(msg)
             flash(_('Emails sent to {} user(s)')
-                    .format(len(form.user_tags.data)))
+                    .format(len(recipients)))
         flash(_('New thread successfully created'), 'info')
         if 'return_url' in request.args:
             redirect(urllib.unquote(request.args['return_url']))
@@ -225,6 +225,8 @@ def newcomment(project, thread_id, parent_lineage=''):
                                   html=message,
                                   subject=subject)
                     conn.send(msg)
+            flash(_('Emails sent to {} user(s)')
+                  .format(len(recipients)))
         flash(_('New comment successfully created'), 'info')
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))
