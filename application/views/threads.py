@@ -45,6 +45,7 @@ def newthread(project):
               'custom_tags': '', 'free_tags': ''}
     for t in inputs:
         inputs[t] = request.args.get(t) if request.args.get(t) else ''
+    print(inputs)
     # In the next line we are deleting some inputs if they
     # were inserted but not validated in a previous new_thread view
     form = NewThreadForm(request.form,

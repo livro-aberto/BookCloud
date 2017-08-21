@@ -1,4 +1,5 @@
 import os
+import re
 import git
 import string
 import json
@@ -26,7 +27,7 @@ from application import limiter
 from application import db
 from application.utils import load_file, write_file, Custom404
 from .projects import Project
-from .threads import Thread, File_Tag
+from .threads import Thread, File_Tag, Named_Tag
 from application.branches import (
     Branch, BranchForm, CommitForm, get_merge_pendencies,
     get_merging, update_subtree, get_requests, build_latex,
@@ -176,9 +177,13 @@ def view(project, branch, filename):
                .filter(Thread.project_id==project.id)
                .order_by(desc(Thread.posted_at)).all())
     threads_by_tag = project.get_threads_by_tag(filename)
+    named_tags = ','.join([
+        t.name if re.search(t.file_regexp, filename) else ''
+        for t in Named_Tag.query.all()])
     return render_template('view.html', content=content,
                            threads=threads, filename=filename,
-                           threads_by_tag=threads_by_tag)
+                           threads_by_tag=threads_by_tag,
+                           named_tags=named_tags)
 
 @branches.route('/edit/<path:filename>', methods = ['GET', 'POST'])
 @limiter.exempt

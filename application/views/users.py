@@ -5,8 +5,11 @@ from flask_babel import gettext as _
 
 from application import db
 from application.projects import Project
+from application.threads import Named_Tag
 from application import app, limiter
 import application
+
+from application.users import SubscriptionForm
 
 users = Blueprint('users', __name__)
 
@@ -56,3 +59,23 @@ def update_profile():
         return redirect(url_for('users.profile'))
     return render_template('update_profile.html', user=current_user,
                            profile_form=app.config['USER_PROPERTIES'])
+
+@users.route('/subscriptions', methods = ['GET', 'POST'])
+@limiter.limit("10 per day")
+@login_required
+def subscriptions():
+    form = SubscriptionForm(request.form)
+    form.subscriptions.choices = [(t.name, t.name)
+                                  for t in Named_Tag.query.all()]
+    if request.method == 'POST' and form.validate():
+        if not form.subscriptions.data:
+            form.subscriptions.data = []
+        subscription_list = (Named_Tag
+            .query.filter(Named_Tag.name.in_(form.subscriptions.data))).all()
+        current_user.subscriptions = subscription_list
+        db.session.commit()
+        flash(_('Subscriptions updated'), 'info')
+        return redirect(url_for('users.profile'))
+    form.subscriptions.default = [t.name for t in current_user.subscriptions]
+    form.subscriptions.process(request.form)
+    return render_template('subscriptions.html', form=form)
