@@ -209,7 +209,7 @@ def newcomment(project, thread_id, parent_lineage=''):
         db.session.commit()
         # send emails
         recipients = Set([tag.username for tag in thread.user_tags])
-        for tags in new_thread.custom_tags:
+        for tags in thread.custom_tags:
             recipients = recipients | Set([u.username for u in
                                            tags.subscribed_users])
         message = render_template('threads/email.html', comment=new_comment)
