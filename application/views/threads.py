@@ -218,7 +218,7 @@ def newcomment(project, thread_id, parent_lineage=''):
             print(message)
         else:
             with mail.connect() as conn:
-                for user in list_of_users:
+                for user in recipients:
                     user_obj = User.query.filter_by(username=user).first()
                     subject = _('Thread: ') + thread.title
                     msg = Message(recipients=[user_obj.email],
