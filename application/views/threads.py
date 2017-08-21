@@ -142,8 +142,13 @@ def editthread(project, thread_id):
                             for n in form.user_tags.data]
         thread.file_tags = [File_Tag(thread.id, n)
                             for n in form.file_tags.data]
-        thread.custom_tags = [Named_Tag.get_by_name(n)
-                              for n in form.custom_tags.data]
+        #thread.custom_tags = [Named_Tag.query.filter(Project==project,
+        #                                             Named_Tag.name==n)
+        #                      for n in form.custom_tags.data]
+        thread.custom_tags = list(
+            Named_Tag.query.filter(Project==project,
+                                   Named_Tag.name.in_(form.custom_tags.data))
+                           .all())
         thread.free_tags = [Free_Tag(thread.id, n)
                             for n in form.free_tags.data]
         db.session.commit()
