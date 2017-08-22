@@ -1,6 +1,7 @@
 import os
 import re
 import json
+from shutil import rmtree
 from os.path import isfile, join
 import string
 import git
