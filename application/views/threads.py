@@ -86,11 +86,15 @@ def newthread(project):
         db.session.add(new_thread)
         db.session.commit()
         # send emails
-        message = render_template('threads/email.html', comment=new_comment)
         recipients = Set(form.user_tags.data)
         for tags in new_thread.custom_tags:
             recipients = recipients | Set([u.username for u in
                                            tags.subscribed_users])
+        # Passing the recipients in the email is just temporary
+        # for debugging
+        message = render_template('threads/email.html', comment=new_comment,
+                                  recipients=recipients)
+        #######################################################
         if app.config['TESTING']:
             print('Email should be sent to: ' + str(recipients))
             print(message)
@@ -216,7 +220,11 @@ def newcomment(project, thread_id, parent_lineage=''):
         for tags in thread.custom_tags:
             recipients = recipients | Set([u.username for u in
                                            tags.subscribed_users])
-        message = render_template('threads/email.html', comment=new_comment)
+        # Passing the recipients in the email is just temporary
+        # for debugging
+        message = render_template('threads/email.html', comment=new_comment,
+                                  recipients=recipients)
+        #######################################################
         if app.config['TESTING']:
             print('Email should be sent to: ' + str(recipients))
             print(message)
