@@ -12,7 +12,12 @@
       {{ _('Threads') }}
       <span class="uk-badge">{{ len(threads.all()) }}</span>
     </legend>
-    <button id="button-show-form" class="uk-button uk-button-default"
+    <a href="{{ url_for('threads.newthread',
+                        project=project.name) }}"
+       class="uk-button uk-button-default uk-margin"
+       type="button">New thread</a>
+    <button id="button-show-form"
+            class="uk-button uk-button-default uk-margin"
             uk-toggle="target: #toggle-form" type="button">Search</button>
     <form method="GET" id="toggle-form"
           aria-hidden="true" hidden="hidden">
