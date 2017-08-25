@@ -261,7 +261,8 @@ def clone(project, branch):
     if merge_pendencies:
         flash(_('You are trying to clone a branch that is being merged'),
               'error')
-        return render_template('merge.html')
+        return redirect(url_for('branches.view', project=project.name,
+                                branch=branch.name, filename='index'))
     ####################
     if request.method == 'POST' and form.validate():
         if (Branch.query
