@@ -64,6 +64,10 @@ def branch_before_request():
             'url': url_for('branches.view', project=g.project.name,
                            branch=g.branch.name, filename='index.html')
         }, {
+            'name': 'Glossary',
+            'url': url_for('branches.view', project=g.project.name,
+                           branch=g.branch.name, filename='genindex.html')
+        }, {
             'name': 'Dashboard',
             'url': url_for('branches.branch', project=g.project.name,
                            branch=g.branch.name)
@@ -427,10 +431,6 @@ def pdf(project, branch='master'):
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
-
-@branches.route('/view/genindex.html')
-def genindex(project, branch):
-    return redirect(url_for('branches.view', project=project, branch=branch, filename='index.html'))
 
 @branches.route('/<action>/_images/<path:filename>')
 @limiter.exempt
