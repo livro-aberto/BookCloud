@@ -202,6 +202,7 @@ def newcomment(project, thread_id, parent_lineage=''):
             abort(404)
     if request.method == 'POST' and form.validate():
         thread = Thread.get_by_id(thread_id)
+        thread.user_read_thread = [current_user]
         siblings_pattern = parent_lineage + '%'
         decend_comments = (Comment.query
                            .filter(Comment.thread_id==thread_id)
