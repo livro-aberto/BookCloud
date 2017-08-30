@@ -113,8 +113,9 @@ def newthread(project):
         if 'return_url' in request.args:
             redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('branches.view', project=project.name,
-                                    branch='master', filename='index'))
+            return redirect(url_for('threads.query_thread',
+                                    project=project.name,
+                                    thread_id=new_thread.id))
     return render_template('threads/newthread.html', form=form)
 
 @threads.route('/<project>/edit_thread/<thread_id>', methods = ['GET', 'POST'])

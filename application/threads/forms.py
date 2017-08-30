@@ -26,9 +26,10 @@ class TextExtWidget(object):
         # Allow passing title= or alternately use field.description
         title = kwargs.pop('title', field.label.text or '')
         params = html_params(title=title, id=field.name, **kwargs)
-        html = ('<textarea %s class="example"\n'
-                '     rows="1" cols="80" name="%s"\n'
-                '     placeholder="..."></textarea>\n') % (params, field.name)
+        html = (('<textarea %s class="example"\n'
+                 '     rows="1" cols="80" name="%s"\n'
+                 '     placeholder="%s"></textarea>\n')
+                % (params, field.name, field.description or '...'))
         if self.choices == '[]':
             script_params = ('      plugins : "tags",\n'
                              '      tagsItems: %s,\n') % json.dumps(field.data)
@@ -69,7 +70,8 @@ class ThreadForm(Form):
     flag = RadioField('Flag', default='discussion',
                       choices=[('discussion', 'disucussion'),
                                ('issue', 'issue')])
-    user_tags = TextExtField('Users')
+    user_tags = TextExtField('Users',
+                             description=_('Press down for a list'))
     file_tags = TextExtField('Files')
     custom_tags = TextExtField('Tags')
     free_tags = TextExtField('Hash Tags')
