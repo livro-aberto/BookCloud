@@ -2,23 +2,38 @@ import os
 import git
 from os.path import join, isdir, isfile, splitext
 from functools import wraps
+import json
 
 from flask import (
     g, Blueprint, request, render_template,
-    url_for, flash, redirect
+    url_for, flash, redirect, send_from_directory, abort
 )
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
 from sqlalchemy import desc
+from werkzeug import secure_filename, FileStorage
+from PIL import Image
 
 from application import db, limiter
-from application.projects import Project, ProjectForm, FileForm
+from application.projects import (
+    Project, ProjectForm, FileForm
+)
 from application.branches import (
     Branch, get_sub_branches,
     get_merge_pendencies
 )
 import application.views
-from application.utils import write_file
+from application.utils import (
+    write_file, extension, lowercase_ext, resolve_conflict
+)
+
+IMAGES = tuple('jpg jpe jpeg png gif svg bmp'.split())
+
+class UploadNotAllowed(Exception):
+    """
+    This exception is raised if the upload was not allowed. You should catch
+    it in your view code and display an appropriate message to the user.
+    """
 
 projects = Blueprint('projects', __name__, url_prefix='/<project>')
 
@@ -150,3 +165,68 @@ def deletefile(project, filename):
     except application.projects.FileNotEmpty:
         flash(_('This file is not empty'), 'error')
     return redirect(url_for('projects.dashboard', project=project.name))
+
+# API routes
+@projects.route('/upload_resource', methods = ['GET', 'POST'])
+@login_required
+def upload_resource(project):
+    if request.method == 'GET':
+        return '''
+        <!doctype html>
+        <title>Upload new File</title>
+        <h1>Upload new File</h1>
+        <form method=post enctype=multipart/form-data>
+        <p><input type=file name=file>
+        <input type=submit value=Upload>
+        </form>
+        '''
+    if 'file' not in request.files:
+        return json.dumps({
+            'message': _('No file'),
+            'status': 'error'
+        })
+    file = request.files['file']
+    if file.filename == '':
+        return json.dumps({
+            'message': _('No selected file'),
+            'status': 'error'
+        })
+    basename = lowercase_ext(secure_filename(file.filename))
+    if extension(basename) not in IMAGES:
+        return json.dumps({
+            'message': _('File format not allowed'),
+            'status': 'error'
+        })
+    folder = join(project.get_folder(), '_resources')
+    original_folder = join(folder, 'original')
+    if os.path.exists(join(original_folder, basename)):
+        basename = resolve_conflict(original_folder, basename)
+    target = join(original_folder, basename)
+    file.save(target)
+    # save low_resolution
+    image = Image.open(target)
+    basewidth = 500
+    wpercent = (basewidth/float(image.size[0]))
+    hsize = int((float(image.size[1])*float(wpercent)))
+    image = image.resize((basewidth,hsize), Image.ANTIALIAS)
+    image.save(join(folder, 'low_resolution', basename))
+    # save thumbnail
+    image = Image.open(target)
+    basewidth = 40
+    wpercent = (basewidth/float(image.size[0]))
+    hsize = int((float(image.size[1])*float(wpercent)))
+    image = image.resize((basewidth,hsize), Image.ANTIALIAS)
+    image.save(join(folder, 'thumbnail', basename))
+    # here there has to be some thumbnailing
+    return json.dumps({
+        'message': _('Image saved successfully'),
+        'status': 'success',
+        'filename': basename
+    })
+
+@projects.route('/resources/<path:filename>')
+def resources(project, filename):
+    return send_from_directory(
+        os.path.abspath(join(project.get_folder(), '_resources/original')),
+        filename)
+

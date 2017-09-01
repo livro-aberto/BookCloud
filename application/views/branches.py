@@ -43,14 +43,14 @@ def branches_url_value_preprocessor(endpoint, values):
         g.project = Project.get_by_name(values.get('project'))
     except:
         g.project = g.branch = {}
-        raise Custom404('Could not find project {}'
+        raise Custom404(_('Could not find project {}')
                         .format(values.get('project')))
     try:
         g.branch = g.project.get_branch(values.get('branch'))
     except:
         g.project = g.branch = {}
-        raise Custom404('Could not find branch {}'
-              .format(values.get('branch')))
+        raise Custom404(_('Could not find branch {}')
+                        .format(values.get('branch')))
     values['project'] = g.project
     values['branch'] = g.branch
 
@@ -60,15 +60,15 @@ def branch_before_request():
     g.menu['left'].append({
         'name': g.branch.name,
         'sub_menu': [{
-            'name': 'View index',
+            'name': _('View index'),
             'url': url_for('branches.view', project=g.project.name,
                            branch=g.branch.name, filename='index.html')
         }, {
-            'name': 'Glossary',
+            'name': _('Glossary'),
             'url': url_for('branches.view', project=g.project.name,
                            branch=g.branch.name, filename='genindex.html')
         }, {
-            'name': 'Dashboard',
+            'name': _('Dashboard'),
             'url': url_for('branches.branch', project=g.project.name,
                            branch=g.branch.name)
         }]})
@@ -78,7 +78,7 @@ def branch_before_request():
                 'url': url_for('branches.commit',
                                project=g.project.name,
                                branch=g.branch.name),
-                'name': 'Commit', 'style': 'attention'
+                'name': _('Commit'), 'style': 'attention'
             })
         else:
             if len(get_requests(g.project.name, g.branch.name)):
@@ -86,7 +86,7 @@ def branch_before_request():
                     'url': url_for('branches.requests',
                                    project=g.project.name,
                                    branch=g.branch.name),
-                    'name': 'Requests',
+                    'name': _('Requests'),
                     'style': 'attention'
                 })
 
@@ -158,7 +158,7 @@ def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
     if file_extension == '':
         file_extension = '.html'
-    g.menu['right'].insert(0, {'name': 'edit',
+    g.menu['right'].insert(0, {'name': _('Edit'),
                                'url': url_for('branches.edit',
                                               project=project.name,
                                               branch=branch.name,
@@ -249,7 +249,7 @@ def commit(project, branch):
             git_api.push('origin', branch.name)
             flash(_('Page submitted to _%s') % origin.name, 'info')
         update_subtree(project, branch)
-        flash('Change commited', 'info')
+        flash(_('Change commited'), 'info')
         return redirect(url_for('branches.view', project=project.name,
                                 branch=branch.name, filename='index'))
     diff = repo.git.diff('--cached')
@@ -386,7 +386,7 @@ def accept(project, branch, filename):
         return redirect(url_for('branches.view', project=project.name,
                                 branch=branch.name, filename='index.html'))
     if not filename in merging['modified']:
-        flash('File %s is not being reviewed' % filename, 'error')
+        flash(_('File %s is not being reviewed') % filename, 'error')
         return redirect(url_for('branches.view', project=project.name,
                                 branch=branch.name, filename='index.html'))
     ####################

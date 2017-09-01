@@ -57,6 +57,9 @@ class Branch(CRUDMixin, db.Model):
                                            self.project.name,
                                            name, 'source'))
         self.get_repo().clone(branch_path, branch=self.name)
+        os.symlink(os.path.abspath(join('repos', self.project.name,
+                                        '_resources/low_resolution')),
+                   join(branch_path, '_resources'))
         branch_repo = git.Repo(branch_path)
         branch_repo.git.checkout('HEAD', b=name)
         config_repo(branch_repo, user.username, user.email)

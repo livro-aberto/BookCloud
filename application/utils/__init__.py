@@ -1,3 +1,4 @@
+import os.path
 import time
 
 from flask import redirect, url_for, flash
@@ -178,8 +179,9 @@ def create_identifier(name):
     return StringField(name, [
         validators.Length(min=4, max=25),
         validators.Regexp(
-            '^[\w-]+$',
-            message="Identifiers must contain only a-zA-Z0-9_-"),])
+            '^[a-zA-Z0-9][\w-]+$',
+            message=_('Identifiers must contain only a-zA-Z0-9_- '
+                      'and cannot start with - or _'))])
 
 def select_multi_checkbox(field, ul_class='', **kwargs):
     kwargs.setdefault('type', 'checkbox')
@@ -228,3 +230,46 @@ def commit_diff(repo, old_commit, new_commit):
         summary['ndeletions'] += deletions
         file_changes.append(change)
     return summary, file_changes
+
+def extension(filename):
+    ext = os.path.splitext(filename)[1]
+    if ext.startswith('.'):
+        # os.path.splitext retains . separator
+        ext = ext[1:]
+    return ext
+
+def lowercase_ext(filename):
+    """
+    This is a helper used by UploadSet.save to provide lowercase extensions for
+    all processed files, to compare with configured extensions in the same
+    case.
+    :param filename: The filename to ensure has a lowercase extension.
+    """
+    if '.' in filename:
+        main, ext = os.path.splitext(filename)
+        return main + ext.lower()
+    # For consistency with os.path.splitext,
+    # do not treat a filename without an extension as an extension.
+    # That is, do not return filename.lower().
+    return filename
+
+def resolve_conflict(target_folder, basename):
+        """
+        If a file with the selected name already exists in the target folder,
+        this method is called to resolve the conflict. It should return a new
+        basename for the file.
+        The default implementation splits the name and extension and adds a
+        suffix to the name consisting of an underscore and a number, and tries
+        that until it finds one that doesn't exist.
+        :param target_folder: The absolute path to the target.
+        :param basename: The file's original basename.
+        """
+        name, ext = os.path.splitext(basename)
+        count = 0
+        while True:
+            count = count + 1
+            newname = '%s_%d%s' % (name, count, ext)
+            if not os.path.exists(os.path.join(target_folder, newname)):
+                return newname
+
+
