@@ -78,6 +78,10 @@ def projects_before_request():
             'name': _('View pdf'),
             'url': url_for('branches.pdf', project=g.project.name,
                            branch='master'),
+            'external': True
+        }, {
+            'name': _('Upload Figure'),
+            'url': url_for('projects.upload_resource', project=g.project.name),
             'external': True}]})
 
 @projects.context_processor
@@ -218,6 +222,7 @@ def upload_resource(project):
     image = image.resize((basewidth,hsize), Image.ANTIALIAS)
     image.save(join(folder, 'thumbnail', basename))
     # here there has to be some thumbnailing
+    return ".. figure:: _resources/" + basename
     return json.dumps({
         'message': _('Image saved successfully'),
         'status': 'success',
