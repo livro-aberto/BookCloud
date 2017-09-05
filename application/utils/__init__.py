@@ -1,6 +1,7 @@
 import os.path
 import time
 
+from dulwich.objects import Blob
 from flask import redirect, url_for, flash
 
 from flask_babel import gettext as _
