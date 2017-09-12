@@ -40,7 +40,8 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'cloud_sptheme.ext.table_styling',
-    'sphinxcontrib.tikz'
+    'sphinxcontrib.tikz',
+    'sphinx_numfig'
 ]
 
 raw_enabled = False
