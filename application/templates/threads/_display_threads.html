@@ -67,14 +67,14 @@
                    or current_user.username == project.owner) %}
               <a href="{{ url_for('threads.editthread',
                        project=t.project.name, thread_id=t.id,
-                       return_url=url_encode(request.base_url)) }}"
+                       return_url=url_encode(url_for('threads.query_thread', project=project.name, thread_id=t.id))) }}"
                        class="uk-link-muted" uk-icon="icon: pencil"
                        title="{{ _('Edit thread') }}" uk-tooltip>
               </a>
               {% if t.comments.count() == 0 %}
                 <a href="{{ url_for('threads.deletethread',
                          project=t.project.name, thread_id=t.id,
-                         return_url=url_encode(request.base_url)) }}"
+                         return_url=url_encode(url_for('threads.query_thread', project=project.name, thread_id=t.id))) }}"
                          onclick="return confirm('Are you sure?')"
                          class="uk-link-muted" uk-icon="icon: trash"
                          title="{{ _('Delete thread') }}" uk-tooltip>
@@ -211,13 +211,13 @@
                 <a href="{{ url_for('threads.newcomment',
                    project=t.project.name,
                    thread_id = t.id, parent_lineage=c.lineage,
-                         return_url=url_encode(request.base_url)) }}"
+                         return_url=url_encode(url_for('threads.query_thread', project=project.name, thread_id=t.id))) }}"
                    class="uk-link-muted" uk-icon="icon: reply"
                    title="{{ _('Reply') }}" uk-tooltip></a>
                 {% if current_user == c.author %}
                   <a href="{{ url_for('threads.editcomment',
                      project=t.project.name, comment_id=c.id,
-                           return_url=url_encode(request.base_url)) }}"
+                           return_url=url_encode(url_for('threads.query_thread', project=project.name, thread_id=t.id))) }}"
                      class="uk-link-muted" uk-icon="icon: pencil"
                      title="{{ _('Edit comment') }}" uk-tooltip></a>
                 {% endif %}
@@ -227,7 +227,7 @@
                   <a href="{{ url_for('threads.deletecomment',
                            project=t.project.name,
                            comment_id=c.id,
-                           return_url=url_encode(request.base_url)) }}"
+                           return_url=url_encode(url_for('threads.query_thread', project=project.name, thread_id=t.id))) }}"
                            onclick="return confirm('Are you sure?')"
                      class="uk-link-muted" uk-icon="icon: trash"
                      title="{{ _('Delete comment') }}" uk-tooltip></a>
@@ -244,7 +244,7 @@
       </ul>
       <a href="{{ url_for('threads.newcomment',
                   project=t.project.name, thread_id = t.id,
-                  return_url=url_encode(request.base_url)) }}"
+                  return_url=url_encode(url_encode(url_for('threads.query_thread', project=project.name, thread_id=t.id)))) }}"
          class="uk-link-muted uk-margin-medium-left">
         <span uk-icon="icon: reply"></span>
         New comment
