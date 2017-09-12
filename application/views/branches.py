@@ -163,6 +163,11 @@ def view(project, branch, filename):
                                               project=project.name,
                                               branch=branch.name,
                                               filename=filename)})
+    g.menu['left'].append({'name': _('Source'),
+                           'url': url_for('branches.source',
+                                          project=project.name,
+                                          branch=branch.name,
+                                          filename=filename + '.rst')})
     # will be deprecated
     if (current_user.is_authenticated and
         (current_user == branch.owner or
@@ -431,6 +436,12 @@ def pdf(project, branch='master'):
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
+
+@branches.route('/source/<path:filename>')
+@limiter.exempt
+def source(project, branch, filename):
+    source_path = os.path.abspath(join('repos', project.name, branch.name, 'source'))
+    return flask.send_from_directory(source_path, filename)
 
 @branches.route('/<action>/_images/<path:filename>')
 @limiter.exempt
