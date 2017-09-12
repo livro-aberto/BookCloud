@@ -40,9 +40,11 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'cloud_sptheme.ext.table_styling',
-    'sphinxcontrib.tikz',
-    'sphinx_numfig'
+    'sphinxcontrib.tikz'
 ]
+
+numfig = True
+numfig_format = {'figure': 'My fig %s', 'table': 'My tab %s', 'code-block': 'My code %s'}
 
 raw_enabled = False
 
