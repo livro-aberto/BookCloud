@@ -21,7 +21,7 @@ def upgrade():
     sa.Column('username', sa.String(length=50), nullable=False),
     sa.Column('password', sa.String(length=255), server_default='', nullable=False),
     sa.Column('reset_password_token', sa.String(length=100), server_default='', nullable=False),
-    sa.Column('email', sa.String(length=255), nullable=False),
+    sa.Column('email', sa.String(length=75), nullable=False),
     sa.Column('confirmed_at', sa.DateTime(), nullable=True),
     sa.Column('is_active', sa.Boolean(), server_default='0', nullable=False),
     sa.Column('first_name', sa.String(length=100), server_default='', nullable=False),
