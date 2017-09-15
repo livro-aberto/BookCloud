@@ -13,6 +13,7 @@ from flask_babel import gettext as _
 from sqlalchemy import desc
 from werkzeug import secure_filename, FileStorage
 from PIL import Image
+from shutil import copyfile
 
 from application import db, limiter
 from application.projects import (
@@ -208,12 +209,18 @@ def upload_resource(project):
     target = join(original_folder, basename)
     file.save(target)
     # save low_resolution
-    image = Image.open(target)
-    basewidth = 500
-    wpercent = (basewidth/float(image.size[0]))
-    hsize = int((float(image.size[1])*float(wpercent)))
-    image = image.resize((basewidth,hsize), Image.ANTIALIAS)
-    image.save(join(folder, 'low_resolution', basename))
+    if extension(basename) == 'gif':
+        copyfile(target, join(folder, 'low_resolution', basename))
+        name, ext = os.path.splitext(basename)
+        image = Image.open(target)
+        image.save(join(folder, 'low_resolution', name + '.png'))
+    else:
+        image = Image.open(target)
+        basewidth = 500
+        wpercent = (basewidth/float(image.size[0]))
+        hsize = int((float(image.size[1])*float(wpercent)))
+        image = image.resize((basewidth,hsize), Image.ANTIALIAS)
+        image.save(join(folder, 'low_resolution', basename))
     # save thumbnail
     image = Image.open(target)
     basewidth = 40
@@ -222,6 +229,9 @@ def upload_resource(project):
     image = image.resize((basewidth,hsize), Image.ANTIALIAS)
     image.save(join(folder, 'thumbnail', basename))
     # here there has to be some thumbnailing
+    if extension(basename) == 'gif':
+        name, ext = os.path.splitext(basename)
+        return ".. figure:: _resources/" + name + ".*"
     return ".. figure:: _resources/" + basename
     return json.dumps({
         'message': _('Image saved successfully'),
