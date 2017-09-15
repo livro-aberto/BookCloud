@@ -72,8 +72,8 @@ def test_page_urls(client):
                 project=new_project_name),
         data=dict(
             file=(StringIO(data), 'arrow.png')))
-    assert (_('success').encode('utf8') in response.data)
-    recorded_filename = json.loads(response.data)['filename']
+    assert (_('figure').encode('utf8') in response.data)
+    recorded_filename = 'arrow.png'
 
     # Read uploaded image
     response = client.get(

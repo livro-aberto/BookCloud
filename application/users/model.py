@@ -18,7 +18,7 @@ class User(CRUDMixin, UserMixin, db.Model):
     reset_password_token = db.Column(db.String(100), nullable=False,
                                      server_default='')
     # User email information
-    email = db.Column(db.String(255), nullable=False, unique=True)
+    email = db.Column(db.String(75), nullable=False, unique=True)
     confirmed_at = db.Column(db.DateTime())
     # User information
     active = db.Column('is_active', db.Boolean(), nullable=False,
