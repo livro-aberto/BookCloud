@@ -90,7 +90,7 @@ class Branch(CRUDMixin, db.Model):
             '--full-history',
             "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
 
-    def build(self, timeout=10):
+    def build(self, timeout=30):
         # Replace this terrible implementation
         config_path = 'conf'
         # args = ['-a', '-c conf']
