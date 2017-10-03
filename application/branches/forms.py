@@ -1,4 +1,4 @@
-from wtforms import Form
+from wtforms import Form, StringField, validators
 
 from application.utils import create_identifier, create_message
 
@@ -9,6 +9,7 @@ class CommitForm(Form):
 
 class BranchForm(Form):
     name = create_identifier(_('Branch name'))
+
 
 
 

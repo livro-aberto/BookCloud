@@ -26,39 +26,49 @@
     </div>
   </div>
 
+  <h2>{{ _('Subscriptions' )}}</h2>
+
+  <ul class="uk-list">
+    {% for s in current_user.subscriptions %}
+    <li>
+      <span class="uk-label uk-label-success">{{ s.project.name + ' - ' + s.name }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  <a href="{{ url_for('users.subscriptions') }}"
+     class="uk-button uk-button-primary">{{ _('Manage') }}</a>
+
   <!-- Branches -->
   <h2>{{ _('Your branches') }}</h2>
   <table class="uk-table uk-table-striped">
     <thead>
       <tr>
         <th>{{ _('Project') }}</th>
-        <th>{{ _('Owner') }}</th>
+        <th>{{ _('Branch owner') }}</th>
         <th>{{ _('Branch') }}</th>
         <th>{{ _('Father branch') }}</th>
       </tr>
     </thead>
     <tbody>
-      {% for p in projects %}
-        {% for b in p.branches %}
-          <tr>
-            <td>
-              <a href="{{ url_for('projects.dashboard', project=p.name) }}">
-                {{ p.name }}
-              </a>
-            <td>{{ p.owner.username }}</td>
-            <td>
-              <a href="{{ url_for('branches.branch', project=p.name,
-                                  branch=b.name) }}">
-                {{ b.name }}
-              </a>
-            </td>
-            <td>
-              <a href="{{ url_for('branches.branch', project=p.name,
-                                  branch=b.origin.name) }}">
-                {{ b.origin.name }}
-              </a>
-          </tr>
-        {% endfor %}
+      {% for b in branches %}
+        <tr>
+          <td>
+            <a href="{{ url_for('projects.dashboard', project=b.project.name) }}">
+              {{ b.project.name }}
+            </a>
+          <td>{{ b.owner.username }}</td>
+          <td>
+            <a href="{{ url_for('branches.branch', project=b.project.name,
+                                branch=b.name) }}">
+              {{ b.name }}
+            </a>
+          </td>
+          <td>
+            <a href="{{ url_for('branches.branch', project=b.project.name,
+                                branch=b.origin.name) }}">
+              {{ b.origin.name }}
+            </a>
+        </tr>
       {% endfor %}
     </tbody>
   </table>

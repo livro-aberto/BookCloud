@@ -159,8 +159,10 @@ Add the corresponding components in `application/__init__.py`.
 
   - indent always by 2 spaces.
 
-## Thanks to
+## Thanks for pieces of code
 
     https://github.com/jonashaag/klaus
 
     https://github.com/mailgun/transactional-email-templates
+
+    https://github.com/maxcountryman/flask-uploads

@@ -1,0 +1,23 @@
+{% extends "base_template.html" %}
+
+{% from "_formhelpers.html" import render_field %}
+
+{% block title %}{{ _('Subscriptions') }}{% endblock%}
+
+{% macro contents() %}
+  <div class="uk-margin-large-left uk-card uk-card-default uk-card-body">
+    <form method="POST">
+      <fieldset class="uk-fieldset">
+        <legend class="uk-legend">{{ _('Subscriptions') }}</legend>
+        <p>
+          {{ _('Press control to select multiple items') }}
+        <div class="uk-margin">
+          {{ render_field(form.subscriptions, style="width: 300px") }}
+        </div>
+        <div class="uk-margin">
+          <button class="uk-button uk-button-primary">Submit</button>
+        </div>
+    </form>
+  </div>
+{% endmacro %}
+

@@ -1,6 +1,7 @@
 import os
 import re
 import json
+from shutil import rmtree
 from os.path import isfile, join
 import string
 import git
@@ -56,6 +57,9 @@ class Branch(CRUDMixin, db.Model):
                                            self.project.name,
                                            name, 'source'))
         self.get_repo().clone(branch_path, branch=self.name)
+        os.symlink(os.path.abspath(join('repos', self.project.name,
+                                        '_resources/low_resolution')),
+                   join(branch_path, '_resources'))
         branch_repo = git.Repo(branch_path)
         branch_repo.git.checkout('HEAD', b=name)
         config_repo(branch_repo, user.username, user.email)
@@ -86,7 +90,7 @@ class Branch(CRUDMixin, db.Model):
             '--full-history',
             "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
 
-    def build(self, timeout=10):
+    def build(self, timeout=300):
         # Replace this terrible implementation
         config_path = 'conf'
         # args = ['-a', '-c conf']

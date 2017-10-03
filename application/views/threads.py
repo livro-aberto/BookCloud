@@ -1,5 +1,6 @@
 import urllib
 import json
+from sets import Set
 from datetime import datetime
 from os.path import join
 
@@ -69,8 +70,10 @@ def newthread(project):
                                 for n in form.user_tags.data]
         new_thread.file_tags = [File_Tag(new_thread.id, n)
                                 for n in form.file_tags.data]
-        new_thread.custom_tags = [Named_Tag.get_by_name(n)
-                                  for n in form.custom_tags.data]
+        new_thread.custom_tags = list(
+            Named_Tag.query.filter(Named_Tag.project==project,
+                                   Named_Tag.name.in_(form.custom_tags.data))
+                           .all())
         new_thread.free_tags = [Free_Tag(new_thread.id, n)
                                 for n in form.free_tags.data]
         # add first comment
@@ -83,26 +86,36 @@ def newthread(project):
         db.session.add(new_thread)
         db.session.commit()
         # send emails
-        message = render_template('threads/email.html', comment=new_comment)
+        recipients = Set(form.user_tags.data)
+        for tags in new_thread.custom_tags:
+            recipients = recipients | Set([u.username for u in
+                                           tags.subscribed_users])
+        # Passing the recipients in the email is just temporary
+        # for debugging
+        message = render_template('threads/email.html', comment=new_comment,
+                                  recipients=recipients)
+        #######################################################
         if app.config['TESTING']:
+            print('Email should be sent to: ' + str(recipients))
             print(message)
         else:
             with mail.connect() as conn:
-                for user in form.user_tags.data:
+                for user in recipients:
                     user_obj = User.get_by_name(user)
                     subject = _('Thread: ') + new_thread.title
                     msg = Message(recipients=[user_obj.email],
                                   subject=subject,
                                   html=message)
                     conn.send(msg)
-            flash(_('Emails sent to {} user(s)')
-                    .format(len(form.user_tags.data)))
+                flash(_('Emails sent to user(s) {}')
+                      .format(str(recipients)))
         flash(_('New thread successfully created'), 'info')
         if 'return_url' in request.args:
             redirect(urllib.unquote(request.args['return_url']))
         else:
-            return redirect(url_for('branches.view', project=project.name,
-                                    branch='master', filename='index'))
+            return redirect(url_for('threads.query_thread',
+                                    project=project.name,
+                                    thread_id=new_thread.id))
     return render_template('threads/newthread.html', form=form)
 
 @threads.route('/<project>/edit_thread/<thread_id>', methods = ['GET', 'POST'])
@@ -136,8 +149,10 @@ def editthread(project, thread_id):
                             for n in form.user_tags.data]
         thread.file_tags = [File_Tag(thread.id, n)
                             for n in form.file_tags.data]
-        thread.custom_tags = [Named_Tag.get_by_name(n)
-                              for n in form.custom_tags.data]
+        thread.custom_tags = list(
+            Named_Tag.query.filter(Named_Tag.project==project,
+                                   Named_Tag.name.in_(form.custom_tags.data))
+                           .all())
         thread.free_tags = [Free_Tag(thread.id, n)
                             for n in form.free_tags.data]
         db.session.commit()
@@ -187,6 +202,7 @@ def newcomment(project, thread_id, parent_lineage=''):
             abort(404)
     if request.method == 'POST' and form.validate():
         thread = Thread.get_by_id(thread_id)
+        thread.user_read_thread = [current_user]
         siblings_pattern = parent_lineage + '%'
         decend_comments = (Comment.query
                            .filter(Comment.thread_id==thread_id)
@@ -202,19 +218,29 @@ def newcomment(project, thread_id, parent_lineage=''):
         db.session.add(new_comment)
         db.session.commit()
         # send emails
-        list_of_users = [ tag.username for tag in thread.user_tags]
-        message = render_template('threads/email.html', comment=new_comment)
+        recipients = Set([tag.username for tag in thread.user_tags])
+        for tags in thread.custom_tags:
+            recipients = recipients | Set([u.username for u in
+                                           tags.subscribed_users])
+        # Passing the recipients in the email is just temporary
+        # for debugging
+        message = render_template('threads/email.html', comment=new_comment,
+                                  recipients=recipients)
+        #######################################################
         if app.config['TESTING']:
+            print('Email should be sent to: ' + str(recipients))
             print(message)
         else:
             with mail.connect() as conn:
-                for user in list_of_users:
+                for user in recipients:
                     user_obj = User.query.filter_by(username=user).first()
                     subject = _('Thread: ') + thread.title
                     msg = Message(recipients=[user_obj.email],
                                   html=message,
                                   subject=subject)
                     conn.send(msg)
+                flash(_('Emails sent to user(s) {}')
+                      .format(str(recipients)))
         flash(_('New comment successfully created'), 'info')
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))

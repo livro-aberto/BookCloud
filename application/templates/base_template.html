@@ -183,8 +183,16 @@
                target="_blank">view
             </a>
             <a class="uk-button uk-button-default uk-button-small"
+               {% if named_tags %}
                href="{{ url_for('threads.newthread',
-                      project=project.name) }}?file_tags={{ t['name'] }}"
+                        project=project.name,
+                        file_tags=t['name'],
+                        custom_tags=named_tags) }}"
+               {% else %}
+               href="{{ url_for('threads.newthread',
+                        project=project.name,
+                        file_tags=t['name']) }}"
+               {% endif %}
                target="_blank">new
             </a>
           </div>

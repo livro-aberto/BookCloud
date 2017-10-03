@@ -1,9 +1,11 @@
 import os
+import re
 import git
 import string
 import json
 import time
 import os.path
+
 from os.path import join
 from functools import wraps
 from difflib import HtmlDiff
@@ -26,7 +28,7 @@ from application import limiter
 from application import db
 from application.utils import load_file, write_file, Custom404
 from .projects import Project
-from .threads import Thread, File_Tag
+from .threads import Thread, File_Tag, Named_Tag
 from application.branches import (
     Branch, BranchForm, CommitForm, get_merge_pendencies,
     get_merging, update_subtree, get_requests, build_latex,
@@ -42,14 +44,14 @@ def branches_url_value_preprocessor(endpoint, values):
         g.project = Project.get_by_name(values.get('project'))
     except:
         g.project = g.branch = {}
-        raise Custom404('Could not find project {}'
+        raise Custom404(_('Could not find project {}')
                         .format(values.get('project')))
     try:
         g.branch = g.project.get_branch(values.get('branch'))
     except:
         g.project = g.branch = {}
-        raise Custom404('Could not find branch {}'
-              .format(values.get('branch')))
+        raise Custom404(_('Could not find branch {}')
+                        .format(values.get('branch')))
     values['project'] = g.project
     values['branch'] = g.branch
 
@@ -59,11 +61,19 @@ def branch_before_request():
     g.menu['left'].append({
         'name': g.branch.name,
         'sub_menu': [{
-            'name': 'View index',
+            'name': _('View index'),
             'url': url_for('branches.view', project=g.project.name,
                            branch=g.branch.name, filename='index.html')
         }, {
-            'name': 'Dashboard',
+            'name': _('pdf'),
+            'url': url_for('branches.pdf', project=g.project.name,
+                           branch=g.branch.name)
+        }, {
+            'name': _('tex'),
+            'url': url_for('branches.tex', project=g.project.name,
+                           branch=g.branch.name)
+        }, {
+            'name': _('Dashboard'),
             'url': url_for('branches.branch', project=g.project.name,
                            branch=g.branch.name)
         }]})
@@ -73,7 +83,7 @@ def branch_before_request():
                 'url': url_for('branches.commit',
                                project=g.project.name,
                                branch=g.branch.name),
-                'name': 'Commit', 'style': 'attention'
+                'name': _('Commit'), 'style': 'attention'
             })
         else:
             if len(get_requests(g.project.name, g.branch.name)):
@@ -81,7 +91,7 @@ def branch_before_request():
                     'url': url_for('branches.requests',
                                    project=g.project.name,
                                    branch=g.branch.name),
-                    'name': 'Requests',
+                    'name': _('Requests'),
                     'style': 'attention'
                 })
 
@@ -153,11 +163,16 @@ def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
     if file_extension == '':
         file_extension = '.html'
-    g.menu['right'].insert(0, {'name': 'edit',
+    g.menu['right'].insert(0, {'name': _('Edit'),
                                'url': url_for('branches.edit',
                                               project=project.name,
                                               branch=branch.name,
                                               filename=filename)})
+    g.menu['left'].append({'name': _('Source'),
+                           'url': url_for('branches.source',
+                                          project=project.name,
+                                          branch=branch.name,
+                                          filename=filename + '.rst')})
     # will be deprecated
     if (current_user.is_authenticated and
         (current_user == branch.owner or
@@ -176,9 +191,14 @@ def view(project, branch, filename):
                .filter(Thread.project_id==project.id)
                .order_by(desc(Thread.posted_at)).all())
     threads_by_tag = project.get_threads_by_tag(filename)
+    named_tags = ','.join([
+        t.name if re.search(t.file_regexp, filename) else ''
+        for t in (Named_Tag.query
+                  .filter(Named_Tag.project_id==project.id).all())])
     return render_template('view.html', content=content,
                            threads=threads, filename=filename,
-                           threads_by_tag=threads_by_tag)
+                           threads_by_tag=threads_by_tag,
+                           named_tags=named_tags)
 
 @branches.route('/edit/<path:filename>', methods = ['GET', 'POST'])
 @limiter.exempt
@@ -239,7 +259,7 @@ def commit(project, branch):
             git_api.push('origin', branch.name)
             flash(_('Page submitted to _%s') % origin.name, 'info')
         update_subtree(project, branch)
-        flash('Change commited', 'info')
+        flash(_('Change commited'), 'info')
         return redirect(url_for('branches.view', project=project.name,
                                 branch=branch.name, filename='index'))
     diff = repo.git.diff('--cached')
@@ -255,7 +275,8 @@ def clone(project, branch):
     if merge_pendencies:
         flash(_('You are trying to clone a branch that is being merged'),
               'error')
-        return render_template('merge.html')
+        return redirect(url_for('branches.view', project=project.name,
+                                branch=branch.name, filename='index'))
     ####################
     if request.method == 'POST' and form.validate():
         if (Branch.query
@@ -375,7 +396,7 @@ def accept(project, branch, filename):
         return redirect(url_for('branches.view', project=project.name,
                                 branch=branch.name, filename='index.html'))
     if not filename in merging['modified']:
-        flash('File %s is not being reviewed' % filename, 'error')
+        flash(_('File %s is not being reviewed') % filename, 'error')
         return redirect(url_for('branches.view', project=project.name,
                                 branch=branch.name, filename='index.html'))
     ####################
@@ -415,15 +436,25 @@ def finish(project, branch):
 
 @branches.route('/pdf')
 def pdf(project, branch='master'):
-    build_path = os.path.abspath(join('repos', project.name, branch.name, 'build/latex'))
+    build_path = os.path.abspath(join('repos', project.name, branch.name,
+                                      'build/latex'))
     build_latex(project.name, branch.name)
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
 
-@branches.route('/view/genindex.html')
-def genindex(project, branch):
-    return redirect(url_for('branches.view', project=project, branch=branch, filename='index.html'))
+@branches.route('/tex')
+def tex(project, branch='master'):
+    build_path = os.path.abspath(join('repos', project.name, branch.name,
+                                      'build/latex'))
+    build_latex(project.name, branch.name)
+    return flask.send_from_directory(build_path, 'linux.tex')
+
+@branches.route('/source/<path:filename>')
+@limiter.exempt
+def source(project, branch, filename):
+    source_path = os.path.abspath(join('repos', project.name, branch.name, 'source'))
+    return flask.send_from_directory(source_path, filename)
 
 @branches.route('/<action>/_images/<path:filename>')
 @limiter.exempt

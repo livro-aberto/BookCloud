@@ -43,6 +43,9 @@ extensions = [
     'sphinxcontrib.tikz'
 ]
 
+numfig = True
+numfig_format = {'figure': 'My fig %s', 'table': 'My tab %s', 'code-block': 'My code %s'}
+
 raw_enabled = False
 
 # Add any paths that contain templates here, relative to this directory.
@@ -107,6 +110,14 @@ pygments_style = 'sphinx'
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 #keep_warnings = False
+
+from sphinx.builders.html import StandaloneHTMLBuilder
+StandaloneHTMLBuilder.supported_image_types = [
+    'image/svg+xml',
+    'image/gif',
+    'image/png',
+    'image/jpeg'
+]
 
 
 # -- Options for HTML output ----------------------------------------------

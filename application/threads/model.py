@@ -117,6 +117,7 @@ class Named_Tag(CRUDMixin, db.Model):
     __tablename__ = 'named_tag'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), nullable=False, unique=False)
+    file_regexp = db.Column(db.String(200), unique=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'))
     project = relationship('Project')
     # Seems unnecessary because of backref

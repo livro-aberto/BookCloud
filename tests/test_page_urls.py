@@ -4,7 +4,9 @@
 
 from __future__ import print_function  # Use print() instead of print
 from flask import url_for
+from StringIO import StringIO
 
+import json
 import random
 import string
 import pytest
@@ -59,6 +61,26 @@ def test_page_urls(client):
     response = client.post(url_for('new'), follow_redirects=True,
                            data=dict(name=new_project_name))
     assert new_project_name in response.data
+
+    # Upload image
+    filename = 'application/static/bundles/arrow.png'
+    f = open(filename, 'rb')
+    data = bytearray(os.path.getsize(filename))
+    f.readinto(data)
+    response = client.post(
+        url_for('projects.upload_resource',
+                project=new_project_name),
+        data=dict(
+            file=(StringIO(data), 'arrow.png')))
+    assert (_('figure').encode('utf8') in response.data)
+    recorded_filename = 'arrow.png'
+
+    # Read uploaded image
+    response = client.get(
+        url_for('projects.resources',
+                project=new_project_name,
+                filename=recorded_filename))
+    assert data == response.data
 
     # Check that project is there
     response = client.get(url_for('home'))

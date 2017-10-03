@@ -73,6 +73,9 @@ class Project(CRUDMixin, db.Model):
         return [f for f in os.listdir(path)
                 if isfile(join(path, f)) and f[0] != '.']
 
+    def get_folder(self):
+        return join('repos', self.name)
+
     def new_file(self, filename):
         file_extension = '.rst'
         file_path = join(self.get_master().get_source_path(),
@@ -117,7 +120,8 @@ class Project(CRUDMixin, db.Model):
                                   'source', filename + '.rst'))
         except:
             return []
-        label_list = re.findall(r'^\.\. _([0-9a-z\-]+):\s$', data, re.MULTILINE)
+        label_list = re.findall(r'^\.\. _([0-9a-z\-]+):\s$', data,
+                                re.MULTILINE)
         File_Tag = application.threads.File_Tag
         Thread = application.threads.Thread
         threads_by_tag = (db.session.query(File_Tag.filename, Thread.title)
@@ -137,9 +141,18 @@ class Project(CRUDMixin, db.Model):
         # updating branch's self reference
         new_branch.origin_id = new_branch.id
         db.session.commit()
+        # create folder for resources
+        os.makedirs(join('repos', name, '_resources'))
+        os.makedirs(join('repos', name, '_resources/original'))
+        os.makedirs(join('repos', name, '_resources/low_resolution'))
+        os.makedirs(join('repos', name, '_resources/thumbnail'))
         # create the repository in the filesystem
         repo_path = join('repos', name, 'master/source')
         os.makedirs(repo_path)
+        os.symlink(os.path.abspath(join('repos', name, '_resources',
+                                        'low_resolution')),
+                   os.path.abspath(join('repos', name,
+                                        'master/source/_resources/')))
         git.Repo.init(repo_path)
         repo = git.Repo(repo_path)
         application.branches.config_repo(repo, user.username, user.email)
