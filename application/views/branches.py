@@ -157,7 +157,7 @@ def branch(project, branch):
     log = branch.get_log()
     return render_template('branch.html', log=log)
 
-@branches.route('/view/<path:filename>')
+@branches.route('/view/<filename>')
 @limiter.exempt
 def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)

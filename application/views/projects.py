@@ -4,6 +4,7 @@ from os.path import join, isdir, isfile, splitext
 from functools import wraps
 import json
 
+import flask
 from flask import (
     g, Blueprint, request, render_template,
     url_for, flash, redirect, send_from_directory, abort
@@ -240,8 +241,15 @@ def upload_resource(project):
     })
 
 @projects.route('/resources/<path:filename>')
+@limiter.exempt
 def resources(project, filename):
     return send_from_directory(
         os.path.abspath(join(project.get_folder(), '_resources/original')),
         filename)
 
+@projects.route('/<path:anything>/_resources/<path:filename>')
+@limiter.exempt
+def other_resources(project, anything, filename):
+    return flask.send_from_directory(
+        os.path.abspath(join('application', 'static', 'bundles')),
+        'file_not_found.png')
