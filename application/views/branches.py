@@ -5,6 +5,7 @@ import string
 import json
 import time
 import os.path
+
 from os.path import join
 from functools import wraps
 from difflib import HtmlDiff
@@ -64,9 +65,13 @@ def branch_before_request():
             'url': url_for('branches.view', project=g.project.name,
                            branch=g.branch.name, filename='index.html')
         }, {
-            'name': _('Glossary'),
-            'url': url_for('branches.view', project=g.project.name,
-                           branch=g.branch.name, filename='genindex.html')
+            'name': _('pdf'),
+            'url': url_for('branches.pdf', project=g.project.name,
+                           branch=g.branch.name)
+        }, {
+            'name': _('tex'),
+            'url': url_for('branches.tex', project=g.project.name,
+                           branch=g.branch.name)
         }, {
             'name': _('Dashboard'),
             'url': url_for('branches.branch', project=g.project.name,
@@ -152,7 +157,7 @@ def branch(project, branch):
     log = branch.get_log()
     return render_template('branch.html', log=log)
 
-@branches.route('/view/<path:filename>')
+@branches.route('/view/<filename>')
 @limiter.exempt
 def view(project, branch, filename):
     filename, file_extension = os.path.splitext(filename)
@@ -431,11 +436,19 @@ def finish(project, branch):
 
 @branches.route('/pdf')
 def pdf(project, branch='master'):
-    build_path = os.path.abspath(join('repos', project.name, branch.name, 'build/latex'))
+    build_path = os.path.abspath(join('repos', project.name, branch.name,
+                                      'build/latex'))
     build_latex(project.name, branch.name)
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
+
+@branches.route('/tex')
+def tex(project, branch='master'):
+    build_path = os.path.abspath(join('repos', project.name, branch.name,
+                                      'build/latex'))
+    build_latex(project.name, branch.name)
+    return flask.send_from_directory(build_path, 'linux.tex')
 
 @branches.route('/source/<path:filename>')
 @limiter.exempt
