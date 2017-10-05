@@ -11,11 +11,24 @@ These are some installation instructions (for Ubuntu or Debian):
 
     sudo apt-get install libapache2-mod-wsgi
 
-    sudo apt-get install poppler-utils npm
-
-    sudo apt-get install libmysqlclient-dev
+    sudo apt-get install poppler-utils
 
     sudo apt-get install libffi-dev libssl-dev python-bcrypt
+
+
+For Debian 8:
+
+    sudo apt-get install libmysqlclient-dev
+    sudo apt-get install npm
+
+For Debian 9:
+
+    sudo apt-get install libmariadbclient-dev
+
+
+
+
+Clone this repository, enter the BookCloud folder and create the virtual environment:
 
     virtualenv vir
 
@@ -32,13 +45,19 @@ Type `deactivate` if you want to exit the virtualenv.
 
 ## To install sql
 
-Install
+Install the database
+
+On Debian 8:
+
 
     sudo apt-get install mysql mysql-server
 
-Add a root password
+On Debian 9:
 
-    login as root
+    sudo apt-get install mariadb-client mariadb-server
+
+Add a root password. First login as root (which may have to be run under sudo):
+
     mysql -u root -p
 
 Create a new user for bookcloud
