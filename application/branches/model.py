@@ -64,7 +64,7 @@ class Branch(CRUDMixin, db.Model):
         branch_repo.git.checkout('HEAD', b=name)
         config_repo(branch_repo, user.username, user.email)
         # build the source
-        new_branch.build(timeout=30)
+        new_branch.build(timeout=60)
         return new_branch
 
     def get_source_path(self):
