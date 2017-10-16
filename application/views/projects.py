@@ -125,8 +125,7 @@ def newfile(project):
             flash(_('This file name name already exists'), 'error')
             return render_template('newfile.html', form=form)
         flash(_('File created successfuly!'), 'info')
-        return redirect(url_for('branches.view', project=project.name,
-                                branch='master', filename='index.html'))
+        return redirect(url_for('projects.dashboard', project=project.name))
     return render_template('newfile.html', form=form)
 
 @projects.route('/renamefile/<oldfilename>', methods = ['GET', 'POST'])
