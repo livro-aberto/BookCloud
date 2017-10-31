@@ -1,6 +1,10 @@
 import os.path
 import time
 import locale
+try:
+    import chardet
+except ImportError:
+    chardet = None
 
 from dulwich.objects import Blob
 from flask import redirect, url_for, flash
