@@ -79,7 +79,7 @@ def force_unicode(s):
         pass
     try:
         return s.decode(locale.getpreferredencoding())
-    except UnicodeDecodeError:
+    except:
         pass
     if chardet is not None:
         # Try chardet, if available
