@@ -80,7 +80,7 @@ def force_unicode(s):
     try:
         return s.decode(locale.getpreferredencoding())
     except:
-        return (_'Unicode conversion error')
+        return (_('Unicode conversion error'))
     if chardet is not None:
         # Try chardet, if available
         encoding = chardet.detect(s)['encoding']
