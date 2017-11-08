@@ -15,11 +15,41 @@
   {% endassets %}
 
   <script language="javascript" type="text/javascript">
-    function popitup(url) {
-      newwindow = window.open(url,'name',',width=900');
-      if (window.focus) {newwindow.focus()}
-      return false;
-    }
+    $(document).ready(function() {
+      $('#myform').submit(function(ev) {
+        ev.preventDefault();
+        var form = $('#myform');
+        var jqxhr = $.post(form.attr('action'), form.serialize(), function(data) {
+          
+        })
+          .done(function(data) {
+            UIkit.notification('Salvo com sucesso!', {status: 'success', pos: 'bottom-center'});
+            $.get(form.attr('action'), function(data) {
+              var retorno = $(data).find(".documentwrapper");
+              $(".document").html('');
+              $(".document").html(retorno);
+            });
+          })
+          .fail(function(data) {
+            alert( "error" );
+          })
+          .always(function(data) {
+            
+          });
+        save();
+      });
+      
+      $('#preview').click(function(ev) {
+        $('#myform').submit();
+        
+      });
+    
+      function popitup(url) {
+        newwindow = window.open(url,'name',',width=900');
+        if (window.focus) {newwindow.focus()}
+        return false;
+      }
+    });
   </script>
 
   <script>
@@ -38,6 +68,11 @@
       }
       editor.focus();
     }
+    
+    function changed_editor() {
+      is_changed = 1;
+      editor.save();
+    }
 
     function save() {
       is_changed = 0;
@@ -45,7 +80,7 @@
       document.getElementById("html_scroll").value = height;
       var info = editor.getScrollInfo();
       document.getElementById("edit_scroll").value = info.top;
-      document.getElementById("myform").submit();
+      editor.refresh();
     }
 
     function scrollWin() {
@@ -319,7 +354,7 @@
                  lineNumbers: false,
                  lineWrapping: true}
               );
-            editor.on("change", function(){ is_changed = 1; }  );
+            editor.on("change", function(){ changed_editor(); }  );
 
             var charWidth = editor.defaultCharWidth(), basePadding = 3;
             editor.on("renderLine", function(cm, line, elt) {
@@ -343,7 +378,7 @@
           <input class="uk-button uk-button-primary uk-margin-small-top
                         uk-button-small"
                  id="preview" name="preview" type="button"
-                 value="save" onClick="save()" />
+                 value="save" />
           <input type="hidden" name="html_scroll" id="html_scroll"
                  value="{{ html_scroll }}" />
           <input type="hidden" name="edit_scroll" id="edit_scroll"
@@ -387,7 +422,7 @@
       </div>
 
       <div style="height: calc(100vh - 50px);
-                  overflow: hidden;">
+                  overflow: hidden;" id="html_view_holder">
 
 
       <div class="uk-card uk-card-default uk-card-body"
@@ -405,5 +440,4 @@
   </div>
 
 </html>
-
 {% endblock %}

@@ -225,6 +225,9 @@ def edit(project, branch, filename):
         branch.build()
     rst = load_file(file_source_path)
     doc = load_file(file_html_path)
+    if request.is_xhr:
+        return render_template('just_view.html', doc=doc, rst=rst, filename=filename,
+                               html_scroll=html_scroll, edit_scroll=edit_scroll)
     return render_template('edit.html', doc=doc, rst=rst, filename=filename,
                            html_scroll=html_scroll, edit_scroll=edit_scroll)
 
