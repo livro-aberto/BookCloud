@@ -80,10 +80,10 @@ class ThreadForm(Form):
 class NewThreadForm(ThreadForm):
     # Extends the thread form to include a first comment
     firstcomment = TextAreaField('Content',
-                                 [validators.Length(min=3, max=2000)])
+                                 [validators.Length(min=3, max=8000)])
 
 class CommentForm(Form):
-    comment = TextAreaField('Content', [ validators.Length(min=3, max=2000)])
+    comment = TextAreaField('Content', [ validators.Length(min=3, max=8000)])
 
 class CommentSearchForm(Form):
     search = StringField('Search', [ validators.Length(min=3, max=60)])
