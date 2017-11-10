@@ -5,7 +5,6 @@
 {% from "_sphinxuikit.html" import sphinx_uikit_script %}
 
 {% block scripts %}
-
   {% assets "codemirror_css_all" %}
       <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}"></script>
   {% endassets %}
@@ -13,89 +12,7 @@
   {% assets "codemirror_js_all" %}
       <script type="text/javascript" src="{{ ASSET_URL }}" charset="utf-8"></script>
   {% endassets %}
-
-  <script language="javascript" type="text/javascript">
-    $(document).ready(function() {
-      $('#myform').submit(function(ev) {
-        ev.preventDefault();
-        var form = $('#myform');
-        var jqxhr = $.post(form.attr('action'), form.serialize(), function(data) {
-          
-        })
-          .done(function(data) {
-            UIkit.notification('Salvo com sucesso!', {status: 'success', pos: 'bottom-center'});
-            $.get(form.attr('action'), function(data) {
-              var retorno = $(data).find(".documentwrapper");
-              $(".document").html('');
-              $(".document").html(retorno);
-            });
-          })
-          .fail(function(data) {
-            alert( "error" );
-          })
-          .always(function(data) {
-            
-          });
-        save();
-      });
-      
-      $('#preview').click(function(ev) {
-        $('#myform').submit();
-        
-      });
-    
-      function popitup(url) {
-        newwindow = window.open(url,'name',',width=900');
-        if (window.focus) {newwindow.focus()}
-        return false;
-      }
-    });
-  </script>
-
-  <script>
-    var is_changed = 0;
-    // inserts text around the cursor or selection
-    function insertAround(start, end) {
-      var doc = editor;
-      var cursor = doc.getCursor();
-      if (doc.somethingSelected()) {
-        var selection = doc.getSelection();
-        doc.replaceSelection(start + selection + end);
-      } else {
-        // If no selection then insert start and end args and set cursor position between the two.
-        doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
-        doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
-      }
-      editor.focus();
-    }
-    
-    function changed_editor() {
-      is_changed = 1;
-      editor.save();
-    }
-
-    function save() {
-      is_changed = 0;
-      var height = document.getElementById("html_view").scrollTop;
-      document.getElementById("html_scroll").value = height;
-      var info = editor.getScrollInfo();
-      document.getElementById("edit_scroll").value = info.top;
-      editor.refresh();
-    }
-
-    function scrollWin() {
-      document.getElementById("html_view").scrollTo(0, {{ html_scroll }});
-      editor.scrollTo(0, {{ edit_scroll }});
-    }
-
-    window.onload = scrollWin;
-
-    $(window).bind('beforeunload', function(e){
-      if (is_changed == 1) return true;
-      else e=null;
-      // i.e; if form state change show warning box, else don't show it.
-    });
-  </script>
+  
   <style>
 
     .CodeMirror{
@@ -346,24 +263,6 @@
                               filename=filename) }}" method="post">
       <textarea class="uk-textarea"
                 id="code" name="code">{{ rst }}</textarea>
-        <script>
-            var editor = CodeMirror.fromTextArea
-              (document.getElementById("code"), {
-                 extraKeys: {"Alt-F": "findPersistent"},
-                 extraKeys: {"Ctrl-F": "findPersistent"},
-                 lineNumbers: false,
-                 lineWrapping: true}
-              );
-            editor.on("change", function(){ changed_editor(); }  );
-
-            var charWidth = editor.defaultCharWidth(), basePadding = 3;
-            editor.on("renderLine", function(cm, line, elt) {
-              var off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")) * charWidth;
-              elt.style.textIndent = "-" + off + "px";
-              elt.style.paddingLeft = (basePadding + off) + "px";
-            });
-            editor.refresh();
-        </script>
 
 
           <a href="{{ url_for('branches.view', project=project.name,
