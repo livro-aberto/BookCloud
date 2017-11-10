@@ -56,28 +56,28 @@
         {{ _('style') }}
       </button>
       <div uk-dropdown>
-        <ul class="uk-iconnav uk-iconnav-vertical">
+        <ul class="uk-iconnav uk-iconnav-vertical" id="menu_insert_style">
           <li>
-            <a onclick="insertAround('**','**')"
+            <a data-insert-start="**" data-insert-end="**"
                title="{{ _('Bold') }}" uk-tooltip
                uk-icon="icon: bold"><b></b>
             </a>
           </li>
           <li>
-            <a onclick="insertAround('*','*')"
+            <a data-insert-start="*" data-insert-end="*"
                style="font-family:verdana;"
                title="{{ _('Italic') }}" uk-tooltip
                uk-icon="icon: italic"><i></i>
             </a>
           </li>
           <li>
-            <a onclick="insertAround('\n* a\n* b','')"
+            <a data-func="list" data-insert-start="* " data-insert-end=""
                title="{{ _('Itemize') }}" uk-tooltip
                uk-icon="icon: more-vertical">
             </a>
           </li>
           <li>
-            <a onclick="insertAround('\n#. foo\n#. bar','')"
+            <a data-func="list" data-insert-start="#. " data-insert-end="&#10;"
                title="{{ _('Enumerate') }}" uk-tooltip
                uk-icon="icon: list">
             </a>

@@ -10,14 +10,20 @@ $(document).ready(function() {
     
   function insertAround(editor, start, end) {
     var doc = editor;
+    var linha = get_word(doc)
     var cursor = doc.getCursor();
     if (doc.somethingSelected()) {
       var selection = doc.getSelection();
       doc.replaceSelection(start + selection + end);
     } else {
-      // If no selection then insert start and end args and set cursor position between the two.
-      doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
-      doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
+      if (linha.word != "") {
+        doc.replaceRange(start+linha.word+end, {line: linha.linha, ch: linha.inicio}, {line: linha.linha, ch: linha.fim});
+        doc.setCursor({line: linha.linha, ch: linha.fim+start.length+end.length});
+      } else {
+        // If no selection then insert start and end args and set cursor position between the two.
+        doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
+        doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
+      }
     }
     editor.focus();
   }
@@ -95,7 +101,7 @@ $(document).ready(function() {
   
   function cursor_activity(instance) {
     
-    console.log(get_word(editor));
+    //console.log(get_word(editor));
   }
   editor.on("change", function(){ changed_editor(); }  );
   editor.on("viewportChange", function(instance, from, to){ viewport_change_editor(instance, from, to); }  );
@@ -109,5 +115,11 @@ $(document).ready(function() {
     elt.style.paddingLeft = (basePadding + off) + "px";
   });
   editor.refresh();
+  
+  
+  // Edit Bar
+  $("#menu_insert_style > li > a").click(function(e) {
+    insertAround(editor, $(this).attr('data-insert-start'), $(this).attr('data-insert-end'));
+  });
   
 });
