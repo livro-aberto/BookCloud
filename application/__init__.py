@@ -90,8 +90,6 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/search/jump-to-line.js',
                'codemirror/addon/merge/merge.js',
                'editor/general.js',
-               'editor/utils.js',
-               'editor/actions.js'
            ),
         output='bundles/codemirror_all.js',
         filters='rjsmin'

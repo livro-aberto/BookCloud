@@ -8,6 +8,20 @@ $(document).ready(function() {
        lineWrapping: true}
     );
     
+  function insertAround(editor, start, end) {
+    var doc = editor;
+    var cursor = doc.getCursor();
+    if (doc.somethingSelected()) {
+      var selection = doc.getSelection();
+      doc.replaceSelection(start + selection + end);
+    } else {
+      // If no selection then insert start and end args and set cursor position between the two.
+      doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
+      doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
+    }
+    editor.focus();
+  }
+  
   function save() {
     is_changed = 0;
     var height = document.getElementById("html_view").scrollTop;
@@ -16,6 +30,26 @@ $(document).ready(function() {
     document.getElementById("edit_scroll").value = info.top;
     editor.refresh();
   }
+    
+  function popitup(url) {
+    newwindow = window.open(url,'name',',width=900');
+    if (window.focus) {newwindow.focus()}
+    return false;
+  }
+  
+  function get_word(editor) {
+    var cursor = editor.getCursor();
+    
+    var line = cursor.line;
+    var ch = cursor.ch;
+
+    var inicio = editor.findWordAt({line: line, ch: ch}).anchor.ch;
+    var fim = editor.findWordAt({line: line, ch: ch}).head.ch;
+
+    var l = editor.getRange({line: line, ch: inicio}, {line: line, ch: fim});
+    
+    return {'word': l, 'inicio': inicio, 'fim': fim, 'linha': line}
+  } 
   
   $(window).bind('beforeunload', function(e){
     if (is_changed == 1) return true;
@@ -59,9 +93,13 @@ $(document).ready(function() {
     
   }
   
+  function cursor_activity(instance) {
+    
+    console.log(get_word(editor));
+  }
   editor.on("change", function(){ changed_editor(); }  );
   editor.on("viewportChange", function(instance, from, to){ viewport_change_editor(instance, from, to); }  );
-  
+  editor.on("cursorActivity", function(){ cursor_activity(); }  );
   //
 
   var charWidth = editor.defaultCharWidth(), basePadding = 3;
