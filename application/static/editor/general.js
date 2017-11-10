@@ -8,6 +8,18 @@ $(document).ready(function() {
        lineWrapping: true}
     );
     
+  function slugify(string) {
+    return string
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_")
+      .replace(/[^\w\-]+/g, "-")
+      .replace(/\-\-+/g, "-")
+      .replace(/^-+/, "")
+      .replace(/-+$/, "");
+  }
+    
   function insertAround(editor, start, end) {
     var doc = editor;
     var linha = get_word(doc)
@@ -26,6 +38,37 @@ $(document).ready(function() {
       }
     }
     editor.focus();
+  }
+  
+  function insertSections(type, title) {
+    var cursor = editor.getCursor();
+    var item_title = title;
+    var item_id = slugify(item_title);
+    
+    editor.setCursor({line: cursor.line, ch: 0});
+    
+    var data = ""
+    
+    if (type == "cap") {
+      var directive = "\n\n.. "+item_id+":\n";
+      var delimiter = "********\n"
+      data = directive+delimiter+item_title+"\n"+delimiter+"\n"
+    }
+    
+    if (type == "sec") {
+      var directive = "\n\n.. "+item_id+":\n";
+      var delimiter = "\n======\n"
+      data = directive+item_title+delimiter+"\n"
+    }
+    
+    if (type == "sub") {
+      var directive = "\n\n.. "+item_id+":\n";
+      var delimiter = "\n---------\n"
+      data = directive+item_title+delimiter+"\n"
+    }
+    
+    editor.replaceRange(data, { line: cursor.line, ch: cursor.ch });
+    
   }
   
   function save() {
@@ -120,6 +163,20 @@ $(document).ready(function() {
   // Edit Bar
   $("#menu_insert_style > li > a").click(function(e) {
     insertAround(editor, $(this).attr('data-insert-start'), $(this).attr('data-insert-end'));
+  });
+  
+  $("#menu_insert_sections > li > button").click(function(e) {
+    UIkit.modal($("#sections_modal")).show();
+    $("#sections_modal").attr('data-type', $(this).attr('data-type'));
+  });
+  
+  $("#insert_section_button").click(function() {
+    insertSections($("#sections_modal").attr('data-type'), $("#insert_section_title").val());
+    UIkit.modal($("#sections_modal")).hide()
+  });
+  
+  $(".popitup").click(function() {
+    popitup($(this).attr('data-url'));
   });
   
 });

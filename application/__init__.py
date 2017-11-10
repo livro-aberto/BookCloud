@@ -68,7 +68,7 @@ def create_app(extra_config_settings={}):
                    'jquery-textext/src/js/textext.plugin.focus.js',
                    'jquery-textext/src/js/textext.plugin.prompt.js',
                    'jquery-textext/src/js/textext.plugin.ajax.js',
-                   'jquery-textext/src/js/textext.plugin.arrow.js'
+                   'jquery-textext/src/js/textext.plugin.arrow.js',
                ),
             'google-diff-match-patch/diff_match_patch.js',
             'jquery.are-you-sure/jquery.are-you-sure.js',

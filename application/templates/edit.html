@@ -32,20 +32,17 @@
         {{ _('sections') }}
       </button>
       <div uk-dropdown>
-        <ul class="uk-nav uk-navbar-dropdown-nav">
+        <ul class="uk-nav uk-navbar-dropdown-nav" id="menu_insert_sections">
           <li>
-            <button class="uk-button uk-button-text"
-               onclick="insertAround('\n.. _cap-coloque-aqui-o-nome:\n\n********\nCap&#237;tulo\n********','')">Cap
+            <button class="uk-button uk-button-text" data-type="cap">Cap
             </button>
           </li>
           <li>
-            <button class="uk-button uk-button-text"
-               onclick="insertAround('\n.. _sec-coloque-aqui-o-nome:\n\nSe&#231;&#227;o\n=====','')">Sec
+            <button class="uk-button uk-button-text" data-type="sec">Sec
             </button>
           </li>
           <li>
-            <button class="uk-button uk-button-text"
-               onclick="insertAround('\n.. _sub-coloque-aqui-o-nome:\n\nSubse&#231;&#227;o\n---------','')">Sub
+            <button class="uk-button uk-button-text" data-type="sub">Sub
             </button>
           </li>
         </ul>
@@ -247,8 +244,8 @@
       </div>
 
       <a class="uk-button uk-button-small uk-background-default
-                uk-button-default" type="button"
-                onclick="return popitup('{{ url_for('html2rst') }}')"
+                uk-button-default popitup" type="button"
+                data-url="{{ url_for('html2rst') }}"
                 title="{{ _('Visual writting tool') }}" uk-tooltip
                 uk-icon="icon: pencil">
       </a>
@@ -336,6 +333,17 @@
           {{ doc | safe }}
       </div>
     </div>
+  </div>
+  
+  <div id="sections_modal" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+          <h2 class="uk-modal-title">Inserir seção.</h2>
+          <input id="insert_section_title" class="uk-input" type="text" name="title" value="" placeholder="Título">
+          <p class="uk-text-right">
+              <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
+              <button class="uk-button uk-button-primary" type="button" id="insert_section_button">Inserir</button>
+          </p>
+      </div>
   </div>
 
 </html>
