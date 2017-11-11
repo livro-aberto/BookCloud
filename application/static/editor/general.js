@@ -37,7 +37,7 @@ $(document).ready(function() {
     var item_title = title;
     var item_id = slugify(item_title);
     
-    editor.setCursor({line: cursor.line, ch: 0});
+    editor.setCursor({line: cursor.line});
     
     var data = ""
     
@@ -59,8 +59,23 @@ $(document).ready(function() {
       data = directive+item_title+delimiter+"\n"
     }
     
-    editor.replaceRange(data, { line: cursor.line, ch: cursor.ch });
+    if (type == "ativ") {
+      var directive = "\n\n.. "+item_id+":\n";
+      var delimiter = "\n------------------------------\n";
+      data = directive+"\nAtividade: "+item_title+delimiter+'\n'
+    }
     
+    editor.replaceRange(data, {line: cursor.line});
+    
+  }
+  
+  function insertBoxes(title, text) {
+    var cursor = editor.getCursor();
+    editor.setCursor({line: cursor.line});
+    
+    var val = '\n.. admonition:: '+title+' \n\n   '+text
+    
+    editor.replaceRange(val, {line: cursor.line});
   }
   
   function save() {
@@ -157,14 +172,24 @@ $(document).ready(function() {
     insertAround(editor, $(this).attr('data-insert-start'), $(this).attr('data-insert-end'));
   });
   
-  $("#menu_insert_sections > li > button").click(function(e) {
+  $("#menu_insert_sections > li > button").add(".insert-sec-button").click(function(e) {
     UIkit.modal($("#sections_modal")).show();
     $("#sections_modal").attr('data-type', $(this).attr('data-type'));
+  });
+  
+  $(".insert-box-button").click(function(e) {
+    UIkit.modal($("#boxes_modal")).show();
+    $("#boxes_modal").attr('data-title', $(this).attr('data-title'));
   });
   
   $("#insert_section_button").click(function() {
     insertSections($("#sections_modal").attr('data-type'), $("#insert_section_title").val());
     UIkit.modal($("#sections_modal")).hide()
+  });
+  
+  $("#insert_box_button").click(function() {
+    insertBoxes($("#boxes_modal").attr('data-title'), $("#insert_box_text").val());
+    UIkit.modal($("#boxes_modal")).hide()
   });
   
   $(".popitup").click(function() {

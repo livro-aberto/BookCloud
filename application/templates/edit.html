@@ -87,39 +87,40 @@
           {{ _('boxes') }}
       </button>
       <div uk-dropdown>
-        <ul class="uk-nav uk-navbar-dropdown-nav">
+        <ul class="uk-nav uk-navbar-dropdown-nav" id="menu_insert_box">
           <li>
-            <button class="uk-button uk-button-text"
-               onclick="insertAround('\n.. admonition:: Para o professor\n\n   texto','')"
+            <button class="uk-button uk-button-text insert-box-button"
+               data-title="Para o professor"
                     title="{{ _('Para o professor') }}" uk-tooltip>{{ _('Para o professor') }}
             </button>
           </li>
           <li>
-            <button class="uk-button uk-button-text"
-                    onclick="insertAround('\n.. admonition:: Resposta \n\n   texto','')"
+            <button class="uk-button uk-button-text insert-box-button"
+                    data-title="Resposta"
                     title="{{ _('Resposta') }}" uk-tooltip>{{ _('Resposta') }}
             </button>
           </li>
           <li>
-            <button class="uk-button uk-button-text"
-                    onclick="insertAround('\n.. admonition:: Definição \n\n   texto','')"
+            <button class="uk-button uk-button-text insert-box-button"
+                    data-title="Definição"
                     title="{{ _('Definição') }}" uk-tooltip>{{ _('Definição') }}
             </button>
           </li>
           <li>
-            <button class="uk-button uk-button-text"
-                    onclick="insertAround('\n.. admonition:: Teorema \n\n   texto','')"
+            <button class="uk-button uk-button-text insert-box-button"
+                    data-title="Teorema"
                     title="{{ _('Teorema') }}" uk-tooltip>{{ _('Teorema') }}
             </button>
           </li>
           <li>
-            <button class="uk-button uk-button-text"
-                    onclick="insertAround('\n.. admonition:: Exemplo \n\n   texto','')"
+            <button class="uk-button uk-button-text insert-box-button"
+                    data-title="Exemplo"
                     title="{{ _('Exemplo') }}" uk-tooltip>{{ _('Exemplo') }}
             </button>
           </li>
           <li>
-            <button class="uk-button uk-button-text" onclick="insertAround('\n.. _ativ-titulo-da-atividade:\n\nAtividade: título da atividade\n------------------------------\n\n','')"
+            <button class="uk-button uk-button-text insert-sec-button" data-type="ativ"
+                    data-title="Atividade"
                     title="{{ _('Atividade') }}" uk-tooltip>{{ _('Atividade') }}
             </button>
           </li>
@@ -342,6 +343,17 @@
           <p class="uk-text-right">
               <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
               <button class="uk-button uk-button-primary" type="button" id="insert_section_button">Inserir</button>
+          </p>
+      </div>
+  </div>
+  
+  <div id="boxes_modal" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+          <h2 class="uk-modal-title">Inserir box.</h2>
+          <textarea id="insert_box_text" class="uk-textarea" type="text" name="text" placeholder="Texto"></textarea>
+          <p class="uk-text-right">
+              <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
+              <button class="uk-button uk-button-primary" type="button" id="insert_box_button">Inserir</button>
           </p>
       </div>
   </div>
