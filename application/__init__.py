@@ -89,8 +89,9 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/search/matchesonscrollbar.js',
                'codemirror/addon/search/jump-to-line.js',
                'codemirror/addon/merge/merge.js',
-               'editor/general.js',
            ),
+        'slug/slug.js',
+        'editor/general.js',
         output='bundles/codemirror_all.js',
         filters='rjsmin'
     )

@@ -9,15 +9,7 @@ $(document).ready(function() {
     );
     
   function slugify(string) {
-    return string
-      .toString()
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, "_")
-      .replace(/[^\w\-]+/g, "-")
-      .replace(/\-\-+/g, "-")
-      .replace(/^-+/, "")
-      .replace(/-+$/, "");
+    return slug(string.toLowerCase())
   }
     
   function insertAround(editor, start, end) {
