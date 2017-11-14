@@ -134,7 +134,7 @@
       <div uk-dropdown>
         <ul class="uk-iconnav uk-iconnav-vertical">
           <li>
-            <a onclick="insertAround('\n.. _fig-coloque-aqui-o-nome:\n\n.. figure:: https://www.umlivroaberto.com/iii/lembrando.png\n   :width: 200pt\n   :align: center\n\n   legenda', '')"
+            <a class="insert-image-button"
                title="{{ _('figure') }}" uk-tooltip
                uk-icon="icon: image">
               <font size="1"></font>
@@ -147,7 +147,7 @@
             </a>
           </li>
           <li>
-            <a onclick="insertAround('\n.. tikz:: legenda\n\n   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);','')"
+            <a class="insert-around" data-insert-start="&#10;.. tikz:: legenda&#10;&#10;   \\draw (0,0)--(1,0)--(.5,.6)--(0,0);" data-insert-end=""
                title="{{ _('Tikz figure') }}" uk-tooltip
                uk-icon="icon: move">
             </a>
@@ -156,8 +156,8 @@
       </div>
 
       <a class="uk-button uk-button-small uk-background-default
-                uk-button-default" type="button"
-         onclick="insertAround(':ref:`nome-da-referencia`', '')"
+                uk-button-default insert-around" type="button"
+         data-insert-start=":ref:`nome-da-referencia`" data-insert-end=""
          title="{{ _('Referência interna') }}" uk-tooltip
          uk-icon="icon: bookmark">
       </a>
@@ -173,8 +173,8 @@
             {{ _('Insert equation') }}
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('`a = b`','')"
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start="`a = b`" data-insert-end=""
                     title="{{ _('Inline') }}" uk-tooltip>{{ _('Inline') }}
             </button>
           </div>
@@ -350,13 +350,32 @@
   <div id="boxes_modal" uk-modal>
       <div class="uk-modal-dialog uk-modal-body">
           <h2 class="uk-modal-title">Inserir box.</h2>
-          <textarea id="insert_box_text" class="uk-textarea" type="text" name="text" placeholder="Texto"></textarea>
+          <textarea id="insert_box_text" class="uk-textarea" type="text" name="text" placeholder="Texto" rows="8"></textarea>
           <p class="uk-text-right">
               <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
               <button class="uk-button uk-button-primary" type="button" id="insert_box_button">Inserir</button>
           </p>
       </div>
   </div>
+  
+  <div id="insert_image_modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <div class="uk-modal-header">
+            <h2 class="uk-modal-title">Inserir imagem</h2>
+        </div>
+        <div class="uk-modal-body">
+          <div uk-form-custom="target: true">
+              <input type="file">
+              <input class="uk-input uk-form-width-medium" type="text" placeholder="Select file" disabled>
+          </div>
+        </div>
+        <div class="uk-modal-footer uk-text-right">
+            <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
+            <button class="uk-button uk-button-primary" type="button">Inserir</button>
+        </div>
+    </div>
+</div>
 
 </html>
 {% endblock %}

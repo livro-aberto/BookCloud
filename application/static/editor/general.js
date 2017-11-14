@@ -32,6 +32,14 @@ $(document).ready(function() {
     editor.focus();
   }
   
+  function insert_image(url, name, caption, width, align) {
+    var str_slug = slug(name.toLowerCase());
+    var data = '\n.. '+str_slug+':\n\n.. figure:: '+url+'\n   :width: '+width+'pt\n   :align: '+align+'\n\n   '+caption;
+    
+    editor.setCursor({line: cursor.line});
+    editor.replaceRange(data, {line: cursor.line});
+  }
+  
   function insertSections(type, title) {
     var cursor = editor.getCursor();
     var item_title = title;
@@ -73,7 +81,7 @@ $(document).ready(function() {
     var cursor = editor.getCursor();
     editor.setCursor({line: cursor.line});
     
-    var val = '\n.. admonition:: '+title+' \n\n   '+text
+    var val = '\n\n.. admonition:: '+title+' \n\n   '+text
     
     editor.replaceRange(val, {line: cursor.line});
   }
@@ -119,7 +127,7 @@ $(document).ready(function() {
       
     })
       .done(function(data) {
-        UIkit.notification('Salvo com sucesso!', {status: 'success', pos: 'bottom-center'});
+        UIkit.notification('Saved!', {status: 'success', pos: 'bottom-center'});
         $.get(form.attr('action'), function(data) {
           var retorno = $(data).find(".documentwrapper");
           $(".document").html('');
@@ -150,7 +158,6 @@ $(document).ready(function() {
   }
   
   function cursor_activity(instance) {
-    
     //console.log(get_word(editor));
   }
   editor.on("change", function(){ changed_editor(); }  );
@@ -168,16 +175,22 @@ $(document).ready(function() {
   
   
   // Edit Bar
+  $(".insert-around").click(function() {
+    insertAround(editor, $(this).attr('data-insert-start'), $(this).attr('data-insert-end'));
+  });
+  
   $("#menu_insert_style > li > a").click(function(e) {
     insertAround(editor, $(this).attr('data-insert-start'), $(this).attr('data-insert-end'));
   });
   
   $("#menu_insert_sections > li > button").add(".insert-sec-button").click(function(e) {
+    $('.uk-dropdown').hide();
     UIkit.modal($("#sections_modal")).show();
     $("#sections_modal").attr('data-type', $(this).attr('data-type'));
   });
   
   $(".insert-box-button").click(function(e) {
+    $('.uk-dropdown').hide();
     UIkit.modal($("#boxes_modal")).show();
     $("#boxes_modal").attr('data-title', $(this).attr('data-title'));
   });
@@ -190,6 +203,10 @@ $(document).ready(function() {
   $("#insert_box_button").click(function() {
     insertBoxes($("#boxes_modal").attr('data-title'), $("#insert_box_text").val());
     UIkit.modal($("#boxes_modal")).hide()
+  });
+  
+  $('.insert-image-button').click(function() {
+    UIkit.modal($("#insert_image_modal")).show();
   });
   
   $(".popitup").click(function() {
