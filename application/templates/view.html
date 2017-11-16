@@ -4,7 +4,14 @@
 
 {% block title %}{{ _('Viewing %s') % (filename) }}{% endblock%}
 
-{% block scripts %}{{ sphinx_uikit_script() }}{% endblock %}
+{% block scripts %}
+{{ sphinx_uikit_script() }}
+<script>
+$(document).ready(function () {
+  sphinx_apply_uikit();
+});
+</script>
+{% endblock %}
 
 {% macro contents() %}
 

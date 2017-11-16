@@ -91,7 +91,10 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/merge/merge.js',
            ),
         'slug/slug.js',
-        'editor/general.js',
+        Bundle(
+               'editor/functions.js',
+               'editor/general.js',
+           ),
         output='bundles/codemirror_all.js',
         filters='rjsmin'
     )

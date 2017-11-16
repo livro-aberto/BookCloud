@@ -283,6 +283,15 @@
 
         </form>
 </div>
+<script>
+  var editor = CodeMirror.fromTextArea
+    (document.getElementById("code"), {
+       extraKeys: {"Alt-F": "findPersistent"},
+       extraKeys: {"Ctrl-F": "findPersistent"},
+       lineNumbers: false,
+       lineWrapping: true}
+    ); 
+</script>
 
 {% endmacro%}
 
