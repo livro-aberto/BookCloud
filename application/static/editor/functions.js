@@ -40,25 +40,25 @@ function insertSections(type, title) {
   var data = ""
   
   if (type == "cap") {
-    var directive = "\n\n.. "+item_id+":\n";
+    var directive = "\n\n.. "+item_id+":\n\n";
     var delimiter = "********\n"
     data = directive+delimiter+item_title+"\n"+delimiter+"\n"
   }
   
   if (type == "sec") {
-    var directive = "\n\n.. "+item_id+":\n";
+    var directive = "\n\n.. "+item_id+":\n\n";
     var delimiter = "\n======\n"
     data = directive+item_title+delimiter+"\n"
   }
   
   if (type == "sub") {
-    var directive = "\n\n.. "+item_id+":\n";
+    var directive = "\n\n.. "+item_id+":\n\n";
     var delimiter = "\n---------\n"
     data = directive+item_title+delimiter+"\n"
   }
   
   if (type == "ativ") {
-    var directive = "\n\n.. "+item_id+":\n";
+    var directive = "\n\n.. "+item_id+":\n\n";
     var delimiter = "\n------------------------------\n";
     data = directive+"\nAtividade: "+item_title+delimiter+'\n'
   }

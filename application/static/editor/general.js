@@ -72,12 +72,14 @@ $(document).ready(function() {
   
   $("#menu_insert_sections > li > button").add(".insert-sec-button").click(function(e) {
     $('.uk-dropdown').hide();
+    $("#insert_section_title").val('');
     UIkit.modal($("#sections_modal")).show();
     $("#sections_modal").attr('data-type', $(this).attr('data-type'));
   });
   
   $(".insert-box-button").click(function(e) {
     $('.uk-dropdown').hide();
+    $("#insert_box_text").val('');
     UIkit.modal($("#boxes_modal")).show();
     $("#boxes_modal").attr('data-title', $(this).attr('data-title'));
   });
