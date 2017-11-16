@@ -91,6 +91,7 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/merge/merge.js',
            ),
         'slug/slug.js',
+        'jquery.scrollTo/jquery.scrollTo.js',
         Bundle(
                'editor/functions.js',
                'editor/general.js',

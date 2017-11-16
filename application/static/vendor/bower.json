@@ -24,6 +24,7 @@
     "codemirror": "^5.27.4",
     "google-diff-match-patch": "^0.1.0",
     "jquery.are-you-sure": "^1.9.0",
-    "slug": "^0.9.1"
+    "slug": "^0.9.1",
+    "jquery.scrollTo": "^2.1.2"
   }
 }

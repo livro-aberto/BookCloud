@@ -41,12 +41,39 @@ $(document).ready(function() {
   }
   
   function viewport_change_editor(instance, from, to) {
+  }
+  
+  var CURRENT_SEC = "";
+  
+  function goto_current_sec(linha=null) {
+    var w = get_word(editor);
+    var prev_words = [];
+    if (linha == null) {
+      linha = w.linha;
+    }
     
+    while (linha >= 0) {
+      var prev = get_word(editor, linha, ch=0, fim=999); // TODO: Descobrir como pegar a linha toda
+      prev_words = prev.word.split(" ");
+      linha = linha-1;
+      if (prev_words[0] == "..") {
+        var sec = prev_words[1].split(":")[0];
+        var el = $("#"+sec);
+        if (el.length > 0) {
+          if (sec != CURRENT_SEC) {
+            $("#html_view").scrollTo(el, 200);
+            CURRENT_SEC = sec;
+          }
+          break;
+        }
+      }
+    }
   }
   
   function cursor_activity(instance) {
-    //console.log(get_word(editor));
+    goto_current_sec();
   }
+  
   editor.on("change", function(){ changed_editor(); }  );
   editor.on("viewportChange", function(instance, from, to){ viewport_change_editor(instance, from, to); }  );
   editor.on("cursorActivity", function(){ cursor_activity(); }  );

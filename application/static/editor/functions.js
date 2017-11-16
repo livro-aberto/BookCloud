@@ -4,8 +4,13 @@ function slugify(string) {
   
 function insertAround(editor, start, end) {
   var doc = editor;
-  var linha = get_word(doc)
+  var linha = get_word(doc);
   var cursor = doc.getCursor();
+  
+  if (!end) {
+    end = ""
+  } 
+  
   if (doc.somethingSelected()) {
     var selection = doc.getSelection();
     doc.replaceSelection(start + selection + end);
@@ -37,30 +42,30 @@ function insertSections(type, title) {
   
   editor.setCursor({line: cursor.line});
   
-  var data = ""
+  var data = "";
   
   if (type == "cap") {
     var directive = "\n\n.. "+item_id+":\n\n";
-    var delimiter = "********\n"
-    data = directive+delimiter+item_title+"\n"+delimiter+"\n"
+    var delimiter = "********\n";
+    data = directive+delimiter+item_title+"\n"+delimiter+"\n";
   }
   
   if (type == "sec") {
     var directive = "\n\n.. "+item_id+":\n\n";
-    var delimiter = "\n======\n"
-    data = directive+item_title+delimiter+"\n"
+    var delimiter = "\n======\n";
+    data = directive+item_title+delimiter+"\n";
   }
   
   if (type == "sub") {
     var directive = "\n\n.. "+item_id+":\n\n";
-    var delimiter = "\n---------\n"
-    data = directive+item_title+delimiter+"\n"
+    var delimiter = "\n---------\n";
+    data = directive+item_title+delimiter+"\n";
   }
   
   if (type == "ativ") {
     var directive = "\n\n.. "+item_id+":\n\n";
     var delimiter = "\n------------------------------\n";
-    data = directive+"\nAtividade: "+item_title+delimiter+'\n'
+    data = directive+"\nAtividade: "+item_title+delimiter+'\n';
   }
   
   editor.replaceRange(data, {line: cursor.line});
@@ -71,7 +76,7 @@ function insertBoxes(title, text) {
   var cursor = editor.getCursor();
   editor.setCursor({line: cursor.line});
   
-  var val = '\n\n.. admonition:: '+title+' \n\n   '+text
+  var val = '\n\n.. admonition:: '+title+' \n\n   '+text;
   
   editor.replaceRange(val, {line: cursor.line});
 }
@@ -91,14 +96,23 @@ function popitup(url) {
   return false;
 }
 
-function get_word(editor) {
+function get_word(editor, line=null, inicio=null, fim=null, ch=null) {
   var cursor = editor.getCursor();
+  if (line == null) {
+    line = cursor.line;
+  }
   
-  var line = cursor.line;
-  var ch = cursor.ch;
-
-  var inicio = editor.findWordAt({line: line, ch: ch}).anchor.ch;
-  var fim = editor.findWordAt({line: line, ch: ch}).head.ch;
+  if (ch == null) {
+    var ch = cursor.ch;
+  }
+  
+  if (inicio == null) {
+    inicio = editor.findWordAt({line: line, ch: ch}).anchor.ch;
+  }
+  
+  if (fim == null) {
+    fim = editor.findWordAt({line: line, ch: ch}).head.ch;
+  }
 
   var l = editor.getRange({line: line, ch: inicio}, {line: line, ch: fim});
   

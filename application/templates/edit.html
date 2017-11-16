@@ -141,7 +141,8 @@
             </a>
           </li>
           <li>
-            <a onclick="insertAround('.. table:: Legenda\n   :widths: 1 3\n   :column-alignment: left center\n\n   +---+---+\n   | A | B |\n   +===+===+\n   | 0 | 1 |\n   +---+---+\n   | 2 | 3 |\n   +---+---+\n','')"
+            <a class="insert-around"
+               data-insert-start=".. table:: Legenda&#10;   :widths: 1 3&#10;   :column-alignment: left center&#10;&#10;   +---+---+&#10;   | A | B |&#10;   +===+===+&#10;   | 0 | 1 |&#10;   +---+---+&#10;   | 2 | 3 |&#10;   +---+---+&#10;"
                title="{{ _('Table') }}" uk-tooltip
                uk-icon="icon: thumbnails">
             </a>
@@ -179,8 +180,9 @@
             </button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\n.. math::\n\n   a^2 = b','')"
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start="&#10;.. math::&#10;&#10;   a^2 = b"
+                    data-insert-end=""
                     title="{{ _('Displayed equation') }}" uk-tooltip>{{ _('Displayed equation') }}
             </button>
           </div>
@@ -189,56 +191,58 @@
           <div class="uk-flex uk-flex-wrap uk-flex-wrap-around
                       uk-background-default">
             <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\frac{1}{2}','')">&#xBD;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start="\frac{1}{2}">&#xBD;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\sin(',')')">sin</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start="\sin(" data-insert-end=")">sin</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\cos(',')')">cos</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start="\cos("
+                    data-insert-end=")">cos</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\neq','')">&#x2260;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\neq'>&#x2260;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\cap','')">&#x2229;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\cap'>&#x2229;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\cup','')">&#x222A;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\cup'>&#x222A;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\mathbb{R}','')">&#x211D;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\mathbb{R}'>&#x211D;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\mathbb{Q}','')">&#x211A;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\mathbb{Q}'>&#x211A;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\mathbb{Z}','')">&#x2124;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\mathbb{Z}'>&#x2124;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\mathbb{N}','')">&#x2115;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\mathbb{N}'>&#x2115;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\in','')">&#x2208;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\in'>&#x2208;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\subset','')">&#x2282;</button>
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\subset'>&#x2282;</button>
           </div>
           <div>
-            <button class="uk-button uk-button-default uk-button-small"
-                    onclick="insertAround('\\overrightarrow{','}')">x&#8407;
+            <button class="uk-button uk-button-default uk-button-small insert-around"
+                    data-insert-start='\overrightarrow{'
+                    data-insert-end="}">x&#8407;
           </button>
           </div>
         </div>
