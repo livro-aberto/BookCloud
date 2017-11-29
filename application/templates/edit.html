@@ -19,6 +19,9 @@
     height: calc(100vh - 100px);
     overflow: hidden;
     }
+    #ambiente_modal input, #ambiente_modal textarea {
+      margin-bottom: 5px;
+    }
   </style>
   {{ sphinx_uikit_script() }}
 {% endblock scripts %}
@@ -119,9 +122,8 @@
             </button>
           </li>
           <li>
-            <button class="uk-button uk-button-text insert-sec-button" data-type="ativ"
-                    data-title="Atividade"
-                    title="{{ _('Atividade') }}" uk-tooltip>{{ _('Atividade') }}
+            <button class="uk-button uk-button-text insert-ambiente-button"
+                    title="{{ _('Ambiente') }}" uk-tooltip>{{ _('Ambiente') }}
             </button>
           </li>
         </ul>
@@ -388,7 +390,22 @@
             <button class="uk-button uk-button-primary" type="button">Inserir</button>
         </div>
     </div>
-</div>
+  </div>
+
+  <div id="ambiente_modal" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+          <h2 class="uk-modal-title">Inserir ambiente.</h2>
+          <input id="insert_ambiente_title" class="uk-input" type="text" name="title" value="" placeholder="Título da atividade">
+          <input id="insert_ambiente_objetivos" class="uk-input" type="text" name="objetivos" value="" placeholder="Objetivos específicos">
+          <input id="insert_ambiente_recomendacoes" class="uk-input" type="text" name="recomendacoes" value="" placeholder="Recomendações e sugestões">
+          <textarea id="insert_ambiente_atividade_texto" class="uk-textarea" name="text-ativ" placeholder="Texto da atividade" rows="6"></textarea>
+          <textarea id="insert_ambiente_atividade_resposta" class="uk-textarea" name="text-resp" placeholder="Texto da resposta" rows="6"></textarea>
+          <p class="uk-text-right">
+              <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
+              <button class="uk-button uk-button-primary" type="button" id="insert_ambiente_button">Inserir</button>
+          </p>
+      </div>
+  </div>
 
 </html>
 {% endblock %}

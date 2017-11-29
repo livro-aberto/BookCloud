@@ -72,6 +72,28 @@ function insertSections(type, title) {
   
 }
 
+function insertAmbiente(data) {
+  var cursor = editor.getCursor();
+  var item_id = slugify(data.title);
+  var sec_id = data.section
+  
+  editor.setCursor({line: cursor.line});
+  
+  var my_id = "ativ-"+sec_id+"-"+item_id
+  var text = ".. "+my_id+":\n\nAtividade: "+data.title
+  text = text+"\n------------------------------\n\n"
+  text = text+".. admonition:: Para o professor\n\n"
+  text += "    **Objetivos específicos:**\n"
+  text += "    "+data.objetivos
+  text += "\n\n    **Recomendações e sugestões:**\n"
+  text += "    "+data.recomendacoes + "\n\n"
+  text += data.texto
+  text += "\n\n.. admonition:: Resposta\n\n"
+  text += "    "+data.resposta+"\n\n"
+  
+  editor.replaceRange(text, {line: cursor.line});
+}
+
 function insertBoxes(title, text) {
   var cursor = editor.getCursor();
   editor.setCursor({line: cursor.line});

@@ -126,6 +126,25 @@ $(document).ready(function() {
     UIkit.modal($("#boxes_modal")).hide()
   });
   
+  $(".insert-ambiente-button").click(function() {
+    $('.uk-dropdown').hide();
+    UIkit.modal($("#ambiente_modal")).show();
+  });
+  
+  $("#insert_ambiente_button").click(function() {
+    insertAmbiente(
+      {
+        title: $("#insert_ambiente_title").val(),
+        section: CURRENT_SEC,
+        objetivos: $("#insert_ambiente_objetivos").val(),
+        recomendacoes: $("#insert_ambiente_recomendacoes").val(),
+        texto: $("#insert_ambiente_atividade_texto").val(),
+        resposta: $("#insert_ambiente_atividade_resposta").val()
+      }
+    );
+    UIkit.modal($("#ambiente_modal")).hide();
+  });
+  
   $('.insert-image-button').click(function() {
     UIkit.modal($("#insert_image_modal")).show();
   });
