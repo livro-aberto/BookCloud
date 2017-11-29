@@ -87,7 +87,6 @@ function save() {
   document.getElementById("html_scroll").value = height;
   var info = editor.getScrollInfo();
   document.getElementById("edit_scroll").value = info.top;
-  editor.refresh();
 }
   
 function popitup(url) {

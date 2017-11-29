@@ -9,6 +9,7 @@ $(document).ready(function() {
   
   $('#myform').submit(function(ev) {
     ev.preventDefault();
+    editor.save();
     var form = $('#myform');
     var jqxhr = $.post(form.attr('action'), form.serialize(), function(data) {
       
@@ -20,6 +21,7 @@ $(document).ready(function() {
           $(".document").html('');
           $(".document").html(retorno);
           sphinx_apply_uikit();
+          editor.refresh();
         });
       })
       .fail(function(data) {
@@ -37,7 +39,7 @@ $(document).ready(function() {
   // Eventos
   function changed_editor(instance, changeObj) {
     is_changed = 1;
-    editor.save();
+    //editor.save();
   }
   
   function viewport_change_editor(instance, from, to) {
@@ -77,6 +79,9 @@ $(document).ready(function() {
   editor.on("change", function(){ changed_editor(); }  );
   editor.on("viewportChange", function(instance, from, to){ viewport_change_editor(instance, from, to); }  );
   editor.on("cursorActivity", function(){ cursor_activity(); }  );
+  editor.on("refresh", function () {
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+  });
   //
 
   var charWidth = editor.defaultCharWidth(), basePadding = 3;
@@ -127,6 +132,10 @@ $(document).ready(function() {
   
   $(".popitup").click(function() {
     popitup($(this).attr('data-url'));
+  });
+  
+  $(".headerlink").on('click', function (ev) {
+    return false;
   });
   
 });
