@@ -25,16 +25,12 @@ For Debian 9:
 
     sudo apt-get install libmariadbclient-dev
 
-
-
-
 Clone this repository, enter the BookCloud folder and create the virtual environment:
 
     virtualenv vir
-
-Enter the virtual environment:
-
     source vir/bin/activate
+    pip install --upgrade pip
+    pip install --upgrade setuptools
 
 Then install the python requirements:
 
@@ -62,22 +58,21 @@ Add a root password. First login as root (which may have to be run under sudo):
 
 Create a new user for bookcloud
 
-    CREATE USER '<newusersname>'@'localhost' IDENTIFIED BY '<password>';
-
-Grant user access to the database. To simplify, you can grant access to anything:
-
-    GRANT ALL PRIVILEGES ON * . * TO '<newusersname>'@'localhost';
-    FLUSH PRIVILEGES;
-
-Log out with root (pressing `Ctr-D`), then log in with the new user:
-
-    mysql -u <newusersname> -p
+    CREATE USER 'bookclouduser'@'localhost' IDENTIFIED BY '<password>';
 
 Create a new database
 
-    CREATE DATABASE <databasename>;
+    CREATE DATABASE bookcloud;
 
-Usually `bookcloud` is a good name for the database.
+
+Grant user access to the database. To simplify, you can grant access to anything:
+
+    GRANT ALL PRIVILEGES ON bookcloud . * TO 'bookclouduser'@'localhost';
+    FLUSH PRIVILEGES;
+
+Log out with root (pressing `Ctr-D`), then thes the new user's login:
+
+    mysql -u <newusersname> -p
 
 ## Configuring the app
 
@@ -133,4 +128,123 @@ You may need:
 Then in `application` folder type:
 
     pybabel compile -d translations
+
+# Server installation with nginx
+
+## Installing uwsgi for nginx
+
+I suggest reading this: `http://uwsgi-docs.readthedocs.io/en/latest/WSGIquickstart.html`.
+
+First install gunicorn
+
+    source vir/bin/activate
+    pip install uwsgi
+
+Test the application using
+
+    uwsgi --http :9090 --wsgi-file wsgi.py
+
+And from another terminal
+
+    curl 0.0.0.0:9090
+
+## Config
+
+Check the configuration of uwsgi in `uwsgi.ini`.
+
+## Create a systemd service for uwsgi
+
+Edit the file:
+
+    sudo nano /etc/systemd/system/uwsgi.service
+
+And add this to the contents:
+
+    [Unit]
+    Description=uwsgi daemon
+    After=network.target
+
+    [Service]
+    User=<user-name>
+    Group=www-data
+    WorkingDirectory=/var/www/BookCloud
+    ExecStart=/var/www/BookCloud/vir/bin/uwsgi /var/www/BookCloud/uwsgi.ini
+    Restart=always
+    KillSignal=SIGQUIT
+    Type=notify
+    StandardError=syslog
+    NotifyAccess=all
+
+    [Install]
+    WantedBy=multi-user.target
+
+Replacing `/var/www/` by the location of your BookCloud folder.
+
+Test it with:
+
+    sudo systemctl start uwsgi
+    sudo systemctl status uwsgi
+
+If it is working, enable it
+
+    sudo systemctl enable uwsgi
+
+## Configure Nginx as a reverse proxy
+
+Create a site file:
+
+    sudo nano /etc/nginx/sites-available/BookCloud
+
+Add the
+
+
+# Redirect HTTP traffic to HTTPS
+
+    server {
+        listen 80;
+        server_name www.umlivroaberto.org;
+        rewrite ^/(.*) https://www.umlivroaberto.org/$1 permanent;
+    }
+
+
+# Default server configuration
+
+Use this configuration for nginx (helps with reverse proxying the subpath):
+
+    server {
+        # SSL configuration
+
+        listen 443 ssl;
+        listen [::]:443 ssl;
+
+        server_name www.umlivroaberto.org;
+
+        ssl_certificate /etc/ssl/private/www_umlivroaberto_org.crt;
+        ssl_certificate_key /etc/ssl/private/umlivroaberto.org.key;
+
+        ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+        ssl_prefer_server_ciphers on;
+        ssl_ciphers 'EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH';
+
+
+        location /BookCloud/ {
+            include uwsgi_params;
+            uwsgi_pass 127.0.0.1:3031;
+        }
+    }
+
+Enable it:
+
+    sudo ln -s /etc/nginx/sites-available/BookCloud /etc/nginx/sites-enabled/BookCloud
+
+Test if the configuration worked:
+
+    sudo nginx -t
+
+Restart nginx:
+
+    sudo systemctl restart nginx
+
+And test it from outside.
+
 
