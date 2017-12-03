@@ -1,3 +1,8 @@
+# Celery configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+
 # Endpoints are converted to URLs using url_for()
 # The empty endpoint ('') will be mapped to the root URL ('/')
 USER_AFTER_CHANGE_PASSWORD_ENDPOINT      = 'home'
@@ -11,6 +16,7 @@ USER_AFTER_RESEND_CONFIRM_EMAIL_ENDPOINT = 'home'
 USER_AFTER_RESET_PASSWORD_ENDPOINT       = 'home'
 USER_INVITE_ENDPOINT                     = 'home'
 
+# Download limitations
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False

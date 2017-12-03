@@ -96,6 +96,7 @@ def project_context_processor():
 def branches(project):
     return render_template('branches.html')
 
+# Wrap in job queue
 @projects.route('/dashboard', methods = ['GET', 'POST'])
 @limiter.exempt
 def dashboard(project):
@@ -108,6 +109,7 @@ def dashboard(project):
               int(os.stat(join(master_path, f)).st_size / 500)) for f in files]
     return render_template('dashboard.html', tree=tree, log=log, files=files)
 
+# Wrap in job queue
 @projects.route('/newfile', methods = ['GET', 'POST'])
 @login_required
 @require_projct_owner
@@ -128,6 +130,7 @@ def newfile(project):
         return redirect(url_for('projects.dashboard', project=project.name))
     return render_template('newfile.html', form=form)
 
+# Wrap in job queue
 @projects.route('/renamefile/<oldfilename>', methods = ['GET', 'POST'])
 @login_required
 @require_projct_owner
@@ -239,6 +242,8 @@ def upload_resource(project):
         'filename': basename
     })
 
+# should be served by web server
+# need to have webserver add project path
 @projects.route('/resources/<path:filename>')
 @limiter.exempt
 def resources(project, filename):
@@ -246,6 +251,9 @@ def resources(project, filename):
         os.path.abspath(join(project.get_folder(), '_resources/original')),
         filename)
 
+# should be served by web server
+# need to have webserver add project path
+# need to see all the cases of path:anything
 @projects.route('/<path:anything>/_resources/<path:filename>')
 @limiter.exempt
 def other_resources(project, anything, filename):

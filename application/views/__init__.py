@@ -20,7 +20,7 @@ from flask_user import current_user
 from flask_babel import gettext as _
 from flask_mail import Message
 
-from application import app, mail, limiter, babel, db
+from application import app, mail, limiter, babel, db, celery
 from application.branches import *
 from application.utils import last_modified, commit_diff, Custom404
 from application.projects import Project, ProjectForm
@@ -114,14 +114,17 @@ def new():
         if os.path.isdir(user_repo_path):
             flash(_('This project name already exists'), 'error')
         else:
-            project = Project(form.name.data, current_user)
-            db.session.add(project)
-            db.session.commit()
+            # project = Project(form.name.data, current_user)
+            @celery.task
+            def taskenize(*args, **kwargs):
+                return Project(*args, **kwargs)
+            task = taskenize.delay(form.name.data, current_user.id)
             #project.create_project(form.name.data, current_user)
             flash(_('Project created successfuly!'), 'info')
-            return redirect(url_for('branches.view',
-                                    project=form.name.data,
-                                    branch='master', filename='index'))
+            return render_template('home.html')
+            #return redirect(url_for('branches.view',
+            #                        project=form.name.data,
+            #                        branch='master', filename='index'))
     return render_template('new.html', form=form)
 
 @app.route('/html2rst', methods = ['GET', 'POST'])

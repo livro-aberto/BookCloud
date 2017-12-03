@@ -34,6 +34,8 @@ class Project(CRUDMixin, db.Model):
     threads = relationship('Thread', back_populates='project',
                            lazy='dynamic')
 
+    # Has to be called only when one saves a file and the result stored
+    # The labels of each file should be stored in database after save
     def get_labels(self):
         master_path = join('repos', self.name, 'master', 'source')
         label_list = []
@@ -44,6 +46,8 @@ class Project(CRUDMixin, db.Model):
                                              data, re.MULTILINE))
         return json.dumps(label_list)
 
+    # Has to be called only when one saves a file and the result stored
+    # The labels of each file should be stored in database after save
     def get_label_file_dict(self):
         master_path = join('repos', self.name, 'master', 'source')
         label_dict = {}
@@ -55,9 +59,6 @@ class Project(CRUDMixin, db.Model):
                     r'^\.\. _([0-9a-z\-]+):\s$', data, re.MULTILINE)}
                 label_dict.update(more_data)
         return label_dict
-
-    #def get_repo_path(self):
-    #    return join('repos', self.name)
 
     def get_master(self):
         return (application.branches.Branch.query
@@ -76,6 +77,8 @@ class Project(CRUDMixin, db.Model):
     def get_folder(self):
         return join('repos', self.name)
 
+    # Wrap in queued job
+    # Should be sent to branch
     def new_file(self, filename):
         file_extension = '.rst'
         file_path = join(self.get_master().get_source_path(),
@@ -89,6 +92,8 @@ class Project(CRUDMixin, db.Model):
             repo.index.add([filename + file_extension])
             self.get_master().build()
 
+    # Wrap in queued job
+    # Should be sent to branch
     def rename_file(self, old_filename, new_filename):
         file_extension = '.rst'
         if not os.path.isfile(join(self.get_master().get_source_path(),
@@ -102,6 +107,8 @@ class Project(CRUDMixin, db.Model):
                    new_filename + file_extension)
         self.get_master().build()
 
+    # Wrap in queued job
+    # Should be sent to branch
     def delete_file(self, filename):
         file_extension = '.rst'
         if not os.path.isfile(join(self.get_master().get_source_path(),
@@ -114,6 +121,7 @@ class Project(CRUDMixin, db.Model):
         git_api.rm('-f', filename + file_extension)
         self.get_master().build()
 
+    # The labels in a file should be stored in database after save
     def get_threads_by_tag(self, filename):
         try:
             data = load_file(join('repos', self.name, 'master',
@@ -131,8 +139,9 @@ class Project(CRUDMixin, db.Model):
                  'titles': [x[1] for x in threads_by_tag if x[0]==l]}
                 for l in label_list]
 
-    def __init__(self, name, user):
+    def __init__(self, name, user_id):
         self.name = name
+        user = get_by_id(user_id)
         self.owner_id = user.id
         # create the master branch
         new_branch = application.branches.Branch('master', self, None, user)
@@ -162,4 +171,6 @@ class Project(CRUDMixin, db.Model):
         author = git.Actor(user.username, user.email)
         repo.index.commit(_('Initial commit'), author=author)
         new_branch.build(timeout=30)
+        db.session.add(self)
+        db.session.commit()
 

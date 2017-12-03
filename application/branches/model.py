@@ -43,6 +43,7 @@ class Branch(CRUDMixin, db.Model):
         self.owner_id = owner.id
         self.expires = True
 
+    # Wrap in queued job
     def clone(self, name, user):
         """
         create a clone of self with a given name, owned by user
@@ -90,6 +91,7 @@ class Branch(CRUDMixin, db.Model):
             '--full-history',
             "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
 
+    # Wrap in queued job
     def build(self, timeout=300):
         # Replace this terrible implementation
         config_path = 'conf'
@@ -155,7 +157,7 @@ def get_log_diff(project, origin, branch):
                        '--abbrev-commit','--decorate', '--right-only',
                        "--format=format:%an (%ar): %s %d")
 
-
+# Wrap in queued job
 def build_latex(project, branch):
     # Replace this terrible implementation
     config_path = 'conf'
@@ -169,6 +171,7 @@ def get_branch_by_name(project, branch):
     project_id = application.projects.Project.query.filter_by(name=project).first().id
     return Branch.query.filter_by(project_id=project_id, name=branch).first()
 
+# Wrap in queued job
 def update_branch(project, branch):
     # update from reviewer (if not master)
     if (branch.name != 'master'
@@ -180,6 +183,7 @@ def update_branch(project, branch):
         git_api.push('origin', branch.name)
     branch.build(timeout=20)
 
+# Wrap in queued job
 def update_subtree(project, branch):
     if not branch.is_dirty():
         update_branch(project, branch)
