@@ -119,6 +119,7 @@ class Command(object):
     def __init__(self, cmd):
         self.cmd = cmd
         self.process = None
+        self.result = None
 
     def run(self, timeout):
         def target():

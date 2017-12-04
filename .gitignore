@@ -5,6 +5,9 @@ instance/*
 !instance/instance_config_default.py
 !instance/README.md
 
+log/*
+!log/README.md
+
 application/static/vendor/*
 !application/static/vendor/bower.json
 application/static/bundles/*.css

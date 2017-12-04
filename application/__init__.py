@@ -1,8 +1,11 @@
 import os
-from os.path import join
-from flask_user import current_user
+import logging
 
+import logging.handlers
+
+from os.path import join
 from flask import Flask
+from flask_user import current_user
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -145,6 +148,21 @@ def create_app(extra_config_settings={}):
         app.config['WTF_CSRF_ENABLED'] = False
         app.config['LANGUAGE'] = 'en_US'
         app.config['BOOKCLOUD_URL_PREFIX'] = ''
+
+    logging_levels = { 'CRITICAL': logging.CRITICAL,
+                       'ERROR': logging.ERROR,
+                       'WARNING':  logging.WARNING,
+                       'INFO': logging.INFO,
+                       'DEBUG': logging.DEBUG,
+                       'NOTSET': logging.NOTSET
+    }
+    handler = logging.handlers.RotatingFileHandler(
+        app.config['LOGGING_LOCATION'],
+        maxBytes=app.config['LOGGING_MAX_BYTES'])
+    handler.setLevel(logging_levels[app.config['LOGGING_LEVEL']])
+    formatter = logging.Formatter(app.config['LOGGING_FORMAT'])
+    handler.setFormatter(formatter)
+    app.logger.addHandler(handler)
 
     #app.register_blueprint(application.views.temp,
     #                       url_prefix=app.config['BOOKCLOUD_URL_PREFIX'])

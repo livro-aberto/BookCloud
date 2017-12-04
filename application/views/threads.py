@@ -107,6 +107,8 @@ def newthread(project):
                                   subject=subject,
                                   html=message)
                     conn.send(msg)
+                app.logger.info('Sending emails to {} users'.format(
+                    len(recipients)))
                 flash(_('Emails sent to user(s) {}')
                       .format(str(recipients)))
         flash(_('New thread successfully created'), 'info')
@@ -156,6 +158,7 @@ def editthread(project, thread_id):
         thread.free_tags = [Free_Tag(thread.id, n)
                             for n in form.free_tags.data]
         db.session.commit()
+        app.logger.info('Updating thread {}'.format(thread.id))
         flash(_('Thread successfully modified'), 'info')
         if 'return_url' in request.args:
             return redirect(urllib.unquote(request.args['return_url']))
@@ -181,6 +184,7 @@ def deletethread(project, thread_id):
             else:
                 thread.delete()
                 db.session.commit()
+                app.logger.info('Deleting thread {}'.format(thread.id))
                 flash(_('Thread successfully deleted'), 'info')
     if 'return_url' in request.args:
         return redirect(urllib.unquote(request.args['return_url']))
@@ -239,6 +243,8 @@ def newcomment(project, thread_id, parent_lineage=''):
                                   html=message,
                                   subject=subject)
                     conn.send(msg)
+                app.logger.info('Sending emails to {} users'.format(
+                    len(recipients)))
                 flash(_('Emails sent to user(s) {}')
                       .format(str(recipients)))
         flash(_('New comment successfully created'), 'info')
@@ -265,6 +271,7 @@ def editcomment(project, comment_id):
     if request.method == 'POST' and form.validate():
             comment.content = form.comment.data
             db.session.commit()
+            app.logger.info('Modifying comment {}'.format(comment.id))
             flash(_('Comment modified successfully'), 'info')
             if 'return_url' in request.args:
                 return redirect(urllib.unquote(request.args['return_url']))
@@ -292,6 +299,7 @@ def deletecomment(project, comment_id):
             else:
                 comment.delete()
                 db.session.commit()
+                app.logger.info('Deleting comment {}'.format(comment.id))
                 flash(_('Comment successfully deleted'), 'info')
     if 'return_url' in request.args:
         return redirect(urllib.unquote(request.args['return_url']))
@@ -397,6 +405,8 @@ def like_comment(project, comment_id):
                 })
         comment.likes.remove(current_user)
         db.session.commit()
+        app.logger.info('User {} liked comment {}'.format(
+            current_user.username, comment.id))
         return json.dumps({
             'message': _('Like removed!'),
             'number_of_likes': comment.likes.count(),
@@ -429,6 +439,8 @@ def mark_read(project, thread_id):
                 })
         thread.user_read_thread.remove(current_user)
         db.session.commit()
+        app.logger.info('User {} read comment {}'.format(
+            current_user.username, comment.id))
         return json.dumps({
             'message': _('Marked as unread!'),
             'status': 'success'})

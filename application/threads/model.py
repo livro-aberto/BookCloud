@@ -1,4 +1,4 @@
-from application import db
+from application import db, app
 from sqlalchemy.orm import relationship
 
 from application.models import CRUDMixin
@@ -60,6 +60,7 @@ class Thread(CRUDMixin, db.Model):
         self.project_id = project_id
         self.posted_at = posted_at
         self.flag = flag
+        app.logger.info('Creating thread "{}"'.format(title))
 
     def get_comments(self, number):
         return (Comment.query.filter_by(thread_id=self.id)
@@ -89,6 +90,7 @@ class Comment(CRUDMixin, db.Model):
         self.owner_id = owner_id
         self.content = content
         self.posted_at = posted_at
+        app.logger.info('Creating comment for thread "{}"'.format(thread_id))
 
     def get_indent(self):
         return 6 * len(self.lineage)

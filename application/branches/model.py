@@ -1,10 +1,12 @@
 import os
 import re
 import json
-from shutil import rmtree
-from os.path import isfile, join
+import sphinx
 import string
 import git
+
+from shutil import rmtree
+from os.path import isfile, join
 
 from datetime import datetime, timedelta
 
@@ -14,7 +16,7 @@ from sqlalchemy.orm import relationship
 
 from flask_babel import gettext as _
 
-from application import db
+from application import db, app
 import application.projects
 from application.utils import Command, load_file
 from application.users import User
@@ -42,6 +44,8 @@ class Branch(CRUDMixin, db.Model):
             self.origin_id = origin.id
         self.owner_id = owner.id
         self.expires = True
+        app.logger.info('Creating branch "{}" of "{}"'.format(
+            name, project.name))
 
     def clone(self, name, user):
         """
@@ -66,6 +70,8 @@ class Branch(CRUDMixin, db.Model):
         # build the source
         new_branch.build(timeout=60)
         return new_branch
+        app.logger.info('Clonning branch "{}" of "{}" to "{}"'.format(
+            self.name, self.project.name, name))
 
     def get_source_path(self):
         return join('repos', self.project.name, self.name, 'source')
@@ -91,20 +97,19 @@ class Branch(CRUDMixin, db.Model):
             "--format=format:%w(65,0,9)%an (%ar): %s %d", '--all')
 
     def build(self, timeout=300):
+        app.logger.info('Building branch "{}" of "{}"'.format(
+            self.name, self.project.name))
         # Replace this terrible implementation
         config_path = 'conf'
-        # args = ['-a', '-c conf']
-        # if sphinx.build_main(args + ['source/', 'build/html/']):
-        #     os.chdir(previous_wd)
-        #     return False
-        # os.chdir(previous_wd)
-        # return True
-        command = ('sphinx-build -c ' + config_path + ' '
-                   + self.get_source_path() + ' '
-                   + self.get_html_path())
-        process = Command(command)
-        process.run(timeout=timeout)
-        return True
+        branch_path = os.path.abspath(join(os.getcwd(), 'repos',
+                                           self.project.name, self.name))
+        args = ['-v', '-v', '-c', os.path.abspath('conf'),
+                join(branch_path, 'source'), join(branch_path, 'build/html')]
+        result = sphinx.build_main(args)
+        if (result == 0):
+            return True
+        else:
+            return False
 
 # will be deprecated
 def get_sub_branches(branch):
@@ -163,6 +168,8 @@ def build_latex(project, branch):
     build_path = join('repos', project, branch, 'build/latex')
     command = 'sphinx-build -a -b latex -c ' + config_path + ' ' + source_path + ' ' + build_path
     os.system(command)
+    app.logger.info('Building latex for branch "{}" of "{}"'.format(
+        branch.name, project.name))
     return True
 
 def get_branch_by_name(project, branch):
@@ -178,9 +185,13 @@ def update_branch(project, branch):
         git_api.merge('-s', 'recursive', '-Xours', 'origin/'
                       + branch.origin.name)
         git_api.push('origin', branch.name)
+    app.logger.info('Updating branch "{}" of "{}"'.format(
+        branch.name, project.name))
     branch.build(timeout=20)
 
 def update_subtree(project, branch):
+    app.logger.info('Updating subtree for branch "{}" of "{}"'.format(
+        branch.name, project.name))
     if not branch.is_dirty():
         update_branch(project, branch)
         children = Branch.query.filter_by(origin_id=branch.id)

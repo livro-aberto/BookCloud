@@ -159,12 +159,14 @@ def get_locale():
 def page_not_found(e):
     bookcloud_before_request()
     message = e.message
+    app.logger.error(message)
     return render_template('404.html', message=message), 404
 
 @limiter.exempt
 @app.errorhandler(Exception)
 def internal_server_error(e):
     message = repr(e)
+    app.logger.error(message)
     trace = traceback.format_exc()
     trace = string.split(trace, '\n')
     timestamp = (datetime.fromtimestamp(time.time())
