@@ -4,6 +4,7 @@ import json
 import sphinx
 import string
 import git
+import uuid
 
 from shutil import rmtree
 from os.path import isfile, join
@@ -103,11 +104,15 @@ class Branch(CRUDMixin, db.Model):
         config_path = 'conf'
         branch_path = os.path.abspath(join(os.getcwd(), 'repos',
                                            self.project.name, self.name))
-        args = ['-v', '-v', '-c', os.path.abspath('conf'),
+        log_file_name = join(app.config['SPHINX_LOGGING_FOLDER'],
+                             'sphinx' + str(uuid.uuid4())) + '.log'
+        args = ['-v', '-v',
+                '-w', log_file_name,
+                '-c', os.path.abspath('conf'),
                 join(branch_path, 'source'), join(branch_path, 'build/html')]
         result = sphinx.build_main(args)
         if (result == 0):
-            return True
+            return True, log_file_name
         else:
             return False
 
