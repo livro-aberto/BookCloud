@@ -16,7 +16,7 @@ from werkzeug import secure_filename, FileStorage
 from PIL import Image
 from shutil import copyfile
 
-from application import db, limiter
+from application import db, app, limiter
 from application.projects import (
     Project, ProjectForm, FileForm
 )
@@ -236,6 +236,8 @@ def upload_resource(project):
         name, ext = os.path.splitext(basename)
         return ".. figure:: _resources/" + name + ".*"
     return ".. figure:: _resources/" + basename
+    app.logger.info('Uploading file {} from project {}'.format(
+        file.filename, project.name))
     return json.dumps({
         'message': _('Image saved successfully'),
         'status': 'success',

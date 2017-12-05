@@ -21,3 +21,9 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+# Logging
+LOGGING_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+LOGGING_LOCATION = 'log/BookCloud.log'
+SPHINX_LOGGING_FOLDER = 'log/'
+LOGGING_MAX_BYTES = 1024 * 1024
+LOGGING_LEVEL = 'INFO'

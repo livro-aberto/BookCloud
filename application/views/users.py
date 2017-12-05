@@ -3,7 +3,7 @@ from flask import (Blueprint, render_template, request,
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
 
-from application import db
+from application import db, app
 from application.projects import Project
 from application.branches import Branch
 from application.threads import Named_Tag
@@ -57,6 +57,8 @@ def update_profile():
                             item['choices']
                             .index(request.form[item['variable']]))
         db.session.commit()
+        app.logger.info('Updating profile of user {}'.format(
+            current_user.username))
         flash(_('Profile updated'), 'info')
         return redirect(url_for('users.profile'))
     return render_template('update_profile.html', user=current_user,
@@ -76,6 +78,8 @@ def subscriptions():
             .query.filter(Named_Tag.id.in_(form.subscriptions.data))).all()
         current_user.subscriptions = subscription_list
         db.session.commit()
+        app.logger.info('Updating subscriptions of user {}'.format(
+            current_user.username))
         flash(_('Subscriptions updated'), 'info')
         return redirect(url_for('users.profile'))
     form.subscriptions.default = [t.id for t in current_user.subscriptions]

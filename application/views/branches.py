@@ -25,7 +25,7 @@ from flask_user import login_required, current_user
 
 import application
 from application import limiter
-from application import db
+from application import db, app
 from application.utils import load_file, write_file, Custom404
 from .projects import Project
 from .threads import Thread, File_Tag, Named_Tag
@@ -221,6 +221,7 @@ def edit(project, branch, filename):
         edit_scroll = request.form['edit_scroll']
         write_file(file_source_path, request.form['code'])
         branch.get_repo().index.add([filename + '.rst'])
+        app.logger.info('Creating file {}'.format(filename))
         flash(_('File saved successfully'), 'info')
         branch.build()
     rst = load_file(file_source_path)
@@ -247,6 +248,7 @@ def commit(project, branch):
     repo = git.Repo(join(user_repo_path, 'source'))
     form = CommitForm(request.form)
     if request.method == 'POST' and form.validate():
+        # send this logic to model file
         author = git.Actor(current_user.username, current_user.email)
         if len(form.message.data):
             message = form.message.data
@@ -259,6 +261,8 @@ def commit(project, branch):
             git_api.push('origin', branch.name)
             flash(_('Page submitted to _%s') % origin.name, 'info')
         update_subtree(project, branch)
+        app.logger.info('Commit for branch {} of {}'.format(
+            branch.name, project.name))
         flash(_('Change commited'), 'info')
         return redirect(url_for('branches.view', project=project.name,
                                 branch=branch.name, filename='index'))
@@ -290,6 +294,7 @@ def clone(project, branch):
             flash(_('Project cloned successfuly!'), 'info')
             start_time = time.time()
             # this while is a hack to wait for the build. waiting for celery...
+            # another idea is to copy build folder from original branch
             while (time.time() < start_time + 30
                    and not os.path.isfile(join(new_branch.get_html_path(),
                                                'index.html'))):
@@ -404,6 +409,8 @@ def accept(project, branch, filename):
     merging['reviewed'].append(filename)
     merge_file_path = join('repos', project.name, branch.name, 'merging.json')
     write_file(merge_file_path, json.dumps(merging))
+    app.logger.info('Accepting file {} from branch {} of {}'.format(
+        filename, branch.name, project.name))
     return redirect(url_for('branches.merge', project=project.name,
                             branch=branch.name, other=merging['branch']))
 
@@ -430,6 +437,8 @@ def finish(project, branch):
         git_api.push('origin', branch.name)
         flash(_('Page submitted to _%s') % branch.origin.name, 'info')
     update_subtree(project, branch)
+    app.logger.info('Finished merging branch {} of {}'.format(
+        branch.name, project.name))
     flash(_('You have finished merging _%s') % merging['branch'], 'info')
     return redirect(url_for('branches.view', project=project.name,
                             branch=branch.name, filename='index'))
@@ -440,6 +449,8 @@ def pdf(project, branch='master'):
                                       'build/latex'))
     build_latex(project.name, branch.name)
     command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
+    app.logger.info('Building pdf for branch {} of {}'.format(
+        branch.name, project.name))
     os.system(command)
     return flask.send_from_directory(build_path, 'linux.pdf')
 

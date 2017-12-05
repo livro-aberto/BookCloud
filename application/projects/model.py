@@ -8,7 +8,7 @@ from shutil import copyfile
 from flask_babel import gettext as _
 from sqlalchemy.orm import relationship
 
-from application import db
+from application import db, app
 import application.branches
 import application.threads
 import application.users
@@ -36,6 +36,7 @@ class Project(CRUDMixin, db.Model):
 
     # Has to be called only when one saves a file and the result stored
     # The labels of each file should be stored in database after save
+    # keep in database?
     def get_labels(self):
         master_path = join('repos', self.name, 'master', 'source')
         label_list = []
@@ -91,6 +92,7 @@ class Project(CRUDMixin, db.Model):
             repo = self.get_master().get_repo()
             repo.index.add([filename + file_extension])
             self.get_master().build()
+        app.logger.info('New file "{}" created'.format(filename))
 
     # Wrap in queued job
     # Should be sent to branch
@@ -106,6 +108,8 @@ class Project(CRUDMixin, db.Model):
         git_api.mv(old_filename + file_extension,
                    new_filename + file_extension)
         self.get_master().build()
+        app.logger.info('File "{}" renamed to "{}"'.format(
+            old_filename, new_filename))
 
     # Wrap in queued job
     # Should be sent to branch
@@ -115,11 +119,12 @@ class Project(CRUDMixin, db.Model):
                                    filename + file_extension)):
             raise FileNotFound
         if not os.stat(join(self.get_master().get_source_path(),
-                                   filename + file_extension)).st_size == 0:
+                            filename + file_extension)).st_size == 0:
             raise FileNotEmpty
         git_api = self.get_master().get_git()
         git_api.rm('-f', filename + file_extension)
         self.get_master().build()
+        app.logger.info('File "{}" deleted'.format(filename))
 
     # The labels in a file should be stored in database after save
     def get_threads_by_tag(self, filename):
@@ -140,6 +145,7 @@ class Project(CRUDMixin, db.Model):
                 for l in label_list]
 
     def __init__(self, name, user_id):
+        app.logger.info('Creating project "{}"...'.format(name))
         self.name = name
         user = get_by_id(user_id)
         self.owner_id = user.id
@@ -151,11 +157,13 @@ class Project(CRUDMixin, db.Model):
         new_branch.origin_id = new_branch.id
         db.session.commit()
         # create folder for resources
+        app.logger.info('Creating "{}" resource folders'.format(name))
         os.makedirs(join('repos', name, '_resources'))
         os.makedirs(join('repos', name, '_resources/original'))
         os.makedirs(join('repos', name, '_resources/low_resolution'))
         os.makedirs(join('repos', name, '_resources/thumbnail'))
         # create the repository in the filesystem
+        app.logger.info('Creating "{}" repository'.format(name))
         repo_path = join('repos', name, 'master/source')
         os.makedirs(repo_path)
         os.symlink(os.path.abspath(join('repos', name, '_resources',
@@ -173,4 +181,5 @@ class Project(CRUDMixin, db.Model):
         new_branch.build(timeout=30)
         db.session.add(self)
         db.session.commit()
+        app.logger.info('Project "{}" created'.format(name))
 
