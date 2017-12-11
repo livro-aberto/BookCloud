@@ -19,11 +19,13 @@ from flask import render_template, request, flash
 from flask_user import current_user
 from flask_babel import gettext as _
 from flask_mail import Message
+from flask_celeryext import AppContextTask
 
-from application import app, mail, limiter, babel, db, celery
+from application import app, mail, limiter, babel, db
 from application.branches import *
 from application.utils import last_modified, commit_diff, Custom404
 from application.projects import Project, ProjectForm
+from application.tasks import create_project
 
 @app.before_request
 def bookcloud_before_request():
@@ -114,17 +116,19 @@ def new():
         if os.path.isdir(user_repo_path):
             flash(_('This project name already exists'), 'error')
         else:
-            # project = Project(form.name.data, current_user)
-            @celery.task
-            def taskenize(*args, **kwargs):
-                return Project(*args, **kwargs)
-            task = taskenize.delay(form.name.data, current_user.id)
+            #project = Project(form.name.data, current_user)
+            #@celery.task
+            #def taskenize(*args, **kwargs):
+            #    return Project(*args, **kwargs)
+            task = create_project.delay(form.name.data, current_user.id)
             #project.create_project(form.name.data, current_user)
-            flash(_('Project created successfuly!'), 'info')
-            return render_template('home.html')
+            #flash(_('Project created successfuly!'), 'info')
+            #return render_template('home.html')
             #return redirect(url_for('branches.view',
             #                        project=form.name.data,
             #                        branch='master', filename='index'))
+            #print(dir(task))
+            return render_template('waiting.html', task_id=task.task_id)
     return render_template('new.html', form=form)
 
 @app.route('/html2rst', methods = ['GET', 'POST'])

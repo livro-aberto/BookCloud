@@ -2,14 +2,16 @@ from application import create_app, db as the_db
 
 import os
 
-app = create_app(dict(
+test_config = dict(
     TESTING=True,  # Propagate exceptions
     DEBUG=True,
     LOGIN_DISABLED=False,  # Enable @register_required
     MAIL_SUPPRESS_SEND=True,  # Disable Flask-Mail send
     WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
     BOOKCLOUD_URL_PREFIX = ''
-))
+)
+
+app = create_app(test_config)
 
 # Watch changes in template files
 extra_dirs = ['application/templates',]

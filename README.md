@@ -15,6 +15,7 @@ These are some installation instructions (for Ubuntu or Debian):
 
     sudo apt-get install libffi-dev libssl-dev python-bcrypt
 
+    sudo apt-get install redis-server
 
 For Debian 8:
 

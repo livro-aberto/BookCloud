@@ -5,7 +5,26 @@
 {% block scripts %}
   <script>
     $( document ).ready(function() {
-      UIkit.modal('#modal-example').show();
+    UIkit.modal('#modal-example').show();
+
+    function update_progress(status_url) {
+        // send GET request to status URL
+        $.getJSON(status_url, function(data) {
+            // update UI
+            $('#modal-title').text(data['state']);
+            $('#modal-code').append(data['log']);
+            if (data['state'] == 'SUCCESSS') {
+            }
+            else {
+                // rerun in 2 seconds
+                setTimeout(function() {
+                    update_progress(status_url);
+                }, 2000);
+            }
+        });
+    }
+
+    update_progress("{{ url_for('tasks', task_id=task_id) }}")
     });
   </script>
 {% endblock %}
@@ -14,9 +33,10 @@
 
   <div id="modal-example" uk-modal="esc-close: false; bg-close: false;">
     <div class="uk-modal-dialog uk-modal-body">
-      <h2 class="uk-modal-title">Headline</h2>
+      <h2 id="modal-title" class="uk-modal-title">STARTING</h2>
       <div uk-spinner></div>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+       {{ task_id }}
+        <pre><code id="modal-code"></pre></code>
     </div>
   </div>
 

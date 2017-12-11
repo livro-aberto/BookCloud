@@ -1,3 +1,7 @@
+# Create sphinx object in python
+
+    https://stackoverflow.com/questions/47624762/how-to-get-a-list-of-warnings-from-sphinx-compilation/47657926#47657926
+
 # Urgent:
 
   - in discussions:

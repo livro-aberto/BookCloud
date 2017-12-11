@@ -37,7 +37,8 @@ assets = Environment()
 
 babel = Babel()
 
-celery = Celery('app')
+from flask_celeryext import FlaskCeleryExt
+ext = FlaskCeleryExt()
 
 from users import User
 
@@ -126,11 +127,14 @@ def create_app(extra_config_settings={}):
         filters='cssmin'
     )
 
+    ext.init_app(app)
+
     import application.views
     import application.views.users
     import application.views.projects
     import application.views.threads
     import application.views.branches
+    import application.views.tasks
     app.register_blueprint(application.views.users.users)
     app.register_blueprint(application.views.projects.projects)
     app.register_blueprint(application.views.threads.threads)
@@ -174,13 +178,9 @@ def create_app(extra_config_settings={}):
     mail.init_app(app)
     # Setup babel
     babel.init_app(app)
-    # Setup Celery
-    celery.conf.add_defaults(app.config)
     # Setup Flask-User
     db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
     user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
 
     return app
-
-
 

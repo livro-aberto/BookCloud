@@ -144,10 +144,10 @@ class Project(CRUDMixin, db.Model):
                  'titles': [x[1] for x in threads_by_tag if x[0]==l]}
                 for l in label_list]
 
-    def __init__(self, name, user_id):
+    def __init__(self, name, user):
+        #user = application.users.User.get_by_id(user_id)
         app.logger.info('Creating project "{}"...'.format(name))
         self.name = name
-        user = get_by_id(user_id)
         self.owner_id = user.id
         # create the master branch
         new_branch = application.branches.Branch('master', self, None, user)
@@ -178,8 +178,14 @@ class Project(CRUDMixin, db.Model):
         repo.index.add(['index.rst', '.gitignore'])
         author = git.Actor(user.username, user.email)
         repo.index.commit(_('Initial commit'), author=author)
+        # build master
         new_branch.build(timeout=30)
+        app.logger.info('Project "{}" created'.format(name))
+
+        from time import sleep
+
+        sleep(10)
+
         db.session.add(self)
         db.session.commit()
-        app.logger.info('Project "{}" created'.format(name))
 
