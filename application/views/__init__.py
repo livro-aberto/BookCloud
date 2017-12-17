@@ -25,7 +25,7 @@ from application import app, mail, limiter, babel, db
 from application.branches import *
 from application.utils import last_modified, commit_diff, Custom404
 from application.projects import Project, ProjectForm
-from application.tasks import create_project
+from application.projects import create_project
 
 @app.before_request
 def bookcloud_before_request():
@@ -128,7 +128,10 @@ def new():
             #                        project=form.name.data,
             #                        branch='master', filename='index'))
             #print(dir(task))
-            return render_template('waiting.html', task_id=task.task_id)
+            return render_template(
+                'waiting.html', task_id=task.task_id,
+                next_url=url_for('branches.view', project=form.name.data,
+                                 branch='master', filename='index'))
     return render_template('new.html', form=form)
 
 @app.route('/html2rst', methods = ['GET', 'POST'])

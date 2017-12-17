@@ -145,47 +145,5 @@ class Project(CRUDMixin, db.Model):
                 for l in label_list]
 
     def __init__(self, name, user):
-        #user = application.users.User.get_by_id(user_id)
-        app.logger.info('Creating project "{}"...'.format(name))
         self.name = name
         self.owner_id = user.id
-        # create the master branch
-        new_branch = application.branches.Branch('master', self, None, user)
-        db.session.add(new_branch)
-        db.session.commit()
-        # updating branch's self reference
-        new_branch.origin_id = new_branch.id
-        db.session.commit()
-        # create folder for resources
-        app.logger.info('Creating "{}" resource folders'.format(name))
-        os.makedirs(join('repos', name, '_resources'))
-        os.makedirs(join('repos', name, '_resources/original'))
-        os.makedirs(join('repos', name, '_resources/low_resolution'))
-        os.makedirs(join('repos', name, '_resources/thumbnail'))
-        # create the repository in the filesystem
-        app.logger.info('Creating "{}" repository'.format(name))
-        repo_path = join('repos', name, 'master/source')
-        os.makedirs(repo_path)
-        os.symlink(os.path.abspath(join('repos', name, '_resources',
-                                        'low_resolution')),
-                   os.path.abspath(join('repos', name,
-                                        'master/source/_resources/')))
-        git.Repo.init(repo_path)
-        repo = git.Repo(repo_path)
-        application.branches.config_repo(repo, user.username, user.email)
-        copyfile('empty_repo/source/index.rst', join(repo_path, 'index.rst'))
-        copyfile('empty_repo/.gitignore', join(repo_path, '.gitignore'))
-        repo.index.add(['index.rst', '.gitignore'])
-        author = git.Actor(user.username, user.email)
-        repo.index.commit(_('Initial commit'), author=author)
-        # build master
-        new_branch.build(timeout=30)
-        app.logger.info('Project "{}" created'.format(name))
-
-        from time import sleep
-
-        sleep(10)
-
-        db.session.add(self)
-        db.session.commit()
-

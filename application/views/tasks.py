@@ -1,5 +1,9 @@
-from application import app
+from application import app, limiter
 from flask import jsonify
+
+from application.views import internal_server_error
+
+
 
 from pygtail import Pygtail
 
@@ -7,13 +11,27 @@ from celery.result import AsyncResult
 
 #from werkzeug.utils import secure_filename
 
+@limiter.exempt
 @app.route('/tasks/<path:task_id>')
 def tasks(task_id):
-    res = AsyncResult(task_id)
+    task = AsyncResult(task_id)
 
-    out = ""
-    for line in Pygtail("log/BookCloud.log"):
-        out = out + line
+    if (task.state == 'PENDING'):
+        return jsonify({ 'state': task.state })
 
-    return jsonify({ 'state': res.state, 'log': out })
+
+    if (task.state == 'PROGRESS'):
+        return jsonify({ 'state': task.state,
+                         'status': task.info.get('status', '') })
+
+    if (task.state == 'FAILURE'):
+        internal_server_error(task.result)
+        return jsonify({ 'state': task.state,
+                         'result': task.result.message,
+                         'traceback': task.traceback })
+
+    if (task.state == 'SUCCESS'):
+        return jsonify({ 'state': task.state })
+
+    return jsonify({ 'state': task.state })
 
