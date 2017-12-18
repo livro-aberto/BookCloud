@@ -80,22 +80,6 @@ class Project(CRUDMixin, db.Model):
 
     # Wrap in queued job
     # Should be sent to branch
-    def new_file(self, filename):
-        file_extension = '.rst'
-        file_path = join(self.get_master().get_source_path(),
-                         filename + file_extension)
-        if os.path.isfile(file_path):
-            raise FileExists
-        else:
-            stars = '*' * len(filename) + '\n'
-            write_file(file_path, stars + filename + '\n' + stars)
-            repo = self.get_master().get_repo()
-            repo.index.add([filename + file_extension])
-            self.get_master().build()
-        app.logger.info('New file "{}" created'.format(filename))
-
-    # Wrap in queued job
-    # Should be sent to branch
     def rename_file(self, old_filename, new_filename):
         file_extension = '.rst'
         if not os.path.isfile(join(self.get_master().get_source_path(),

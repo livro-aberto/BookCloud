@@ -18,7 +18,7 @@ from shutil import copyfile
 
 from application import db, app, limiter
 from application.projects import (
-    Project, ProjectForm, FileForm
+    Project, ProjectForm, FileForm, new_file
 )
 from application.branches import (
     Branch, get_sub_branches,
@@ -121,13 +121,15 @@ def newfile(project):
         return merge_pendencies
     ####################
     if request.method == 'POST' and form.validate():
-        try:
-            project.new_file(form.name.data)
-        except application.projects.FileExists:
-            flash(_('This file name name already exists'), 'error')
-            return render_template('newfile.html', form=form)
-        flash(_('File created successfuly!'), 'info')
-        return redirect(url_for('projects.dashboard', project=project.name))
+        #try:
+        task = new_file.delay(project.id, form.name.data)
+        #except application.projects.FileExists:
+        #    flash(_('This file name name already exists'), 'error')
+        #    return render_template('newfile.html', form=form)
+        #flash(_('File created successfuly!'), 'info')
+        return render_template(
+            'waiting.html', task_id=task.task_id,
+            next_url=url_for('projects.dashboard', project=project.name))
     return render_template('newfile.html', form=form)
 
 # Wrap in job queue

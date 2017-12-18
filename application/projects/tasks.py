@@ -4,12 +4,18 @@ import git
 from os.path import join
 from shutil import copyfile
 
+from celery import chain
+
 from flask_babel import gettext as _
+
+import application.branches
 
 from application import app, ext, db
 from application.users import User
-from application.projects import Project
-import application.branches
+from application.projects import Project, FileExists
+from application.utils import write_file
+
+from application.branches.tasks import build_branch
 
 celery = ext.celery
 
@@ -17,9 +23,6 @@ celery = ext.celery
 def create_project(self, name, user_id):
     user = User.query.filter_by(id=user_id).one()
 
-    from time import sleep
-
-    sleep(1)
     message = 'Creating project "{}"...'.format(name)
     app.logger.info(message)
     self.update_state(state='PROGRESS', meta={'status': message})
@@ -34,18 +37,20 @@ def create_project(self, name, user_id):
     db.session.commit()
     # create folder for resources
 
-    sleep(1)
     message = 'Creating "{}" resource folders'.format(name)
     app.logger.info(message)
     self.update_state(state='PROGRESS', meta={'status': message})
 
+    try:
+        os.makedirs('/etc/seelekj')
+    except:
+        self.update_state(state='FAILURE', meta={'status': 'Could not do it'})
     os.makedirs(join('repos', name, '_resources'))
     os.makedirs(join('repos', name, '_resources/original'))
     os.makedirs(join('repos', name, '_resources/low_resolution'))
     os.makedirs(join('repos', name, '_resources/thumbnail'))
     # create the repository in the filesystem
 
-    sleep(1)
     message = 'Creating "{}" repository'.format(name)
     app.logger.info(message)
     self.update_state(state='PROGRESS', meta={'status': message})
@@ -64,15 +69,29 @@ def create_project(self, name, user_id):
     repo.index.add(['index.rst', '.gitignore'])
     author = git.Actor(user.username, user.email)
     repo.index.commit(_('Initial commit'), author=author)
-    # build master
-    new_branch.build(timeout=30)
 
-    sleep(1)
     message = 'Project "{}" created'.format(name)
     app.logger.info(message)
     self.update_state(state='PROGRESS', meta={'status': message})
 
-    sleep(1)
     db.session.add(project)
     db.session.commit()
-    return project.id
+    return new_branch.id
+
+
+# Should be sent to branch
+@celery.task(bind=True)
+def new_file(self, project_id, filename):
+    project = Project.query.filter_by(id=project_id).one()
+    file_extension = '.rst'
+    file_path = join(project.get_master().get_source_path(),
+                     filename + file_extension)
+    if os.path.isfile(file_path):
+        raise FileExists
+    else:
+        stars = '*' * len(filename) + '\n'
+        write_file(file_path, stars + filename + '\n' + stars)
+        repo = project.get_master().get_repo()
+        repo.index.add([filename + file_extension])
+        project.get_master().build()
+    app.logger.info('New file "{}" created'.format(filename))

@@ -8,6 +8,8 @@ import traceback
 from datetime import datetime
 import hashlib
 
+from celery import chain
+
 from flask_user import login_required, current_user
 from flask_babel import gettext as _
 
@@ -116,18 +118,9 @@ def new():
         if os.path.isdir(user_repo_path):
             flash(_('This project name already exists'), 'error')
         else:
-            #project = Project(form.name.data, current_user)
-            #@celery.task
-            #def taskenize(*args, **kwargs):
-            #    return Project(*args, **kwargs)
-            task = create_project.delay(form.name.data, current_user.id)
-            #project.create_project(form.name.data, current_user)
-            #flash(_('Project created successfuly!'), 'info')
-            #return render_template('home.html')
-            #return redirect(url_for('branches.view',
-            #                        project=form.name.data,
-            #                        branch='master', filename='index'))
-            #print(dir(task))
+            task_one = create_project.s(form.name.data, current_user.id)
+            task_two = build_branch.s()
+            task = chain(task_one, task_two).delay()
             return render_template(
                 'waiting.html', task_id=task.task_id,
                 next_url=url_for('branches.view', project=form.name.data,

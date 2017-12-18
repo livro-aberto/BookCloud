@@ -23,10 +23,12 @@
             if (data['state'] == 'PROGRESS') {
                 $('#status').text(data['status']);
             }
-            // rerun in 2 seconds
-            setTimeout(function() {
-                update_progress(status_url);
-            }, 2000);
+            if (data['state'] != 'FAILURE') {
+                // rerun in 2 seconds
+                setTimeout(function() {
+                    update_progress(status_url);
+                }, 2000);
+            }
         });
     }
 
