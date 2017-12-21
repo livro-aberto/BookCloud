@@ -18,11 +18,11 @@ from shutil import copyfile
 
 from application import db, app, limiter
 from application.projects import (
-    Project, ProjectForm, FileForm, new_file
+    Project, ProjectForm, FileForm
 )
 from application.branches import (
     Branch, get_sub_branches,
-    get_merge_pendencies
+    get_merge_pendencies, build_branch
 )
 import application.views
 from application.utils import (
@@ -121,12 +121,13 @@ def newfile(project):
         return merge_pendencies
     ####################
     if request.method == 'POST' and form.validate():
-        #try:
-        task = new_file.delay(project.id, form.name.data)
-        #except application.projects.FileExists:
-        #    flash(_('This file name name already exists'), 'error')
-        #    return render_template('newfile.html', form=form)
-        #flash(_('File created successfuly!'), 'info')
+        try:
+            project.new_file(form.name.data)
+        except application.projects.FileExists:
+            flash(_('This file name name already exists'), 'error')
+            return render_template('newfile.html', form=form)
+        flash(_('File created successfuly!'), 'info')
+        task = build_branch.delay(project.get_master().id)
         return render_template(
             'waiting.html', task_id=task.task_id,
             next_url=url_for('projects.dashboard', project=project.name))
@@ -147,9 +148,12 @@ def renamefile(project, oldfilename):
         try:
             project.rename_file(oldfilename, form.name.data)
             flash(_('File renamed successfuly!'), 'info')
-            return redirect(url_for('branches.view',
-                                    project=project.name,
-                                    branch='master', filename=form.name.data))
+            task = build_branch.delay(project.get_master().id)
+            return render_template(
+                'waiting.html', task_id=task.task_id,
+                next_url=url_for('branches.view',
+                                 project=project.name,
+                                 branch='master', filename=form.name.data))
         except application.projects.FileExists:
             flash(_('This file name already exists'), 'error')
         except application.projects.FileNotFound:
@@ -168,8 +172,11 @@ def deletefile(project, filename):
     try:
         project.delete_file(filename)
         flash(_('File removed successfuly!'), 'info')
-        return redirect(url_for('branches.view', project=project.name,
-                                branch='master', filename='index'))
+        task = build_branch.delay(project.get_master().id)
+        return render_template(
+            'waiting.html', task_id=task.task_id,
+            next_url=url_for('branches.view', project=project.name,
+                             branch='master', filename='index'))
     except application.projects.FileNotFound:
         flash(_('File not found'), 'error')
     except application.projects.FileNotEmpty:
@@ -214,6 +221,7 @@ def upload_resource(project):
     target = join(original_folder, basename)
     file.save(target)
     # save low_resolution
+    # put this inside celery task
     if extension(basename) == 'gif':
         copyfile(target, join(folder, 'low_resolution', basename))
         name, ext = os.path.splitext(basename)

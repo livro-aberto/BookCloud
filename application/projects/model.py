@@ -78,7 +78,19 @@ class Project(CRUDMixin, db.Model):
     def get_folder(self):
         return join('repos', self.name)
 
-    # Wrap in queued job
+    # Should be sent to branch
+    def new_file(self, filename):
+        file_extension = '.rst'
+        file_path = join(self.get_master().get_source_path(),
+                         filename + file_extension)
+        if os.path.isfile(file_path):
+            raise FileExists
+        else:
+            stars = '*' * len(filename) + '\n'
+            write_file(file_path, stars + filename + '\n' + stars)
+            repo = self.get_master().get_repo()
+            repo.index.add([filename + file_extension])
+
     # Should be sent to branch
     def rename_file(self, old_filename, new_filename):
         file_extension = '.rst'
@@ -91,11 +103,9 @@ class Project(CRUDMixin, db.Model):
         git_api = self.get_master().get_git()
         git_api.mv(old_filename + file_extension,
                    new_filename + file_extension)
-        self.get_master().build()
         app.logger.info('File "{}" renamed to "{}"'.format(
             old_filename, new_filename))
 
-    # Wrap in queued job
     # Should be sent to branch
     def delete_file(self, filename):
         file_extension = '.rst'
@@ -107,10 +117,10 @@ class Project(CRUDMixin, db.Model):
             raise FileNotEmpty
         git_api = self.get_master().get_git()
         git_api.rm('-f', filename + file_extension)
-        self.get_master().build()
         app.logger.info('File "{}" deleted'.format(filename))
 
-    # The labels in a file should be stored in database after save
+    # after each operation that may change labels, a function
+    # should be called that saves the labels in the database
     def get_threads_by_tag(self, filename):
         try:
             data = load_file(join('repos', self.name, 'master',
@@ -131,3 +141,36 @@ class Project(CRUDMixin, db.Model):
     def __init__(self, name, user):
         self.name = name
         self.owner_id = user.id
+        app.logger.info('Creating project "{}"...'.format(name))
+        # create the master branch
+        new_branch = application.branches.Branch('master', self, None, user)
+        db.session.add(new_branch)
+        db.session.commit()
+        # updating branch's self reference
+        new_branch.origin_id = new_branch.id
+        db.session.commit()
+        # create folder for resources
+        app.logger.info('Creating "{}" resource folders'.format(name))
+        os.makedirs(join('repos', name, '_resources'))
+        os.makedirs(join('repos', name, '_resources/original'))
+        os.makedirs(join('repos', name, '_resources/low_resolution'))
+        os.makedirs(join('repos', name, '_resources/thumbnail'))
+        # create the repository in the filesystem
+        app.logger.info('Creating "{}" repository'.format(name))
+        repo_path = join('repos', name, 'master/source')
+        os.makedirs(repo_path)
+        os.symlink(os.path.abspath(join('repos', name, '_resources',
+                                        'low_resolution')),
+                   os.path.abspath(join('repos', name,
+                                        'master/source/_resources/')))
+        git.Repo.init(repo_path)
+        repo = git.Repo(repo_path)
+        application.branches.config_repo(repo, user.username, user.email)
+        copyfile('empty_repo/source/index.rst', join(repo_path, 'index.rst'))
+        copyfile('empty_repo/.gitignore', join(repo_path, '.gitignore'))
+        repo.index.add(['index.rst', '.gitignore'])
+        author = git.Actor(user.username, user.email)
+        repo.index.commit(_('Initial commit'), author=author)
+        app.logger.info('Project "{}" created'.format(name))
+        db.session.add(self)
+        db.session.commit()

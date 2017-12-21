@@ -24,10 +24,12 @@ from flask_mail import Message
 from flask_celeryext import AppContextTask
 
 from application import app, mail, limiter, babel, db
-from application.branches import *
+from application.branches import (
+    build_branch, get_requests, get_log_diff,
+    get_branch_by_name
+)
 from application.utils import last_modified, commit_diff, Custom404
 from application.projects import Project, ProjectForm
-from application.projects import create_project
 
 @app.before_request
 def bookcloud_before_request():
@@ -118,9 +120,9 @@ def new():
         if os.path.isdir(user_repo_path):
             flash(_('This project name already exists'), 'error')
         else:
-            task_one = create_project.s(form.name.data, current_user.id)
-            task_two = build_branch.s()
-            task = chain(task_one, task_two).delay()
+            project = Project(form.name.data, current_user)
+            flash(_('File created successfuly!'), 'info')
+            task = build_branch.delay(project.get_master().id)
             return render_template(
                 'waiting.html', task_id=task.task_id,
                 next_url=url_for('branches.view', project=form.name.data,

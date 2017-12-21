@@ -32,7 +32,7 @@ from .threads import Thread, File_Tag, Named_Tag
 from application.branches import (
     Branch, BranchForm, CommitForm, get_merge_pendencies,
     get_merging, update_subtree, get_requests, build_latex,
-    update_branch
+    update_branch, build_branch
 )
 
 branches = Blueprint('branches', __name__,
@@ -292,14 +292,10 @@ def clone(project, branch):
             branch.clone(form.name.data, current_user)
             new_branch = project.get_branch(form.name.data)
             flash(_('Project cloned successfuly!'), 'info')
-            start_time = time.time()
-            # this while is a hack to wait for the build. waiting for celery...
-            # another idea is to copy build folder from original branch
-            while (time.time() < start_time + 30
-                   and not os.path.isfile(join(new_branch.get_html_path(),
-                                               'index.html'))):
-                pass
-            return redirect(url_for('branches.view', project=project.name,
+            task = build_branch.delay(new_branch.id)
+            return render_template(
+                'waiting.html', task_id=task.task_id,
+                next_url=url_for('branches.view', project=project.name,
                                     branch=form.name.data,
                                     filename='index.html'))
     return render_template('clone.html', form=form)
@@ -448,7 +444,9 @@ def pdf(project, branch='master'):
     build_path = os.path.abspath(join('repos', project.name, branch.name,
                                       'build/latex'))
     build_latex(project.name, branch.name)
-    command = '(cd ' + build_path + '; pdflatex -interaction nonstopmode linux.tex > /tmp/222 || true)'
+    command = ('(cd ' + build_path
+               + '; pdflatex -interaction nonstopmode linux.tex'
+               + '> /tmp/222 || true)')
     app.logger.info('Building pdf for branch {} of {}'.format(
         branch.name, project.name))
     os.system(command)
@@ -464,7 +462,8 @@ def tex(project, branch='master'):
 @branches.route('/source/<path:filename>')
 @limiter.exempt
 def source(project, branch, filename):
-    source_path = os.path.abspath(join('repos', project.name, branch.name, 'source'))
+    source_path = os.path.abspath(join('repos', project.name,
+                                       branch.name, 'source'))
     return flask.send_from_directory(source_path, filename)
 
 @branches.route('/<action>/_images/<path:filename>')

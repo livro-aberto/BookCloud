@@ -23,6 +23,9 @@ from application.utils import Command, load_file
 from application.users import User
 from application.models import CRUDMixin
 
+class CouldNotCreateBranch(Exception):
+    pass
+
 class Branch(CRUDMixin, db.Model):
     __tablename__ = 'branch'
     id = db.Column(db.Integer, primary_key=True)
@@ -55,7 +58,10 @@ class Branch(CRUDMixin, db.Model):
         """
         self.expiration = None
         # create the branch on the database
-        new_branch = Branch(name, self.project, self, user)
+        try:
+            new_branch = Branch(name, self.project, self, user)
+        except:
+            raise CouldNotCreateBranch
         db.session.add(new_branch)
         db.session.commit()
         # clone repository in file system
@@ -70,7 +76,6 @@ class Branch(CRUDMixin, db.Model):
         branch_repo.git.checkout('HEAD', b=name)
         config_repo(branch_repo, user.username, user.email)
         # build the source
-        new_branch.build(timeout=60)
         return new_branch
         app.logger.info('Clonning branch "{}" of "{}" to "{}"'.format(
             self.name, self.project.name, name))
