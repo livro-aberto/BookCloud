@@ -1,3 +1,4 @@
+var CURRENT_SEC;
 $(document).ready(function() {
   sphinx_apply_uikit();
   var is_changed = 0;
@@ -30,6 +31,7 @@ $(document).ready(function() {
       .always(function(data) {
       });
     save();
+    is_changed = 0;
   });
   
   $('#preview').click(function(ev) {
@@ -44,8 +46,6 @@ $(document).ready(function() {
   
   function viewport_change_editor(instance, from, to) {
   }
-  
-  var CURRENT_SEC = "";
   
   function goto_current_sec(linha=null) {
     var w = get_word(editor);
@@ -64,10 +64,11 @@ $(document).ready(function() {
         if (el.length > 0) {
           if (sec != CURRENT_SEC) {
             $("#html_view").scrollTo(el, 200);
-            CURRENT_SEC = sec;
           }
           break;
         }
+        CURRENT_SEC = sec;
+        break;
       }
     }
   }
@@ -91,7 +92,16 @@ $(document).ready(function() {
     elt.style.paddingLeft = (basePadding + off) + "px";
   });
   editor.refresh();
-  
+
+
+  $('div[uk-modal]').on({
+      'show.uk.modal': function(e){
+          $(e.target).find(':input:first').focus();
+      },
+      'hide.uk.modal': function(e){
+          $(e.target).find('input[type=text], textarea').val('');
+      }
+  });
   
   // Edit Bar
   $(".insert-around").click(function() {
@@ -114,6 +124,18 @@ $(document).ready(function() {
     $("#insert_box_text").val('');
     UIkit.modal($("#boxes_modal")).show();
     $("#boxes_modal").attr('data-title', $(this).attr('data-title'));
+  });
+  
+  $("#menu_insert_link").click(function(e) {
+    $('.uk-dropdown').hide();
+    $("#insert_link_title").val('');
+    $("#insert_link_url").val('');
+    UIkit.modal($("#links_modal")).show();
+  });
+  
+  $("#insert_link_button").click(function() {
+    insertLink($("#insert_link_title").val(), $("#insert_link_url").val());
+    UIkit.modal($("#links_modal")).hide();
   });
   
   $("#insert_section_button").click(function() {

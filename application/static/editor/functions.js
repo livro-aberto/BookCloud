@@ -1,3 +1,7 @@
+function makeIndicators(char, times) {
+    return Array(times+1).join(char);
+}
+
 function slugify(string) {
   return slug(string.toLowerCase())
 }
@@ -27,6 +31,11 @@ function insertAround(editor, start, end) {
   editor.focus();
 }
 
+function insertLink(text, url) {
+    var linha = " `"+text+" <"+url+">`_ ";
+    insertAround(editor, "", linha);
+}
+
 function insert_image(url, name, caption, width, align) {
   var str_slug = slug(name.toLowerCase());
   var data = '\n.. '+str_slug+':\n\n.. figure:: '+url+'\n   :width: '+width+'pt\n   :align: '+align+'\n\n   '+caption;
@@ -46,25 +55,28 @@ function insertSections(type, title) {
   
   if (type == "cap") {
     var directive = "\n\n.. "+item_id+":\n\n";
-    var delimiter = "********\n";
+    var delimiter = makeIndicators("*", item_title.length);
+    delimiter = delimiter+'\n';
     data = directive+delimiter+item_title+"\n"+delimiter+"\n";
   }
   
   if (type == "sec") {
-    var directive = "\n\n.. "+item_id+":\n\n";
-    var delimiter = "\n======\n";
+    var directive = "\n\n.. "+CURRENT_SEC+"-"+item_id+":\n\n";
+    var delimiter = makeIndicators("=", item_title.length);
+    delimiter = '\n'+delimiter+'\n';
     data = directive+item_title+delimiter+"\n";
   }
   
   if (type == "sub") {
     var directive = "\n\n.. "+item_id+":\n\n";
-    var delimiter = "\n---------\n";
+    var delimiter = makeIndicators('-', item_title.length);
+    delimiter = '\n'+delimiter+'\n';
     data = directive+item_title+delimiter+"\n";
   }
   
   if (type == "ativ") {
     var directive = "\n\n.. "+item_id+":\n\n";
-    var delimiter = "\n------------------------------\n";
+    var delimiter = '\n'+makeIndicators('-', item_title.length)+'\n';
     data = directive+"\nAtividade: "+item_title+delimiter+'\n';
   }
   
@@ -72,24 +84,32 @@ function insertSections(type, title) {
   
 }
 
+function splitIntoLines(text) {
+    var formatted = "";
+    text.split("\n").forEach(function(item, index) {
+        formatted += "   "+item+"\n";
+      });
+    return formatted;
+}
+
 function insertAmbiente(data) {
   var cursor = editor.getCursor();
   var item_id = slugify(data.title);
-  var sec_id = data.section
+  var sec_id = data.section;
   
   editor.setCursor({line: cursor.line});
   
-  var my_id = "ativ-"+sec_id+"-"+item_id
-  var text = ".. "+my_id+":\n\nAtividade: "+data.title
-  text = text+"\n------------------------------\n\n"
-  text = text+".. admonition:: Para o professor\n\n"
-  text += "    **Objetivos específicos:**\n"
-  text += "    "+data.objetivos
-  text += "\n\n    **Recomendações e sugestões:**\n"
-  text += "    "+data.recomendacoes + "\n\n"
-  text += data.texto
-  text += "\n\n.. admonition:: Resposta\n\n"
-  text += "    "+data.resposta+"\n\n"
+  var my_id = "ativ-"+sec_id+"-"+item_id;
+  var text = ".. "+my_id+":\n\nAtividade: "+data.title;
+  text = text+"\n"+makeIndicators('-', data.title.length+11)+"\n\n";
+  text = text+".. admonition:: Para o professor\n\n";
+  text += "    **Objetivos específicos:**\n";
+  text += splitIntoLines(data.objetivos);
+  text += "\n\n    **Recomendações e sugestões:**\n";
+  text += splitIntoLines(data.recomendacoes) + "\n\n";
+  text += data.texto;
+  text += "\n\n.. admonition:: Resposta\n\n";
+  text += splitIntoLines(data.resposta)+"\n\n";
   
   editor.replaceRange(text, {line: cursor.line});
 }
@@ -98,13 +118,20 @@ function insertBoxes(title, text) {
   var cursor = editor.getCursor();
   editor.setCursor({line: cursor.line});
   
-  var val = '\n\n.. admonition:: '+title+' \n\n   '+text;
+  var splitted = text.split("\n")
+  
+  var val = '\n\n.. admonition:: '+title+' \n\n';
   
   editor.replaceRange(val, {line: cursor.line});
+  
+  splitted.forEach(function(item, index) {
+      cursor = editor.getCursor();
+      editor.replaceRange("   "+item+"\n", {line: cursor.line});
+      editor.setCursor({line: cursor.line+1});
+  });
 }
 
 function save() {
-  is_changed = 0;
   var height = document.getElementById("html_view").scrollTop;
   document.getElementById("html_scroll").value = height;
   var info = editor.getScrollInfo();

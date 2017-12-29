@@ -84,7 +84,11 @@
           </li>
         </ul>
       </div>
-
+      <a class="uk-button uk-button-small uk-background-default
+                uk-button-default" id="menu_insert_link" type="button"
+        title="{{ _('Link') }}" uk-tooltip data-title="Inserir link"
+         uk-icon="icon: link">
+      </a>
       <button class="uk-button uk-button-small uk-background-default
               uk-button-default" type="button">
           {{ _('boxes') }}
@@ -123,7 +127,7 @@
           </li>
           <li>
             <button class="uk-button uk-button-text insert-ambiente-button"
-                    title="{{ _('Ambiente') }}" uk-tooltip>{{ _('Ambiente') }}
+                    title="{{ _('Atividade') }}" uk-tooltip>{{ _('Atividade') }}
             </button>
           </li>
         </ul>
@@ -290,13 +294,13 @@
         </form>
 </div>
 <script>
-  var editor = CodeMirror.fromTextArea
-    (document.getElementById("code"), {
-       extraKeys: {"Alt-F": "findPersistent"},
-       extraKeys: {"Ctrl-F": "findPersistent"},
-       lineNumbers: false,
-       lineWrapping: true}
-    ); 
+var editor = CodeMirror.fromTextArea
+(document.getElementById("code"), {
+    extraKeys: {"Alt-F": "findPersistent"},
+    extraKeys: {"Ctrl-F": "findPersistent"},
+    lineNumbers: false,
+   }
+); 
 </script>
 
 {% endmacro%}
@@ -354,10 +358,22 @@
   <div id="sections_modal" uk-modal>
       <div class="uk-modal-dialog uk-modal-body">
           <h2 class="uk-modal-title">Inserir seção.</h2>
-          <input id="insert_section_title" class="uk-input" type="text" name="title" value="" placeholder="Título">
+          <input id="insert_section_title" class="uk-input" type="text" name="title" value="" placeholder="Título" autofocus>
           <p class="uk-text-right">
               <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
               <button class="uk-button uk-button-primary" type="button" id="insert_section_button">Inserir</button>
+          </p>
+      </div>
+  </div>
+
+  <div id="links_modal" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+          <h2 class="uk-modal-title">Inserir link.</h2>
+          <input id="insert_link_title" class="uk-input" type="text" name="title" value="" placeholder="Título" autofocus>
+          <input id="insert_link_url" class="uk-input" type="text" name="url" value="" placeholder="Link">
+          <p class="uk-text-right">
+              <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
+              <button class="uk-button uk-button-primary" type="button" id="insert_link_button">Inserir</button>
           </p>
       </div>
   </div>
@@ -365,7 +381,7 @@
   <div id="boxes_modal" uk-modal>
       <div class="uk-modal-dialog uk-modal-body">
           <h2 class="uk-modal-title">Inserir box.</h2>
-          <textarea id="insert_box_text" class="uk-textarea" type="text" name="text" placeholder="Texto" rows="8"></textarea>
+          <textarea id="insert_box_text" class="uk-textarea" type="text" name="text" placeholder="Texto" rows="8" autofocus></textarea>
           <p class="uk-text-right">
               <button class="uk-button uk-button-default uk-modal-close" type="button">Cancelar</button>
               <button class="uk-button uk-button-primary" type="button" id="insert_box_button">Inserir</button>
@@ -394,10 +410,10 @@
 
   <div id="ambiente_modal" uk-modal>
       <div class="uk-modal-dialog uk-modal-body">
-          <h2 class="uk-modal-title">Inserir ambiente.</h2>
-          <input id="insert_ambiente_title" class="uk-input" type="text" name="title" value="" placeholder="Título da atividade">
-          <input id="insert_ambiente_objetivos" class="uk-input" type="text" name="objetivos" value="" placeholder="Objetivos específicos">
-          <input id="insert_ambiente_recomendacoes" class="uk-input" type="text" name="recomendacoes" value="" placeholder="Recomendações e sugestões">
+          <h2 class="uk-modal-title">Inserir Atividade.</h2>
+          <input id="insert_ambiente_title" class="uk-input" type="text" name="title" value="" placeholder="Título da atividade" autofocus>
+          <textarea id="insert_ambiente_objetivos" class="uk-textarea" name="objetivos" placeholder="Objetivos específicos"></textarea>
+          <textarea id="insert_ambiente_recomendacoes" class="uk-textarea" name="recomendacoes" value="" placeholder="Recomendações e sugestões"></textarea>
           <textarea id="insert_ambiente_atividade_texto" class="uk-textarea" name="text-ativ" placeholder="Texto da atividade" rows="6"></textarea>
           <textarea id="insert_ambiente_atividade_resposta" class="uk-textarea" name="text-resp" placeholder="Texto da resposta" rows="6"></textarea>
           <p class="uk-text-right">
