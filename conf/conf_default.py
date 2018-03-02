@@ -15,6 +15,8 @@
 import sys
 import os
 
+sys.path.append(os.path.abspath('sphinx-extensions'))
+
 style = "theme"
 
 html_theme = style
@@ -40,7 +42,8 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.mathjax',
     'cloud_sptheme.ext.table_styling',
-    'sphinxcontrib.tikz'
+    'sphinxcontrib.tikz',
+    'ambientes_admonition'
 ]
 
 numfig = True
