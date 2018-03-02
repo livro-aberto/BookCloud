@@ -1,0 +1,3 @@
+[submodule "sphinx_extensions"]
+	path = conf/sphinx_extensions
+	url = https://github.com/jaddario/sphinx_extensions
