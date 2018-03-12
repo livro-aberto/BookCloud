@@ -14,7 +14,7 @@ from sqlalchemy.orm import relationship
 
 from flask_babel import gettext as _
 
-from application import db
+from application import app, db
 import application.projects
 from application.utils import Command, load_file
 from application.users import User
@@ -92,14 +92,14 @@ class Branch(CRUDMixin, db.Model):
 
     def build(self, timeout=300):
         # Replace this terrible implementation
-        config_path = 'conf'
+        #config_path = 'conf'
         # args = ['-a', '-c conf']
         # if sphinx.build_main(args + ['source/', 'build/html/']):
         #     os.chdir(previous_wd)
         #     return False
         # os.chdir(previous_wd)
         # return True
-        command = ('sphinx-build -c ' + config_path + ' '
+        command = ('sphinx-build -c ' + app.config['CONFIG_PATH'] + ' '
                    + self.get_source_path() + ' '
                    + self.get_html_path())
         process = Command(command)

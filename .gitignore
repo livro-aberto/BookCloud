@@ -5,9 +5,8 @@ instance/*
 !instance/instance_config_default.py
 !instance/README.md
 
-conf/theme/*
-!conf/theme/README.md
-!conf/theme/basic/*
+classes/*
+!classes/basic
 
 application/static/vendor/*
 !application/static/vendor/bower.json

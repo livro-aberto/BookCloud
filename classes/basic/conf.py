@@ -17,12 +17,11 @@ import os
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
 
-html_theme = 'basic'
-html_theme_path = [os.join(current_directory, 'theme')]
-html_static_path = [os.join(theme_path, '/static')]
+html_theme = 'theme'
+html_theme_path = [current_directory]
+html_static_path = [os.path.join(current_directory, 'theme', 'static')]
 html_theme_options = {'nosidebar': False}
 
-sys.path.append(os.path.abspath('sphinx-extensions'))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -39,14 +38,9 @@ sys.path.append(os.path.abspath('sphinx-extensions'))
 # ones.
 extensions = [
     'sphinx.ext.todo',
-    'sphinx.ext.mathjax',
-    'cloud_sptheme.ext.table_styling',
-    'sphinxcontrib.tikz',
-    'ambientes_admonition'
+    'sphinx.ext.mathjax'
 ]
 
-numfig = True
-numfig_format = {'figure': 'My fig %s', 'table': 'My tab %s', 'code-block': 'My code %s'}
 
 raw_enabled = False
 
@@ -63,8 +57,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'livro aberto'
-copyright = u'2016, Augusto'
+project = u'My Book'
+copyright = u'2016, Wikimedia Foundation'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -138,7 +132,7 @@ StandaloneHTMLBuilder.supported_image_types = [
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "Livro Aberto de Matematica"
+html_title = "My Book"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -229,8 +223,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'linux.tex', u'linux Documentation',
-   u'Augusto', 'manual'),
+  ('index', 'mybook.tex', u'My Book',
+   u'Author', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -259,8 +253,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'linux', u'linux Documentation',
-     [u'Augusto'], 1)
+    ('index', 'mybook', u'My Book',
+     [u'Author'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -273,8 +267,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'linux', u'linux Documentation',
-   u'Augusto', 'linux', 'One line description of project.',
+  ('index', 'mybook', u'My Book',
+   u'Author', 'mybook', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -291,3 +285,6 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+
+
