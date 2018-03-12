@@ -15,15 +15,14 @@
 import sys
 import os
 
-sys.path.append(os.path.abspath('sphinx-extensions'))
+current_directory = os.path.dirname(os.path.abspath(__file__))
 
-style = "theme"
-
-html_theme = style
-html_theme_path = ["/var/www/BookCloud/conf/", ]
-html_static_path = [style + '/static']
+html_theme = 'basic'
+html_theme_path = [os.join(current_directory, 'theme')]
+html_static_path = [os.join(theme_path, '/static')]
 html_theme_options = {'nosidebar': False}
 
+sys.path.append(os.path.abspath('sphinx-extensions'))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
