@@ -1,7 +1,7 @@
 import os
 import re
 import json
-from shutil import rmtree
+from shutil import rmtree, copytree
 from os.path import isfile, join
 import string
 import git
@@ -60,11 +60,15 @@ class Branch(CRUDMixin, db.Model):
         os.symlink(os.path.abspath(join('repos', self.project.name,
                                         '_resources/low_resolution')),
                    join(branch_path, '_resources'))
+        cptree(os.path.abspath(join('repos', self.project.name,
+                                    self.name, 'build')),
+               os.path.abspath(join('repos', self.project.name,
+                                    name, 'build')))
         branch_repo = git.Repo(branch_path)
         branch_repo.git.checkout('HEAD', b=name)
         config_repo(branch_repo, user.username, user.email)
         # build the source
-        new_branch.build(timeout=60)
+        new_branch.build(timeout=240)
         return new_branch
 
     def get_source_path(self):

@@ -47,7 +47,7 @@ def bookcloud_before_request():
                 'external': True
             }, {
                 'name': 'Syntax',
-                'url': ('https://www.umlivroaberto.com/BookCloud/sintaxe/'
+                'url': ('https://www.umlivroaberto.org/BookCloud/sintaxe/'
                         'master/view/index.html'),
                 'external': True}]}]}
     if current_user.is_authenticated:

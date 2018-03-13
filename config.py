@@ -1,3 +1,5 @@
+APPLICATION_ROOT = "/BookCloud"
+
 # Endpoints are converted to URLs using url_for()
 # The empty endpoint ('') will be mapped to the root URL ('/')
 USER_AFTER_CHANGE_PASSWORD_ENDPOINT      = 'home'
