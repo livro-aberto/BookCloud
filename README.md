@@ -2,6 +2,15 @@
 
 A collaborative platform to write books based on git
 
+## Get the code
+
+Clone this repository:
+
+    git clone https://github.com/livro-aberto/BookCloud.git
+
+Add the submodules:
+
+    git submodule init
 
 ## Install requisites
 

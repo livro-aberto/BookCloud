@@ -23,6 +23,8 @@ MAIL_USE_SSL = int(True)
 
 ADMIN_MAIL = 'mail@example.com'
 
+CONFIG_PATH = 'classes/basic'
+
 # Flask-User settings
 USER_APP_NAME = "BookCloud"       # Used by email templates
 
