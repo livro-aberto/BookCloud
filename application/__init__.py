@@ -90,6 +90,7 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/search/jump-to-line.js',
                'codemirror/addon/merge/merge.js',
            ),
+        'codemirror-addon.js',
         output='bundles/codemirror_all.js',
         filters='rjsmin'
     )
@@ -116,6 +117,7 @@ def create_app(extra_config_settings={}):
                'codemirror/addon/merge/merge.css',
                'codemirror/addon/dialog/dialog.css',
                'codemirror/addon/search/matchesonscrollbar.css'),
+        'codemirror-addon.css',
         output='bundles/codemirror_all.css',
         filters='cssmin'
     )
