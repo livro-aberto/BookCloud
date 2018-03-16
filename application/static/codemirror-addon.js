@@ -69,9 +69,9 @@ $(document).ready(function(){
 
   editor.on("beforeChange", function(cm, obj) {
     var text = obj['text'];
-    var new_text = [text[0].replace(/[\u0250-\ue007]/g, '')];
-    console.log(text);
-    console.log(new_text);
-    obj.update(obj['from'], obj['to'], new_text);
+    var new_text = [text[0].replace(/[\u0250-\ue007]/g, ' INVALID CHARACTER ')];
+    if (/[\u0250-\ue007]/g.test(text[0])) {
+      obj.update(obj['from'], obj['to'], new_text);
+    }
   });
 });
