@@ -1,0 +1,36 @@
+|                                                               | Riot + Threads         | Discourse |
+------------------------------------------------------------------------------------------------------
+|                                                               | Riot | Threads | Custo | Discourse |
+| discussões acadêmicas gerais                                  |    9 |       7 |       |         9 |
+| comentários sobre trechos do livro                            |    7 |       9 |     2 |         3 |
+| substituir email                                              |    7 |       7 |     1 |         6 |
+| substituir whatsapp                                           |    9 |       3 |       |         3 |
+| facilidade em implementar features não previstos inicialmente |    7 |      10 |       |         3 |
+| comentários localizados no texto do livro                     |    6 |       8 |       |         3 |
+| 'salas' diferentes para diferentes discussões                 |    8 |       8 |     1 |        10 |
+| editor - notação matemática                                   |    3 |       9 |     2 |         8 |
+| editor - inserir figuras arrastando ou copiando e colando     |   10 |       7 |     2 |        10 |
+| editor - rich text                                            |    9 |       9 |       |        10 |
+| criar grupos de usuários                                      |    8 |       8 |     3 |        10 |
+| mencionar usuários                                            |   10 |       8 |       |        10 |
+| mencionar grupos                                              |    8 |       5 |     1 |        10 |
+| aplicativo de celular para usar as principais funcionalidades |   10 |       4 |    10 |        10 |
+| responder por e-mail                                          |    7 |       8 |     3 |        10 |
+| notificação por e-mail                                        |   10 |       9 |       |        10 |
+| criar tags para tópicos                                       |    8 |       8 |       |         8 |
+| mesmo login da plataforma                                     |    8 |      10 |       |         8 |
+| moderação de discussões                                       |   10 |       6 |     3 |        10 |
+| filtro de span                                                |    4 |       6 |     3 |         8 |
+| comentar diferente de responder um tópico                     |    3 |      10 |       |         3 |
+| pontuação para cima um tópico                                 |    0 |      10 |       |        10 |
+| login social (Google e Facebook)                              |    0 |       8 |     3 |        10 |
+| anexar arquivos                                               |   10 |       8 |     3 |        10 |
+| arquivar tópicos solucionados                                 |    6 |      10 |     2 |        10 |
+| diferenciar discussões de perguntas e tarefas (issues)        |    3 |      10 |     2 |         3 |
+| designar tarefas para pessoas e grupos                        |    3 |       8 |     2 |         3 |
+| conversas privadas                                            |   10 |       6 |     2 |        10 |
+| comentários privados em discussões abertas                    |    0 |       6 |     2 |         0 |
+| ambiente de administração                                     |    6 |       3 |     2 |         9 |
+| tela de arquivos anexados                                     |   10 |       6 |     3 |        10 |
+
+
