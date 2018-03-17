@@ -11,7 +11,7 @@ These are some installation instructions (for Ubuntu or Debian):
 
     sudo apt-get install libapache2-mod-wsgi
 
-    sudo apt-get install poppler-utils
+    sudo apt-get install poppler-utils netpbm
 
     sudo apt-get install libffi-dev libssl-dev python-bcrypt
 

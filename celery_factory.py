@@ -7,4 +7,4 @@ celery = ext.celery
 
 import application.projects
 
-#app.logger = get_task_logger(__name__)
+

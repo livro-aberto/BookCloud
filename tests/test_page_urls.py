@@ -3,7 +3,7 @@
 # Authors: Ling Thio <ling.thio@gmail.com>
 
 from __future__ import print_function  # Use print() instead of print
-from flask import url_for
+from flask import url_for, request
 from StringIO import StringIO
 
 import json
@@ -29,6 +29,24 @@ test_page = (u'Title of test page\n'
               '   :glob:\n'
               '\n'
               '   *\n')
+
+def celery_wait(client, response):
+    # Here we get the result of a celery waiting page, wait for the result
+    # and follow the suggested url
+    new_url = re.search("window\.location\.replace\('/[0-9A-Za-z/]*", response.data)
+    new_url = request.url_root + new_url.group()[26:]
+    task_id = re.search('/tasks/[a-z0-9-]*', response.data)
+    task_id = task_id.group()[7:]
+    response = client.post(url_for('tasks', task_id=task_id), follow_redirects=True)
+    data = json.loads(response.data)
+    while(True):
+        response = client.post(url_for('tasks', task_id=task_id), follow_redirects=True)
+        data = json.loads(response.data)
+        if (data['state'] == 'FAILURE'):
+            raise Exception
+        if (data['state'] == 'SUCCESS'):
+            break
+    return client.get(new_url, follow_redirects=True)
 
 def test_page_urls(client):
     # Visit home page
@@ -60,6 +78,8 @@ def test_page_urls(client):
     new_project_name = ''.join(random.sample(char_set, 20))
     response = client.post(url_for('new'), follow_redirects=True,
                            data=dict(name=new_project_name))
+    response = celery_wait(client, response)
+
     assert new_project_name in response.data
 
     # Upload image
@@ -69,8 +89,7 @@ def test_page_urls(client):
     f.readinto(data)
     response = client.post(
         url_for('projects.upload_resource',
-                project=new_project_name),
-        data=dict(
+                project=new_project_name),        data=dict(
             file=(StringIO(data), 'arrow.png')))
     assert (_('figure').encode('utf8') in response.data)
     recorded_filename = 'arrow.png'
@@ -127,6 +146,7 @@ def test_page_urls(client):
                            follow_redirects=True,
                            data=dict(name='another'))
     assert _('File created successfuly!').encode('utf8') in response.data
+    response = celery_wait(client, response)
 
     # Commit change
     response = client.post(url_for('branches.commit',
@@ -172,6 +192,7 @@ def test_page_urls(client):
                                    branch='master'),
                            follow_redirects=True,
                            data=dict(name='feature'))
+    response = celery_wait(client, response)
     assert _('Project cloned successfuly!').encode('utf8') in response.data
 
     # Save a change to index page in feature branch
@@ -244,6 +265,7 @@ def test_page_urls(client):
                                    branch='feature'),
                            follow_redirects=True,
                            data=dict(name='typo'))
+    response = celery_wait(client, response)
     assert _('Project cloned successfuly!').encode('utf8') in response.data
 
     # Create a new file
@@ -252,6 +274,7 @@ def test_page_urls(client):
                                    branch='typo'),
                            follow_redirects=True,
                            data=dict(name='another'))
+    response = celery_wait(client, response)
     assert (_('You are not the owner of this project').encode('utf8')
             in response.data)
 

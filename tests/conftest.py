@@ -1,14 +1,17 @@
 import pytest
 
-from application import create_app, db as the_db
+from application import create_app, db as the_db, ext as the_ext
 
 the_app = create_app(dict(
     TESTING=True,  # Propagate exceptions
     LOGIN_DISABLED=False,  # Enable @register_required
     MAIL_SUPPRESS_SEND=False,  # Disable Flask-Mail send
     SERVER_NAME='localhost',  # Enable url_for() without request context
-    SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',  # In-memory SQLite DB
-    WTF_CSRF_ENABLED=False  # Disable CSRF form validation
+    SQLALCHEMY_DATABASE_URI='sqlite:////tmp/bookcloud_test.db',  # SQLite DB
+    #SQLALCHEMY_DATABASE_URI='sqlite:///:memory:',  # In-memory SQLite DB
+    WTF_CSRF_ENABLED=False,  # Disable CSRF form validation
+    CELERY_BROKER_URL = 'redis://localhost:6379/0',
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 ))
 
 def find_or_create_user(name, email, password):
@@ -50,3 +53,4 @@ def db():
     Initializes and returns a SQLAlchemy DB object
     """
     return the_db
+
