@@ -38,9 +38,14 @@ html_theme_options = {'nosidebar': False}
 # ones.
 extensions = [
     'sphinx.ext.todo',
-    'sphinx.ext.mathjax'
+    'sphinx.ext.mathjax',
+    'sphinxcontrib.tikz'
 ]
 
+numfig = True
+numfig_format = {'figure': 'Figura %s',
+                 'table': 'Tabela %s',
+                 'code-block': 'Codigo %s'}
 
 raw_enabled = False
 

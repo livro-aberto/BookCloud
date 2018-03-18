@@ -22,8 +22,6 @@ manage.py
 # virtualenv
 vir/*
 
-conf/conf.py
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

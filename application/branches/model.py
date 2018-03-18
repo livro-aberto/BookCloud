@@ -60,7 +60,7 @@ class Branch(CRUDMixin, db.Model):
         os.symlink(os.path.abspath(join('repos', self.project.name,
                                         '_resources/low_resolution')),
                    join(branch_path, '_resources'))
-        cptree(os.path.abspath(join('repos', self.project.name,
+        copytree(os.path.abspath(join('repos', self.project.name,
                                     self.name, 'build')),
                os.path.abspath(join('repos', self.project.name,
                                     name, 'build')))
@@ -108,7 +108,7 @@ class Branch(CRUDMixin, db.Model):
                    + self.get_html_path())
         process = Command(command)
         process.run(timeout=timeout)
-        return True
+        return app.config['CONFIG_PATH']
 
 # will be deprecated
 def get_sub_branches(branch):
