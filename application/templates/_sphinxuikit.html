@@ -110,8 +110,18 @@ $(document).ready(function() {
     .replaceWith('<h2><span>Para Refletir</span></h2>');
   $('div.admonition-para-refletir').each(function () {
     var t = $(this);
-    t.replaceWith('<section class="topico box-destaque para-refletir">'
-                  + t.html() + '</section>');
+    t.replaceWith(`
+<ul class="topico box-destaque para-refletir" uk-accordion>
+  <li class="uk-open">
+    <h2><span>Para refletir</span></h2>
+    <a class="uk-accordion-title" href="#"></a>
+    <div class="uk-accordion-content">
+` + t.html() + `
+      Quais outras grandezas físicas você conhece? Elas são grandezas esca-lares ou vetoriais?
+    </div>
+  </li>
+</ul>
+`);
   });
 
   // Exemplo
