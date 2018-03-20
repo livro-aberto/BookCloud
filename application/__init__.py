@@ -78,6 +78,7 @@ def create_app(extra_config_settings={}):
     )
     assets.register(
         'codemirror_js_all',
+        'codemirror-spell-checker/dist/spell-checker.min.js',
         Bundle('codemirror/lib/codemirror.js',
                'codemirror/mode/rst/rst.js',
                'codemirror/mode/xml/xml.js',
@@ -112,6 +113,7 @@ def create_app(extra_config_settings={}):
     )
     assets.register(
         'codemirror_css_all',
+        'codemirror-spell-checker/dist/spell-checker.min.css',
         Bundle('codemirror/lib/codemirror.css',
                'codemirror/addon/merge/merge.css',
                'codemirror/addon/dialog/dialog.css',
