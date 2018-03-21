@@ -165,7 +165,7 @@ def build_latex(project, branch):
     config_path = 'conf'
     source_path = join('repos', project, branch, 'source')
     build_path = join('repos', project, branch, 'build/latex')
-    command = 'sphinx-build -a -b latex -c ' + config_path + ' ' + source_path + ' ' + build_path
+    command = 'sphinx-build -a -b latex -c ' + app.config['CONFIG_PATH'] + ' ' + source_path + ' ' + build_path
     os.system(command)
     return True
 
