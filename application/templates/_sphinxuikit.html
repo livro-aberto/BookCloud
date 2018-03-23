@@ -15,26 +15,22 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 }
 
 $(document).ready(function() {
-    //counter = 0;
+
   $('div.admonition-para-o-professor > .admonition-title')
     .replaceWith('<h3>Para o Professor</h3>');
   $('div.admonition-para-o-professor').each(function () {
     var t = $(this);
-    t.replaceWith(
-`
-<div class="uk-offcanvas-content">
+    t.replaceWith(`
   <button class="uk-button uk-button-default"
           type="button" uk-toggle="target: #offcanvas-usage">
     <span uk-icon="info" class="uk-margin-small-right"></span> Professor
   </button>
-
   <div id="offcanvas-usage" uk-offcanvas>
     <div class="uk-offcanvas-bar">
       <button class="uk-offcanvas-close" type="button" uk-close></button>
-` +  t.html() + `
+` + t.html() + `
     </div>
   </div>
-</div>
 `);
   });
 
