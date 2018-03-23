@@ -46,36 +46,36 @@ $(document).ready(function() {
   });
 
   // Explorando
-  $('div.section div:regex(id, explorando.*) > h2').each(function () {
+  $('div.section > h1').each(function () {
     var t = $(this);
     t.replaceWith('<h2><span>Explorando</span>'
                   + t.text().substring(12).replace('¶', '') + '</h2>');
   });
-  $('div.section div:regex(id, explorando.*)').each(function () {
+  $("div[class='section'][id^='explorando']").each(function () {
     var t = $(this);
     t.replaceWith('<section class="topico explorando" id ="' + t.attr('id') + '">'
                   + t.html() + '</section>');
   });
 
   // Organizando as ideias
-  $('div.section div:regex(id, organizando-as-ideias.*) > h2').each(function () {
+  $("div[class='section'][id^='organizando'] > h1").each(function () {
     var t = $(this);
     t.replaceWith('<h2><span>Organizando as idéias</span>'
                   + t.text().substring(23).replace('¶', '')  + '</h2>');
   });
-  $('div.section div:regex(id, organizando-as-ideias.*)').each(function () {
+  $("div[class='section'][id^='organizando']").each(function () {
     var t = $(this);
     t.replaceWith('<section class="topico organizando" id ="' + t.attr('id') + '">'
                   + t.html() + '</section>');
   });
 
   // Praticando
-  $('div.section div:regex(id, praticando.*) > h2').each(function () {
+  $("div[class='section'][id^='praticando'] > h1").each(function () {
     var t = $(this);
     t.replaceWith('<h2><span>Praticando</span>'
                   + t.text().substring(12).replace('¶', '')  + '</h2>');
   });
-  $('div.section div:regex(id, praticando.*)').each(function () {
+  $("div[class='section'][id^='praticando']").each(function () {
     var t = $(this);
     t.replaceWith('<section class="topico praticando" id ="' + t.attr('id') + '">'
                   + t.html() + '</section>');
