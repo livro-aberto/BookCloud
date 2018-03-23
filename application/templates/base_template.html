@@ -141,26 +141,30 @@
 
       {% if not self.sidebar() %}
         <!-- Without sidebar -->
-        <div class="uk-grid" data-uk-grid-margin>
-          <div id="content-container" class="uk-width-1-1">
-            <p class="uk-text-large">{% block sub_title %}{% endblock %}</p>
-            {{ contents() }}
+        <main class="uk-container uk-container-small">
+          <div class="uk-grid" data-uk-grid-margin>
+            <div id="content-container" class="uk-width-1-1">
+              <p class="uk-text-large">{% block sub_title %}{% endblock %}</p>
+              {{ contents() }}
+            </div>
           </div>
-        </div>
+        </main>
       {% endif %}
 
       {% if self.sidebar() %}
         <!-- With sidebar -->
-        <div class="uk-text-center" uk-grid>
-          <div class="uk-width-1-3@m">
-            <div class="uk-card uk-card-default uk-card-body">
-              {% block sidebar %}{% endblock %}
+        <main class="uk-container uk-container-small">
+          <div class="uk-text-center" uk-grid>
+            <div class="uk-width-1-3@m">
+              <div class="uk-card uk-card-default uk-card-body">
+                {% block sidebar %}{% endblock %}
+              </div>
+            </div>
+            <div class="uk-width-expand@m">
+              {{ contents() }}
             </div>
           </div>
-          <div class="uk-width-expand@m">
-            {{ contents() }}
-          </div>
-        </div>
+        </main>
       {% endif %}
 
       {% if threads_by_tag %}
@@ -168,7 +172,7 @@
       {% for t in threads_by_tag %}
         <div id="discussion_from-{{ t['name'] }}"
              class="uk-tile uk-tile-muted uk-padding-remove
-                    uk-width-1-3 uk-flex">
+                    uk-width-1-1 uk-flex">
           <div class="uk-margin-left"
                title="{{ '\n'.join(t['titles']) }}">
                Discussions

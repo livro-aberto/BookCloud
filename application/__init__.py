@@ -48,7 +48,8 @@ def create_app(extra_config_settings={}):
     with app.app_context():
         assets.load_path = [
             join(os.path.dirname(__file__), 'static/vendor/bower_components/'),
-            join(os.path.dirname(__file__), 'static/')
+            join(os.path.dirname(__file__), 'static/'),
+            join(app.config['CONFIG_PATH'], 'theme', 'static')
         ]
     assets.register(
         'js_all',
@@ -97,6 +98,7 @@ def create_app(extra_config_settings={}):
     assets.register(
         'css_all',
         Bundle(
+            'style.css',
             'uikit/dist/css/uikit.min.css',
             Bundle('jquery-textext/src/css/textext.core.css',
                    'jquery-textext/src/css/textext.plugin.tags.css',

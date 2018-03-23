@@ -1,57 +1,183 @@
 {% macro sphinx_uikit_script() %}
   <script>
-  $(document).ready(function(){
-    counter = 0;
-    $('div.admonition').addClass('uk-card uk-card-default uk-card-body uk-box-shadow-large uk-margin-bottom');
 
-    $('div.admonition-habilidade').removeClass('uk-card-default');
-    $('div.admonition-habilidade').addClass('uk-card-primary');
+jQuery.expr[':'].regex = function(elem, index, match) {
+    var matchParams = match[3].split(','),
+        validLabels = /^(data|css):/,
+        attr = {
+            method: matchParams[0].match(validLabels) ?
+                        matchParams[0].split(':')[0] : 'attr',
+            property: matchParams.shift().replace(validLabels,'')
+        },
+        regexFlags = 'ig',
+        regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
+    return regex.test(jQuery(elem)[attr.method](attr.property));
+}
 
-    $('div.admonition-resposta').css('background-color', '#F5F5F5');
-    $('div.admonition-para-o-professor').css('background-color', '#F8F8FF');
+$(document).ready(function() {
+    //counter = 0;
+  $('div.admonition-para-o-professor > .admonition-title')
+    .replaceWith('<h3>Para o Professor</h3>');
+  $('div.admonition-para-o-professor').each(function () {
+    var t = $(this);
+    t.replaceWith(
+`
+<div class="uk-offcanvas-content">
+  <button class="uk-button uk-button-default"
+          type="button" uk-toggle="target: #offcanvas-usage">
+    <span uk-icon="info" class="uk-margin-small-right"></span> Professor
+  </button>
 
-    $('div.admonition-para-o-professor').each( function() {
-      $(this).before('<button class="uk-button uk-button-primary" uk-toggle="target: #para-o-prof-label_' + counter + '" type="button">Para o professor</button>')
-      $(this).attr('id', 'para-o-prof-label_' + counter++);
-      //$(this).attr('hidden', 'true');
-    });
+  <div id="offcanvas-usage" uk-offcanvas>
+    <div class="uk-offcanvas-bar">
+      <button class="uk-offcanvas-close" type="button" uk-close></button>
+` +  t.html() + `
+    </div>
+  </div>
+</div>
+`);
+  });
 
-    $('p.admonition-title').replaceWith(function() {
-      return '<h3>' + $(this).text() + '</h3>';
-    });
+  $('div.admonition-resposta').css('background-color', '#F5F5F5');
+  $('div.admonition-resposta')
+    .addClass('uk-card uk-card-default uk-card-body uk-box-shadow-large uk-margin-bottom');
 
-    $('link[rel="index"]').remove();
-    $('link[rel="top"]').remove();
-    $('link[rel="next"]').remove();
+  $('div.admonition-resposta > .admonition-title').replaceWith('<h3>Resposta</h3>');
+
+  $('div:regex(class, .*admonition-atividade.*) > .admonition-title').each(function () {
+    t = $(this);
+    t.replaceWith('<h3 class="atividade">' + t.text().substring(11) + '</h3>');
+  });
+
+  // Explorando
+  $('div.section div:regex(id, explorando.*) > h2').each(function () {
+    var t = $(this);
+    t.replaceWith('<h2><span>Explorando</span>'
+                  + t.text().substring(12).replace('¶', '') + '</h2>');
+  });
+  $('div.section div:regex(id, explorando.*)').each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico explorando" id ="' + t.attr('id') + '">'
+                  + t.html() + '</section>');
+  });
+
+  // Organizando as ideias
+  $('div.section div:regex(id, organizando-as-ideias.*) > h2').each(function () {
+    var t = $(this);
+    t.replaceWith('<h2><span>Organizando as idéias</span>'
+                  + t.text().substring(23).replace('¶', '')  + '</h2>');
+  });
+  $('div.section div:regex(id, organizando-as-ideias.*)').each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico organizando" id ="' + t.attr('id') + '">'
+                  + t.html() + '</section>');
+  });
+
+  // Praticando
+  $('div.section div:regex(id, praticando.*) > h2').each(function () {
+    var t = $(this);
+    t.replaceWith('<h2><span>Praticando</span>'
+                  + t.text().substring(12).replace('¶', '')  + '</h2>');
+  });
+  $('div.section div:regex(id, praticando.*)').each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico praticando" id ="' + t.attr('id') + '">'
+                  + t.html() + '</section>');
+  });
 
 
-    $('div.align-center').addClass('uk-text-center');
-    $('div.figure').addClass('uk-text-center');
+  // Hide heade links
+  $('a.headerlink').css('opacity', '0')
+    .hover(function() {
+    $(this).fadeTo(1,1);
+  },function() {
+    $(this).fadeTo(1,0);
+  });
 
-    $('table').addClass('uk-table');
-    $('table').addClass('uk-table-divider');
-    $('table').removeClass('docutils');
-    $('table').removeAttr('border');
-    $('tr').removeClass('row-odd');
-    $('tr').removeClass('row-even');
-    $('th').removeClass('head');
-    });
+  // Ambientes
 
-    // Make side-bar into an offcanvas
-    $(document).ready(function() {
-      $('div:first').prependTo('.uk-offcanvas-content');
-      $('#content-container').prepend('<a id="toggle" class="uk-button uk-button-default" uk-icon="icon: menu"></a>');
-      $('#toggle').on('click', function (e) {
-        e.preventDefault();
-        UIkit.offcanvas('#offcanvas-nav-primary').toggle();
-      });
-      $('.sphinxsidebar').attr('uk-offcanvas');
-      $('.sphinxsidebar').attr('id', 'offcanvas-nav-primary');
-      $('.sphinxsidebarwrapper').addClass('uk-offcanvas-bar');
-      $('.sphinxsidebarwrapper').prepend('<button class="uk-offcanvas-close uk-close-large" type="button" uk-close></button>');
-      $('.sphinxsidebarwrapper').addClass('uk-flex uk-flex-column');
-      $('.sphinxsidebarwrapper > ul').addClass('uk-nav uk-nav-default');
-      $('.sphinxsidebarwrapper > ul').find('ul').addClass('uk-nav-sub');
-    });
+  // Para saber mais
+  $('div.admonition-para-saber-mais > .admonition-title')
+    .replaceWith('<h2><span>Para Saber +</span></h2>');
+  $('div.admonition-para-saber-mais').each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico para-saber-mais">'
+                  + t.html() + '</section>');
+  });
+
+  // Para refletir
+  $('div.admonition-para-refletir > .admonition-title')
+    .replaceWith('<h2><span>Para Refletir</span></h2>');
+  $('div.admonition-para-refletir').each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico box-destaque para-refletir">'
+                  + t.html() + '</section>');
+  });
+
+  // Exemplo
+  $('div:regex(class, .*admonition-exemplo.*) > .admonition-title').each(function () {
+    var t = $(this);
+    t.replaceWith('<h2><span>Exemplo</span>' + t.text().substring(9) + '</h2>');
+  });
+  $('div:regex(class, .*admonition-exemplo.*)').each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico exemplo">'
+                  + t.html() + '</section>');
+  });
+
+  // Voce Sabia
+  $('div.admonition-voce-sabia > .admonition-title')
+    .replaceWith('<h2><span>Você Sabia?</span></h2>');
+  $('div.admonition-voce-sabia').each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico box-destaque voce-sabia">'
+                  + t.html() + '</section>');
+  });
+
+  // Para Pesquisar
+  $('div.admonition-para-pesquisar > .admonition-title')
+    .replaceWith('<h2><span>Para Pesquisar</span></h2>');
+  $('div.admonition-para-pesquisar').each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico box-destaque para-pesquisar">'
+                  + t.html() + '</section>');
+  });
+
+
+
+
+
+  $('link[rel="index"]').remove();
+  $('link[rel="top"]').remove();
+  $('link[rel="next"]').remove();
+
+  $('div.align-center').addClass('uk-text-center');
+  $('div.figure').addClass('uk-text-center');
+
+  $('table').addClass('uk-table');
+  $('table').addClass('uk-table-divider');
+  $('table').removeClass('docutils');
+  $('table').removeAttr('border');
+  $('tr').removeClass('row-odd');
+  $('tr').removeClass('row-even');
+  $('th').removeClass('head');
+
+
+  $('div:first').prependTo('.uk-offcanvas-content');
+  $('#content-container')
+    .prepend('<a id="toggle" class="uk-button uk-button-default" uk-icon="icon: menu"></a>');
+  $('#toggle').on('click', function (e) {
+    e.preventDefault();
+    UIkit.offcanvas('#offcanvas-nav-primary').toggle();
+  });
+  $('.sphinxsidebar').attr('uk-offcanvas');
+  $('.sphinxsidebar').attr('id', 'offcanvas-nav-primary');
+  $('.sphinxsidebarwrapper').addClass('uk-offcanvas-bar');
+  $('.sphinxsidebarwrapper').prepend('<button class="uk-offcanvas-close uk-close-large" type="button" uk-close></button>');
+  $('.sphinxsidebarwrapper').addClass('uk-flex uk-flex-column');
+  $('.sphinxsidebarwrapper > ul').addClass('uk-nav uk-nav-default');
+  $('.sphinxsidebarwrapper > ul').find('ul').addClass('uk-nav-sub');
+});
+
   </script>
 {% endmacro %}
