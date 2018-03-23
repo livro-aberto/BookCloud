@@ -10,7 +10,7 @@
           <ul class="uk-nav uk-navbar-dropdown-nav">
             {% for s in t.sub_menu %}
               <li>
-                <a href="{{ s.url }}"
+                <a href="{{ s.url }} "
                   {%- if s.external %} target="_blank" {% endif -%}>
                   {{ s.name }}
                 </a>
@@ -28,8 +28,8 @@
         </div>
       {% else %}
         <li>
-          <a href="{{ t.url }}"
-             {%- if t.external -%} target="_blank" {%- endif -%}>
+          <a href="{{ t.url }} "
+             {%- if t.external %} target="_blank" {%- endif -%}>
             {{ t.name }}
           </a>
         </li>
