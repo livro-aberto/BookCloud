@@ -48,8 +48,9 @@ $(document).ready(function() {
   // Explorando
   $("div[class='section'][id^='explorando'] > h1").each(function () {
     var t = $(this);
+    var n = t.text().indexOf(":") + 2;
     t.replaceWith('<h2><span>Explorando</span>'
-                  + t.text().substring(12).replace('¶', '') + '</h2>');
+                  + t.text().substring(n).replace('¶', '') + '</h2>');
   });
   $("div[class='section'][id^='explorando']").each(function () {
     var t = $(this);
@@ -60,8 +61,9 @@ $(document).ready(function() {
   // Organizando as ideias
   $("div[class='section'][id^='organizando'] > h1").each(function () {
     var t = $(this);
+    var n = t.text().indexOf(":") + 2;
     t.replaceWith('<h2><span>Organizando as idéias</span>'
-                  + t.text().substring(23).replace('¶', '')  + '</h2>');
+                  + t.text().substring(n).replace('¶', '')  + '</h2>');
   });
   $("div[class='section'][id^='organizando']").each(function () {
     var t = $(this);
@@ -72,8 +74,9 @@ $(document).ready(function() {
   // Praticando
   $("div[class='section'][id^='praticando'] > h1").each(function () {
     var t = $(this);
+    var n = t.text().indexOf(":") + 2;
     t.replaceWith('<h2><span>Praticando</span>'
-                  + t.text().substring(12).replace('¶', '')  + '</h2>');
+                  + t.text().substring(n).replace('¶', '')  + '</h2>');
   });
   $("div[class='section'][id^='praticando']").each(function () {
     var t = $(this);
@@ -137,6 +140,18 @@ $(document).ready(function() {
     var t = $(this);
     t.replaceWith('<section class="topico box-destaque para-pesquisar">'
                   + t.html() + '</section>');
+  });
+
+  // Observacao
+  $('div.admonition-observacao > .admonition-title')
+    .remove();
+  $('div.admonition-observacao').each(function () {
+    var t = $(this);
+    t.css("background-color", "#ede2ec");
+    t.css("padding-top", "20px");
+    t.css("padding-right", "20px");
+    t.css("padding-bottom", "20px");
+    t.css("padding-left", "30px");
   });
 
 
