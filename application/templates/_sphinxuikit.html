@@ -46,7 +46,7 @@ $(document).ready(function() {
   });
 
   // Explorando
-  $('div.section > h1').each(function () {
+  $("div[class='section'][id^='explorando'] > h1").each(function () {
     var t = $(this);
     t.replaceWith('<h2><span>Explorando</span>'
                   + t.text().substring(12).replace('¶', '') + '</h2>');
