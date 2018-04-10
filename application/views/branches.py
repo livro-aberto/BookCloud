@@ -456,6 +456,11 @@ def source(project, branch, filename):
     source_path = os.path.abspath(join('repos', project.name, branch.name, 'source'))
     return flask.send_from_directory(source_path, filename)
 
+@branches.route('/edit/_resources/<path:filename>')
+@limiter.exempt
+def get_resources_edit(project, branch, filename):
+    return get_tikz(project, branch, 'edit', filename)
+
 @branches.route('/<action>/_images/<path:filename>')
 @limiter.exempt
 def get_tikz(project, branch, action, filename):
