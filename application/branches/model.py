@@ -16,7 +16,7 @@ from flask_babel import gettext as _
 
 from application import app, db
 import application.projects
-from application.utils import Command, load_file
+from application.utils import Command, load_file, replaceAll
 from application.users import User
 from application.models import CRUDMixin
 
@@ -166,7 +166,11 @@ def build_latex(project, branch):
     source_path = join('repos', project, branch, 'source')
     build_path = join('repos', project, branch, 'build/latex')
     command = 'sphinx-build -a -b latex -c ' + app.config['CONFIG_PATH'] + ' ' + source_path + ' ' + build_path
+    filename = join(build_path, 'linux.tex')
     os.system(command)
+    replaceAll(filename, '%28', '\\pcnt 28')
+    replaceAll(filename, '%29', '\\pcnt 29')
+    replaceAll(filename, 'R$', 'R\\dollar ')
     return True
 
 def get_branch_by_name(project, branch):

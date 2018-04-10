@@ -1,6 +1,9 @@
 import os.path
 import time
 import locale
+import sys
+import fileinput
+
 try:
     import chardet
 except ImportError:
@@ -279,3 +282,8 @@ def resolve_conflict(target_folder, basename):
                 return newname
 
 
+def replaceAll(file,searchExp,replaceExp):
+    for line in fileinput.input(file, inplace=1):
+        if searchExp in line:
+            line = line.replace(searchExp,replaceExp)
+        sys.stdout.write(line)

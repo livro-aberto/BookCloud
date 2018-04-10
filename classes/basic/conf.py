@@ -208,11 +208,17 @@ htmlhelp_basename = 'linuxdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
-tikz_tikzlibraries = 'intersections, arrows, arrows.meta, mathrsfs'
+tikz_tikzlibraries = 'intersections, arrows, arrows.meta'
 tikz_latex_preamble = ''
 
 latex_elements = {
     'preamble': '''\usepackage{tikz}''' + tikz_latex_preamble + '''
+    \catcode`\%=12
+    \\newcommand\pcnt{%}
+    \catcode`\%=14
+    \catcode`\$=12
+    \\newcommand\dollar{$}
+    \catcode`\$=3
     \usetikzlibrary{''' + tikz_tikzlibraries + '''}''' + '''\n \\renewcommand{\\labelenumi}{\\alph{enumi})}'''
 # The paper size ('letterpaper' or 'a4paper').
 #'papersize': 'letterpaper',
