@@ -40,10 +40,33 @@ $(document).ready(function(){
   });
   */
 
+  function clearClass(editor, lineNumber) {
+    editor.removeLineClass(lineNumber, "background", "red-background");
+    editor.removeLineClass(lineNumber, "background", "green-background");
+    editor.removeLineClass(lineNumber, "background", "yellow-background");
+    editor.removeLineClass(lineNumber, "background", "blue-background");
+  }
+
+  function getLevel(editor, lineNumber) {
+    let line = editor.getLine(lineNumber);
+    let indication = line.search(/\S|$/);
+    if ((line.length >= indication + 3)
+        && (line.substring(indication, indication + 3) === ".. ")) {
+      indication = indication + 3;
+    }
+    if (lineNumber === 0) {
+      return indication;
+    }
+    if(line === "") {
+      return getLevel(editor, lineNumber - 1);
+    }
+    return indication;
+  }
+
   function getLines() {
     var count = editor.lineCount(), i;
     for (i = 0; i < count; i++) {
-      numberWhiteSpaces = editor.getLine(i).search(/\S|$/);
+      numberWhiteSpaces = getLevel(editor, i);
       editor.addLineClass(i, "background", colorLookUp[numberWhiteSpaces]);
     }
   }
@@ -52,16 +75,13 @@ $(document).ready(function(){
   editor.on("change", function() {
     //console.log("A");
     lineNumber = editor.getCursor()["line"];
-    numberWhiteSpaces = editor.getLine(lineNumber).search(/\S|$/);
+    numberWhiteSpaces = getLevel(editor, lineNumber);
     //console.log(lineNumber);
-    console.log(numberWhiteSpaces);
-    console.log(colorLookUp[numberWhiteSpaces]);
+    //console.log(numberWhiteSpaces);
+    //console.log(colorLookUp[numberWhiteSpaces]);
     //if ((numberWhiteSpaces % 3) != 0) {
     //  console.log("A");
-    editor.removeLineClass(lineNumber, "background", "red-background");
-    editor.removeLineClass(lineNumber, "background", "green-background");
-    editor.removeLineClass(lineNumber, "background", "yellow-background");
-    editor.removeLineClass(lineNumber, "background", "blue-background");
+    clearClass(editor, lineNumber);
     editor.addLineClass(lineNumber, "background", colorLookUp[numberWhiteSpaces]);
     //} else {
     //}
