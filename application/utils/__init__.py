@@ -283,7 +283,7 @@ def resolve_conflict(target_folder, basename):
 
 
 def replaceAll(file,searchExp,replaceExp):
-    for line in fileinput.input(file, inplace=1):
+    for line in fileinput.FileInput(file, inplace=True, backup='.bak'):
         if searchExp in line:
             line = line.replace(searchExp,replaceExp)
         sys.stdout.write(line)

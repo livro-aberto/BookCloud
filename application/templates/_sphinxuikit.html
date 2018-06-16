@@ -84,6 +84,17 @@ $(document).ready(function() {
                   + t.html() + '</section>');
   });
 
+  // Para saber mais
+  $("div[class='section'][id^='para-saber-mais'] > h1").each(function () {
+    var t = $(this);
+    t.replaceWith('<h2><span>Para saber +</span></h2>');
+  });
+  $("div[class='section'][id^='para-saber-mais']").each(function () {
+    var t = $(this);
+    t.replaceWith('<section class="topico para-saber-mais" id ="' + t.attr('id') + '">'
+                  + t.html() + '</section>');
+  });
+
 
   // Hide heade links
   $('a.headerlink').css('opacity', '0')
@@ -94,15 +105,6 @@ $(document).ready(function() {
   });
 
   // Ambientes
-
-  // Para saber mais
-  $('div.admonition-para-saber-mais > .admonition-title')
-    .replaceWith('<h2><span>Para Saber +</span></h2>');
-  $('div.admonition-para-saber-mais').each(function () {
-    var t = $(this);
-    t.replaceWith('<section class="topico para-saber-mais">'
-                  + t.html() + '</section>');
-  });
 
   // Para refletir
   $('div.admonition-para-refletir > .admonition-title')
