@@ -15,17 +15,18 @@ jQuery.expr[':'].regex = function(elem, index, match) {
 }
 
 $(document).ready(function() {
+  //$('div.main-container').addClass('uk-offcanvas-content');
 
   $('div.admonition-para-o-professor > .admonition-title')
     .replaceWith('<h3>Para o Professor</h3>');
-  $('div.admonition-para-o-professor').each(function () {
+  $('div.admonition-para-o-professor').each(function (index) {
     var t = $(this);
     t.replaceWith(`
-  <button class="uk-button uk-button-default"
-          type="button" uk-toggle="target: #offcanvas-usage">
+  <button class="uk-button uk-button-default" id="buuu"
+          type="button" uk-toggle="target: #para-o-professor-id-` + index + `">
     <span uk-icon="info" class="uk-margin-small-right"></span> Professor
   </button>
-  <div id="offcanvas-usage" uk-offcanvas>
+  <div id="para-o-professor-id-` + index + `" uk-offcanvas>
     <div class="uk-offcanvas-bar">
       <button class="uk-offcanvas-close" type="button" uk-close></button>
 ` + t.html() + `
@@ -33,7 +34,7 @@ $(document).ready(function() {
   </div>
 `);
   });
-
+  
   $('div.admonition-resposta').css('background-color', '#F5F5F5');
   $('div.admonition-resposta')
     .addClass('uk-card uk-card-default uk-card-body uk-box-shadow-large uk-margin-bottom');
