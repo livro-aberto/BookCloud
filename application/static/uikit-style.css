@@ -19,7 +19,7 @@ ol > li:before {
 }
 
 div.figure {
-  max-width: 90%; overflow-x: auto;
+  max-width: 70vw; overflow-x: auto;
 }
 
 main img {
