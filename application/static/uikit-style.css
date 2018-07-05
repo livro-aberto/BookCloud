@@ -17,3 +17,15 @@ ol > li:before {
     position: absolute;
     left: -1.4em;
 }
+
+div.figure {
+  max-width: 90%; overflow-x: auto;
+}
+
+main img {
+    width: unset;
+}
+
+img {
+    max-width: unset;
+}
