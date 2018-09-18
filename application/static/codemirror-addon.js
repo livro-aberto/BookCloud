@@ -1,35 +1,70 @@
+function getLevel(editor, lineNumber) {
+  let line = editor.getLine(lineNumber);
+  let indication = line.search(/\S|$/);
+  if ((line.length >= indication + 3)
+      && (line.substring(indication, indication + 3) === ".. ")) {
+    indication = indication + 3;
+  }
+  if (lineNumber === 0) {
+    return indication;
+  }
+  if(line === "") {
+    line = editor.getLine(lineNumber - 1);
+    indication = line.search(/\S|$/);
+    if ((line.length >= indication + 3)
+        && (line.substring(indication, indication + 3) === ".. ")) {
+      indication = indication + 3;
+    }
+    return indication;
+  }
+  return indication;
+}
+
+var colorLookUp = [
+  "", "red-background", "red-background",
+  "green-background", "red-background", "red-background",
+  "yellow-background", "red-background", "red-background",
+  "blue-background", "red-background", "red-background",
+  "", "red-background", "red-background",
+  "green-background", "red-background", "red-background",
+  "yellow-background", "red-background", "red-background",
+  "blue-background", "red-background", "red-background",
+  "", "red-background", "red-background",
+  "green-background", "red-background", "red-background",
+  "yellow-background", "red-background", "red-background",
+  "blue-background", "red-background", "red-background"
+];
+
+function getLines() {
+  var doc = editor
+  var count = editor.lineCount(), i;
+  for (i = 0; i < count; i++) {
+    numberWhiteSpaces = getLevel(editor, i);
+    editor.addLineClass(i, "background", colorLookUp[numberWhiteSpaces]);
+  }
+}
+
+
+function insertAround(start, end) {
+  var doc = editor;
+  var cursor = doc.getCursor();
+  if (doc.somethingSelected()) {
+    var selection = doc.getSelection();
+    doc.replaceSelection(start + selection + end);
+  } else {
+    // If no selection then insert start and end args and set cursor position between the two.
+    doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
+    doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
+  }
+  editor.focus();
+  getLines();
+}
+
+
 $(document).ready(function(){
 
   var is_changed = 0;
   // inserts text around the cursor or selection
-  function insertAround(start, end) {
-    var doc = editor;
-    var cursor = doc.getCursor();
-    if (doc.somethingSelected()) {
-      var selection = doc.getSelection();
-      doc.replaceSelection(start + selection + end);
-    } else {
-      // If no selection then insert start and end args and set cursor position between the two.
-      doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
-      doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length });
-    }
-    editor.focus();
-  }
-
-  var colorLookUp = [
-    "", "red-background", "red-background",
-    "green-background", "red-background", "red-background",
-    "yellow-background", "red-background", "red-background",
-    "blue-background", "red-background", "red-background",
-    "", "red-background", "red-background",
-    "green-background", "red-background", "red-background",
-    "yellow-background", "red-background", "red-background",
-    "blue-background", "red-background", "red-background",
-    "", "red-background", "red-background",
-    "green-background", "red-background", "red-background",
-    "yellow-background", "red-background", "red-background",
-    "blue-background", "red-background", "red-background"
-  ];
 
   var lineNumber;
   var numberWhiteSpaces;
@@ -47,29 +82,6 @@ $(document).ready(function(){
     editor.removeLineClass(lineNumber, "background", "blue-background");
   }
 
-  function getLevel(editor, lineNumber) {
-    let line = editor.getLine(lineNumber);
-    let indication = line.search(/\S|$/);
-    if ((line.length >= indication + 3)
-        && (line.substring(indication, indication + 3) === ".. ")) {
-      indication = indication + 3;
-    }
-    if (lineNumber === 0) {
-      return indication;
-    }
-    if(line === "") {
-      return getLevel(editor, lineNumber - 1);
-    }
-    return indication;
-  }
-
-  function getLines() {
-    var count = editor.lineCount(), i;
-    for (i = 0; i < count; i++) {
-      numberWhiteSpaces = getLevel(editor, i);
-      editor.addLineClass(i, "background", colorLookUp[numberWhiteSpaces]);
-    }
-  }
   getLines();
 
   editor.on("change", function() {
